@@ -97,7 +97,7 @@ export function fitPrep(
   return prep;
 }
 
-function rawVector(p: Prep, r: Row): number[] {
+export function rawVector(p: Prep, r: Row, dynamicStats?: Record<string, AccountStat>): number[] {
   const v: number[] = [];
   for (const n of p.numeric) {
     const x = toNum(r[n.col]);
@@ -115,16 +115,23 @@ function rawVector(p: Prep, r: Row): number[] {
     v.push(ok ? t.getUTCHours() : -1, ok ? t.getUTCDay() : -1);
   }
   if (p.graph) {
+    const statsMap = dynamicStats || p.graph.stats;
     for (const side of [p.graph.sender, p.graph.receiver]) {
-      const st = p.graph.stats[r[side]];
-      for (const g of GRAPH_COLS) v.push(st ? st[g] : 0); // unknown accounts at inference -> 0
+      const st = statsMap ? statsMap[r[side]] : undefined;
+      for (const g of GRAPH_COLS) v.push(st ? st[g] : 0); // unknown accounts -> 0
     }
   }
   return v;
 }
 
-export function transform(p: Prep, rows: Row[]): number[][] {
-  return rows.map((r) => rawVector(p, r).map((x, j) => (x - p.outMean[j]) / p.outStd[j]));
+export function transform(p: Prep, rows: Row[], dynamicStats?: Record<string, AccountStat>): number[][] {
+  let stats = dynamicStats;
+  if (!stats && p.graph && rows.length >= 10 && rows[0] && rows[0][p.graph.sender] && rows[0][p.graph.receiver]) {
+    stats = accountStats(rows, p.graph.sender, p.graph.receiver);
+  } else if (!stats && p.graph) {
+    stats = p.graph.stats;
+  }
+  return rows.map((r) => rawVector(p, r, stats).map((x, j) => (x - p.outMean[j]) / p.outStd[j]));
 }
 
 export function splitData(

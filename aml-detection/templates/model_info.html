@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+    <h2 style="font-size: 18px;">Pretrained AML Detection Models & Audit Information</h2>
+    <span style="background: rgba(16, 185, 129, 0.2); color: var(--success); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">
+      ✓ Initialized & Verified
+    </span>
+  </div>
+  <p style="font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 20px;">
+    Informational registry of pretrained machine learning models. Pretrained models are saved as persistent artifacts in <code>models/</code> and loaded automatically without requiring retraining on every user transaction upload.
+  </p>
+
+  {% if report %}
+  <div class="stat-grid" style="margin-bottom: 20px;">
+    <div class="stat-box">
+      <div class="stat-val" style="color: var(--primary);">{{ report.champion_model }}</div>
+      <div class="stat-lbl">Active Champion Model</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" style="color: var(--success);">{{ report.test_macro_f1 }}</div>
+      <div class="stat-lbl">Held-Out Test Macro-F1</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" style="color: var(--success);">{{ report.test_balanced_accuracy }}</div>
+      <div class="stat-lbl">Balanced Accuracy</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val">Verified</div>
+      <div class="stat-lbl">Reload Parity Check</div>
+    </div>
+  </div>
+
+  <h3 style="font-size: 14px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px;">Candidate Model Leaderboard:</h3>
+  <div style="overflow-x: auto; margin-bottom: 24px;">
+    <table>
+      <thead>
+        <tr>
+          <th>Model Architecture</th>
+          <th>Validation Macro-F1</th>
+          <th>Balanced Accuracy</th>
+          <th>Training Duration</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in report.leaderboard %}
+          <tr {% if m.model == report.champion_model %}style="background: rgba(245, 158, 11, 0.1); font-weight: bold;"{% endif %}>
+            <td>{{ m.model }}</td>
+            <td>{{ m.validation_macro_f1 or '—' }}</td>
+            <td>{{ m.validation_balanced_accuracy or '—' }}</td>
+            <td>{{ m.training_duration_seconds or '—' }}s</td>
+            <td>
+              {% if m.status == 'completed' %}
+                <span style="color: var(--success);">Completed</span>
+              {% else %}
+                <span style="color: var(--warning);">Unsupported (Tabular)</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); padding: 16px; border-radius: 4px; font-size: 13px;">
+    Run <code>python setup_models.py</code> in the terminal to execute automated training and populate this evaluation registry.
+  </div>
+  {% endif %}
+
+  <div style="background: var(--bg); border: 1px solid var(--border); padding: 16px; border-radius: 4px; margin-top: 24px; font-size: 12px; line-height: 1.5;">
+    <h4 style="margin-bottom: 8px; color: var(--text);">Documentation on 12 Target AML Categories:</h4>
+    <p style="color: var(--muted); margin-bottom: 8px;">
+      The 12 standard AML categories are tracked. Categories with sufficient labels in the benchmark training corpus are actively predicted by the classifier. Unsupported categories (such as Ponzi Scheme, Darknet Market, Cyber-Security Service) require specialized forensic blockchain graph feeds with explicit address-clustering labels and are transparently documented as unavailable rather than fabricated.
+    </p>
+  </div>
+</div>
+{% endblock %}

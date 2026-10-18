@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+{% if selected %}
+<div class="card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+    <div>
+      <h2 style="font-size: 18px; margin-bottom: 4px;">Local Prediction Attribution: {{ selected.transaction_id }}</h2>
+      <p style="font-size: 12px; color: var(--muted); font-family: monospace;">
+        Classification: <b style="color: {% if selected.risk_level in ['HIGH', 'MEDIUM'] %}var(--danger){% else %}var(--success){% endif %};">{{ selected.predicted_class }}</b>
+        · Confidence: <b>{{ "{:.1f}%".format((selected.confidence|float) * 100) }}</b>
+        · Risk Tier: <span class="badge {% if selected.risk_level == 'HIGH' %}badge-high{% else %}badge-low{% endif %}">{{ selected.risk_level }}</span>
+      </p>
+    </div>
+    <a href="/results" class="btn btn-outline" style="font-size: 12px;">← Back to Results</a>
+  </div>
+
+  <div style="background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: 4px; margin-bottom: 20px; font-family: monospace; font-size: 12px;">
+    Sender: <b>{{ selected.from_account or '—' }}</b> · Receiver: <b>{{ selected.to_account or '—' }}</b> · Amount: <b>${{ selected.amount }}</b> · Channel: <b>{{ selected.payment_format or selected.channel or '—' }}</b>
+  </div>
+
+  <h3 style="font-size: 14px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px;">SHAP-Style Feature Attributions vs Baseline Medians:</h3>
+  <div style="overflow-x: auto;">
+    <table>
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Observed Value</th>
+          <th>Training Baseline</th>
+          <th>Probability Delta (Contribution)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for exp in explanations %}
+          <tr>
+            <td style="font-weight: bold; color: var(--text);">{{ exp.feature }}</td>
+            <td>{{ exp.value }}</td>
+            <td style="color: var(--muted);">{{ exp.baseline }}</td>
+            <td style="font-weight: bold; color: {% if exp.contribution_delta > 0 %}var(--success){% else %}var(--danger){% endif %};">
+              {% if exp.contribution_delta > 0 %}+{% endif %}{{ "{:.2f}%".format(exp.contribution_delta * 100) }}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card" style="text-align: center; padding: 48px;">
+  <p style="color: var(--muted);">Select a transaction from the Results table to inspect local feature explanations.</p>
+</div>
+{% endif %}
+{% endblock %}
