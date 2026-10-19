@@ -40,7 +40,7 @@ export function Stat({
 }: {
   label: string;
   value: ReactNode;
-  tone?: "ok" | "bad" | "warn";
+  tone?: "ok" | "bad" | "warn" | undefined;
 }) {
   return (
     <div className="panel px-4 py-3">
