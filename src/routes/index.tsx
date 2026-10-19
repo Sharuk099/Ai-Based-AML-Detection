@@ -21,16 +21,27 @@ import { GraphPage } from "@/components/aml/pages/GraphPage";
 import { ExplainPage } from "@/components/aml/pages/ExplainPage";
 import { ReportPage } from "@/components/aml/pages/ReportPage";
 import { ModelInfoPage } from "@/components/aml/pages/ModelInfoPage";
+import { TrainPanel } from "@/components/aml/TrainPanel";
+import { ModelsPanel } from "@/components/aml/ModelsPanel";
+import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
+  head: () => ({ meta: [
+    { title: "AML Intelligence | Transaction Review & Model Validation" },
+    { name: "description", content: "Review uploaded transactions, train and independently evaluate AML models, and investigate evidence-backed alerts." },
+    { property: "og:title", content: "AML Intelligence | Transaction Review" },
+    { property: "og:description", content: "Transaction screening with transparent model validation and graph evidence." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: IndexPage,
 });
 
 function MainApp() {
   const { tab, setTab, activeDs, analysisResult, activeModel, isAnalyzing } = useAml();
 
-  const navItems = [
+  const navItems: { id: string; label: string; icon: LucideIcon; badge?: string | number | undefined; badgeTone?: string }[] = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "upload", label: "Upload Transactions", icon: Upload, badge: activeDs ? "ready" : undefined },
     {
@@ -55,8 +66,9 @@ function MainApp() {
       badge: analysisResult && analysisResult.flaggedCount > 0 ? `${analysisResult.flaggedCount} alerts` : undefined,
       badgeTone: "danger",
     },
+    { id: "train", label: "Train Models", icon: Sparkles },
     { id: "model_info", label: "Model Information", icon: Info },
-  ] as const;
+  ];
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
@@ -74,11 +86,11 @@ function MainApp() {
                   AI Anti-Money Laundering Detection
                 </span>
                 <span className="rounded bg-success/20 px-1.5 py-0.2 text-[10px] font-mono text-success font-medium flex items-center gap-1">
-                  <CheckCircle2 className="h-3 w-3" /> Pretrained
+                  <CheckCircle2 className="h-3 w-3" /> {activeModel ? "Trained" : "No model"}
                 </span>
               </div>
               <p className="text-[10px] font-mono text-muted-foreground hidden sm:block">
-                Production-Ready ML & Graph Analytics Engine
+                Transaction screening · Validation required
               </p>
             </div>
           </div>
@@ -114,7 +126,8 @@ function MainApp() {
               const Icon = item.icon;
               const isActive = tab === item.id;
               return (
-                <button
+                <Button
+                  variant="ghost"
                   key={item.id}
                   onClick={() => setTab(item.id)}
                   className={`flex items-center gap-2 whitespace-nowrap rounded px-3 py-2 text-xs font-medium transition-all ${
@@ -138,7 +151,7 @@ function MainApp() {
                       {item.badge}
                     </span>
                   )}
-                </button>
+                </Button>
               );
             })}
           </nav>
@@ -154,7 +167,8 @@ function MainApp() {
         {tab === "graph" && <GraphPage />}
         {tab === "explain" && <ExplainPage />}
         {tab === "report" && <ReportPage />}
-        {tab === "model_info" && <ModelInfoPage />}
+        {tab === "train" && <TrainPanel />}
+        {tab === "model_info" && <><ModelInfoPage /><ModelsPanel /></>}
       </main>
 
       {/* Footer */}
@@ -163,10 +177,10 @@ function MainApp() {
           <div className="flex items-center gap-2">
             <span>AI Anti-Money Laundering Detection</span>
             <span>·</span>
-            <span>Pretrained Gradient Boosting & Stacking</span>
+            <span>{activeModel?.name || "Awaiting labeled training data"}</span>
           </div>
           <div className="text-[11px] text-muted-foreground/80">
-            Compliant with FATF & FinCEN Typology Auditing Standards · Zero Server Upload
+            Human review required · Transactions stay in this browser
           </div>
         </div>
       </footer>

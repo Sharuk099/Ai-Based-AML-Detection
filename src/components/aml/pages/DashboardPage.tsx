@@ -3,52 +3,13 @@ import { ShieldAlert, Play, Upload, CheckCircle2, AlertTriangle, ArrowRight, Dat
 import { useAml } from "../state";
 import { Button } from "@/components/ui/button";
 import { Panel, Stat, Chip } from "../ui";
-import { syntheticCsv, generateOrdinaryCsv, generateSuspiciousCsv } from "../synthetic";
+
 import Papa from "papaparse";
 import { audit, fingerprint } from "@/lib/aml/audit";
 import type { Row } from "@/lib/aml/types";
 
 export function DashboardPage() {
   const { activeDs, activeModel, addDataset, analysisResult, isAnalyzing, runAnalysis, setTab, riskConfig, updateRiskConfig } = useAml();
-  const [loadingType, setLoadingType] = useState<string | null>(null);
-
-  const loadDataset = async (type: "ordinary" | "suspicious" | "mixed") => {
-    setLoadingType(type);
-    try {
-      let csv = "";
-      let name = "";
-      let prov = "";
-      if (type === "ordinary") {
-        csv = generateOrdinaryCsv(1000);
-        name = "1000_ordinary_transactions.csv";
-        prov = "1,000 synthetic ordinary transactions (Card/ACH, consumer amounts, no laundering)";
-      } else if (type === "suspicious") {
-        csv = generateSuspiciousCsv(200);
-        name = "200_suspicious_patterns.csv";
-        prov = "200 synthetic suspicious transactions (structuring $9,000-$9,900, layering mules, loops)";
-      } else {
-        csv = syntheticCsv(2500);
-        name = "mixed_aml_benchmark.csv";
-        prov = "2,500 mixed benchmark records (75% individual wallet, 15% exchange, 10% AML)";
-      }
-
-      const res = Papa.parse<Row>(csv, { header: true, skipEmptyLines: true, transformHeader: (h) => h.trim() });
-      const columns = (res.meta.fields || []).filter(Boolean);
-      const ds = {
-        name,
-        rows: res.data,
-        columns,
-        audit: audit(res.data, columns, name),
-        fingerprint: await fingerprint(csv.slice(0, 5_000_000)),
-        provenance: prov,
-        license: "Public Domain / CC0",
-      };
-      addDataset(ds);
-    } finally {
-      setLoadingType(null);
-    }
-  };
-
   const handleAnalyzeClick = async () => {
     if (!activeDs) {
       setTab("upload");
@@ -68,13 +29,13 @@ export function DashboardPage() {
           <div className="max-w-2xl space-y-2">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-mono text-xs text-primary">
               <CheckCircle2 className="h-3.5 w-3.5 text-success" />
-              <span>Pretrained Production Model · Verified</span>
+              <span>{activeModel ? "User-trained model · Review validation" : "No trained model available"}</span>
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
               AI Anti-Money Laundering Detection System
             </h1>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Separates machine-learning class predictions from multi-factor risk scoring. Incorporates transaction structuring detection, counterparty graph analysis, and SHAP-style local explainability with zero client-side training requirement.
+              Separates machine-learning class predictions from multi-factor risk scoring. Incorporates transaction structuring detection, counterparty graph analysis, and SHAP-style local explainability with validation on held-out labeled transactions.
             </p>
           </div>
 
@@ -100,46 +61,14 @@ export function DashboardPage() {
           </div>
         </div>
 
-        {/* Quick Benchmark Loaders (TASK 5) */}
-        <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-border/50 pt-4 text-xs font-mono">
-          <span className="text-muted-foreground flex items-center gap-1">
-            <Sparkles className="h-3.5 w-3.5 text-primary" /> Test Benchmarks:
-          </span>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={loadingType !== null}
-            onClick={() => loadDataset("ordinary")}
-            className="text-xs h-7 border-border hover:bg-card"
-          >
-            {loadingType === "ordinary" ? "Loading..." : "1,000 Ordinary Transactions"}
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={loadingType !== null}
-            onClick={() => loadDataset("suspicious")}
-            className="text-xs h-7 border-destructive/40 text-destructive hover:bg-destructive/10"
-          >
-            {loadingType === "suspicious" ? "Loading..." : "200 Known Suspicious Patterns"}
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={loadingType !== null}
-            onClick={() => loadDataset("mixed")}
-            className="text-xs h-7 border-border hover:bg-card"
-          >
-            {loadingType === "mixed" ? "Loading..." : "2,500 Mixed Benchmark"}
-          </Button>
-        </div>
+
       </div>
 
       {/* Main Operational Metrics (TASK 6) */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
         <Stat
           label="Total Analyzed"
-          value={analysisResult ? analysisResult.totalTransactions.toLocaleString() : activeDs ? activeDs.rows.length.toLocaleString() : "0"}
+          value={analysisResult ? analysisResult.totalTransactions.toLocaleString() : "—"}
         />
         <Stat
           label="Successfully Classified"
@@ -158,7 +87,7 @@ export function DashboardPage() {
         />
         <Stat
           label="Insufficient Evidence"
-          value={analysisResult ? analysisResult.unclassifiedCount.toLocaleString() : "0"}
+          value={analysisResult ? analysisResult.unclassifiedCount.toLocaleString() : "—"}
           tone={analysisResult && analysisResult.unclassifiedCount > 0 ? "warn" : undefined}
         />
       </div>

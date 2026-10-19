@@ -59,7 +59,6 @@ export function TrainPanel() {
     const defaultTarget =
       initialRoles.label ||
       activeDs.columns.find((c) => /label|class|fraud|target|is_laundering/i.test(c)) ||
-      activeDs.columns[activeDs.columns.length - 1] ||
       "";
     setTarget(defaultTarget);
 
@@ -133,14 +132,14 @@ export function TrainPanel() {
             <Cpu className="h-12 w-12 text-muted-foreground/50" />
             <h3 className="text-base font-semibold text-foreground">No Dataset Selected</h3>
             <p className="max-w-md text-xs text-muted-foreground">
-              Please load or upload a transaction dataset on the Datasets tab before launching model
+              Please load or upload a transaction dataset on the Upload Transactions tab before launching model
               training experiments.
             </p>
             <Button
-              onClick={() => setTab("datasets")}
+              onClick={() => setTab("upload")}
               className="mt-2 bg-primary text-primary-foreground"
             >
-              Go to Datasets
+              Upload Labeled Transactions
             </Button>
           </div>
         </Panel>
@@ -197,6 +196,7 @@ export function TrainPanel() {
                 value={target}
                 onChange={(e) => handleTargetChange(e.target.value)}
               >
+                <option value="">Select a ground-truth label column</option>
                 {activeDs.columns.map((c) => (
                   <option key={c} value={c}>
                     {c} {c === roles.label ? " [detected label]" : ""}
@@ -275,7 +275,8 @@ export function TrainPanel() {
                         onChange={(e) => handleRoleChange(rKey, e.target.value)}
                       >
                         <option value="">-- None --</option>
-                        {activeDs.columns.map((c) => (
+                        <option value="">Select a ground-truth label column</option>
+                {activeDs.columns.map((c) => (
                           <option key={c} value={c}>
                             {c}
                           </option>
@@ -403,7 +404,7 @@ export function TrainPanel() {
                 variant="outline"
                 onClick={() => {
                   setFocusModel(job.modelId);
-                  setTab("models");
+                  setTab("model_info");
                 }}
               >
                 Inspect Saved Model <ArrowRight className="ml-1.5 h-3.5 w-3.5" />

@@ -25,7 +25,7 @@ export function AnalyzePage() {
             <FileSpreadsheet className="h-12 w-12 text-muted-foreground/40" />
             <h3 className="text-base font-semibold text-foreground">No Transaction Dataset Loaded</h3>
             <p className="max-w-md text-xs text-muted-foreground">
-              Please upload a transaction CSV file or load a demo benchmark dataset before running analysis.
+              Please upload a transaction CSV file before running analysis.
             </p>
             <Button onClick={() => setTab("upload")} className="mt-2 bg-primary text-primary-foreground">
               Go to Upload Transactions
@@ -38,7 +38,7 @@ export function AnalyzePage() {
 
   const steps = [
     { title: "Input Schema & Column Mapping Validation", desc: `Inspecting ${activeDs.columns.length} columns against model requirements` },
-    { title: "Load Pretrained Production Pipeline", desc: `Loaded ${activeModel?.name || "Gradient Boosting [combined]"}` },
+    { title: "Load Saved Trained Pipeline", desc: `Loaded ${activeModel?.name || "No model selected"}` },
     { title: "Multi-Class Predictive Inference", desc: `Scoring ${activeDs.rows.length.toLocaleString()} rows into AML typology classes` },
     { title: "Directed Graph Topology & Typology Mining", desc: "Evaluating counterparty degree, smurfing, pass-through mules, and circular loops" },
     { title: "Local Explainable AI Attributions", desc: "Calculating feature contribution deltas vs training reference baseline" },
@@ -47,6 +47,7 @@ export function AnalyzePage() {
 
   return (
     <div className="space-y-6">
+      {!activeModel && <Note>No trained model is available. Upload labeled transactions and open Train Models first.</Note>}
       {/* Execution Hero Card */}
       <Panel
         title="One-Click Anti-Money Laundering Analysis"
@@ -59,7 +60,7 @@ export function AnalyzePage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-2">
           <div className="space-y-1">
             <h2 className="text-lg font-bold text-foreground">
-              Execute Production AML Scoring Pipeline
+              Execute AML Review Pipeline
             </h2>
             <p className="text-xs text-muted-foreground max-w-xl">
               Applies the trained machine learning pipeline and graph analytics directly to your uploaded data without requiring any manual model re-training.
@@ -69,7 +70,7 @@ export function AnalyzePage() {
           <Button
             size="lg"
             onClick={handleStartAnalysis}
-            disabled={isAnalyzing}
+            disabled={isAnalyzing || !activeModel}
             className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold px-8 shadow-lg shadow-primary/20 text-sm tracking-wide"
           >
             {isAnalyzing ? (
@@ -160,7 +161,7 @@ export function AnalyzePage() {
             <Stat
               label="Circular Loops"
               value={analysisResult.graphData?.cycles.length ?? 0}
-              tone={(analysisResult.graphData?.cycles.length ?? 0) > 0 ? "bad" : "ok"}
+              tone={undefined}
             />
           </div>
 
