@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Panel, Note, Chip, DataTable, Stat } from "../ui";
 import { audit, fingerprint } from "@/lib/aml/audit";
 import type { Row } from "@/lib/aml/types";
-import { syntheticCsv } from "../synthetic";
+
 
 export function UploadPage() {
   const { addDataset, activeDs, setTab, runAnalysis } = useAml();
@@ -32,6 +32,7 @@ export function UploadPage() {
         skipEmptyLines: true,
         transformHeader: (h) => h.trim(),
       });
+      if (parsed.errors.length) throw new Error(`Invalid CSV: ${parsed.errors[0]?.message}`);
       const columns = (parsed.meta.fields || []).filter(Boolean);
       if (columns.length < 2) {
         throw new Error("CSV must contain at least 2 columns.");
@@ -47,7 +48,7 @@ export function UploadPage() {
         audit: audit(parsed.data, columns, filename),
         fingerprint: await fingerprint(text.slice(0, 5_000_000)),
         provenance: prov || "User manual upload",
-        license: lic || "Proprietary / Customer Data",
+        license: lic || "Not specified",
       };
 
       addDataset(ds);
@@ -65,25 +66,6 @@ export function UploadPage() {
     await ingestFile(text, file.name, provenance, license);
   };
 
-  const loadSample = async (type: "synthetic" | "ibm_aml" | "amlsim") => {
-    setBusy(true);
-    try {
-      if (type === "synthetic") {
-        const text = syntheticCsv(2500);
-        await ingestFile(text, "synthetic_benchmark.csv", "Synthetic multi-class AML benchmark", "CC0 Public Domain");
-      } else if (type === "ibm_aml") {
-        // High density mule transfers
-        const text = syntheticCsv(1500);
-        await ingestFile(text, "ibm_aml_data_format.csv", "IBM AML-Data formatted transaction stream", "Apache 2.0 Benchmark");
-      } else {
-        const text = syntheticCsv(3000);
-        await ingestFile(text, "amlsim_agent_network.csv", "IBM AMLSim agent-based simulation format", "EPL-2.0 Benchmark");
-      }
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const handleProceedToAnalyze = async () => {
     if (!activeDs) return;
     setTab("analyze");
@@ -95,7 +77,7 @@ export function UploadPage() {
       <Panel title="Upload Transaction CSV File">
         <div className="space-y-4">
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Upload your transactions table. The application will automatically inspect the columns, validate compatibility with the pretrained models, and prepare the dataset for one-click analysis.
+            Upload your transactions table. The application will automatically inspect the columns, validate compatibility with the selected trained model, and prepare the dataset for one-click analysis.
           </p>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -126,42 +108,7 @@ export function UploadPage() {
             </div>
           )}
 
-          {/* Quick-load Preconfigured Benchmark Datasets */}
-          <div className="mt-4 border-t border-border/60 pt-4">
-            <div className="label-mono mb-2 flex items-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5 text-primary" />
-              <span>Or Load Built-in AML Benchmark Datasets:</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={busy}
-                onClick={() => loadSample("synthetic")}
-                className="text-xs"
-              >
-                Synthetic Multi-Class Demo (2,500 rows)
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={busy}
-                onClick={() => loadSample("ibm_aml")}
-                className="text-xs"
-              >
-                IBM AML-Data Schema Format (1,500 rows)
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={busy}
-                onClick={() => loadSample("amlsim")}
-                className="text-xs"
-              >
-                IBM AMLSim Agent Network (3,000 rows)
-              </Button>
-            </div>
-          </div>
+
         </div>
       </Panel>
 

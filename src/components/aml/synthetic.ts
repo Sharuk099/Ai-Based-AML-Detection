@@ -31,8 +31,8 @@ export function syntheticCsv(n: number = 3000): string {
     if (dice < 0.07) {
       // 7% Money Laundering (Mule structuring, smurfing, or pass-through)
       label = "Money Laundering";
-      from = muleAccounts[Math.floor(r() * muleAccounts.length)];
-      to = r() < 0.4 ? muleAccounts[Math.floor(r() * muleAccounts.length)] : ordinaryAccounts[Math.floor(r() * 200)];
+      from = muleAccounts[Math.floor(r() * muleAccounts.length)] ?? "";
+      to = r() < 0.4 ? muleAccounts[Math.floor(r() * muleAccounts.length)] ?? "" : ordinaryAccounts[Math.floor(r() * 200)] ?? "";
       // Structuring just below $10,000 reporting threshold or rapid layering
       amount = r() < 0.65 ? 9000 + r() * 950 : 15000 + r() * 15000;
       paymentFormat = ["Wire", "Cash", "Crypto"][Math.floor(r() * 3)];
@@ -40,8 +40,8 @@ export function syntheticCsv(n: number = 3000): string {
     } else if (dice < 0.10) {
       // 3% Tumbler / Mixer
       label = "Tumbler";
-      from = muleAccounts[Math.floor(r() * muleAccounts.length)];
-      to = ordinaryAccounts[Math.floor(r() * 100)];
+      from = muleAccounts[Math.floor(r() * muleAccounts.length)] ?? "";
+      to = ordinaryAccounts[Math.floor(r() * 100)] ?? "";
       amount = 500 + r() * 8000;
       paymentFormat = r() < 0.7 ? "Crypto" : "Wire";
       hour = Math.floor(r() * 24);
@@ -49,17 +49,17 @@ export function syntheticCsv(n: number = 3000): string {
       // 15% Centralized Exchange (Trading, institutional liquidity)
       label = "Centralized Exchange";
       const isDeposit = r() < 0.5;
-      from = isDeposit ? ordinaryAccounts[Math.floor(r() * ordinaryAccounts.length)] : exchangeAccounts[Math.floor(r() * exchangeAccounts.length)];
-      to = isDeposit ? exchangeAccounts[Math.floor(r() * exchangeAccounts.length)] : ordinaryAccounts[Math.floor(r() * ordinaryAccounts.length)];
+      from = isDeposit ? ordinaryAccounts[Math.floor(r() * ordinaryAccounts.length)] ?? "" : exchangeAccounts[Math.floor(r() * exchangeAccounts.length)] ?? "";
+      to = isDeposit ? exchangeAccounts[Math.floor(r() * exchangeAccounts.length)] ?? "" : ordinaryAccounts[Math.floor(r() * ordinaryAccounts.length)] ?? "";
       amount = 50 + Math.exp(3.5 + r() * 3.5);
       paymentFormat = ["Wire", "ACH", "Card"][Math.floor(r() * 3)];
       hour = 8 + Math.floor(r() * 14);
     } else {
       // 75% Individual Wallet (Everyday consumer & commercial activity)
       label = "Individual Wallet";
-      from = ordinaryAccounts[Math.floor(r() * ordinaryAccounts.length)];
-      to = ordinaryAccounts[Math.floor(r() * ordinaryAccounts.length)];
-      if (from === to) to = ordinaryAccounts[(ordinaryAccounts.indexOf(from) + 1) % ordinaryAccounts.length];
+      from = ordinaryAccounts[Math.floor(r() * ordinaryAccounts.length)] ?? "";
+      to = ordinaryAccounts[Math.floor(r() * ordinaryAccounts.length)] ?? "";
+      if (from === to) to = ordinaryAccounts[(ordinaryAccounts.indexOf(from) + 1) % ordinaryAccounts.length] ?? "";
       amount = Math.max(8.5, Math.exp(2.5 + r() * 3.2)); // Normal amounts: ~$15 to ~$600
       paymentFormat = ["Card", "Card", "ACH", "Cheque"][Math.floor(r() * 4)];
       hour = 8 + Math.floor(r() * 12);

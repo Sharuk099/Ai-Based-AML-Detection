@@ -15,7 +15,7 @@ import { listModels, saveModel, deleteModel } from "@/lib/aml/store";
 import { pipelineProba, localExplain } from "@/lib/aml/pipeline";
 import { graphSummary } from "@/lib/aml/graph";
 import { evaluateTransactionRisk, DEFAULT_RISK_CONFIG, type RiskConfig } from "@/lib/aml/risk";
-import defaultPretrained from "@/lib/aml/pretrained.json";
+import { prepareInferenceRow, inferenceIssue } from "@/lib/aml/inference";
 
 export interface Dataset {
   name: string;
@@ -27,7 +27,8 @@ export interface Dataset {
   license: string;
 }
 
-export interface ScoredTransaction extends Row {
+export interface ScoredTransaction {
+  [key: string]: string | number | boolean | { label: string; prob: number }[] | { feature: string; value: string; contribution: number }[];
   _row_id: string;
   _predicted_class: string;
   _confidence: number;
@@ -159,18 +160,11 @@ export function AmlProvider({ children }: { children: ReactNode }) {
     setRiskConfig((prev) => ({ ...prev, ...cfg }));
   };
 
-  // Initialize models and automatically seed pretrained model if none exists
+  // Remove only the known bundled demo artifact; retain explicitly trained models.
   const refreshModels = useCallback(async () => {
-    let existing = await listModels();
-    if (existing.length === 0 && defaultPretrained) {
-      try {
-        await saveModel(defaultPretrained as unknown as SavedModel);
-        existing = [defaultPretrained as unknown as SavedModel];
-      } catch (e) {
-        console.warn("Could not seed default pretrained model into IndexedDB:", e);
-        existing = [defaultPretrained as unknown as SavedModel];
-      }
-    }
+    const stored = await listModels();
+    const existing = stored.filter((m) => m.id !== "20261018145236_gradient_boosting" && m.report.dataset !== "ibm_aml_synthetic_benchmark.csv");
+    await Promise.all(stored.filter((m) => !existing.includes(m)).map((m) => deleteModel(m.id)));
     setModels(existing);
     if (!focusModel && existing[0]) {
       setFocusModel(existing[0].id);
@@ -181,7 +175,7 @@ export function AmlProvider({ children }: { children: ReactNode }) {
     refreshModels();
   }, [refreshModels]);
 
-  const activeModel = models.find((m) => m.id === focusModel) || models[0] || (defaultPretrained as unknown as SavedModel);
+  const activeModel = models.find((m) => m.id === focusModel) || models[0];
   const activeDs = datasets.find((d) => d.name === active) ?? datasets[0];
 
   // ONE-CLICK ANALYSIS WORKFLOW
@@ -215,17 +209,7 @@ export function AmlProvider({ children }: { children: ReactNode }) {
       const txIdKey = roleMap.transaction_id || "transaction_id";
 
       // 2. Prepare rows cleanly without injecting false mule accounts
-      const preparedRows: Row[] = rows.map((r, i) => {
-        const copy: Row = {};
-        copy.amount = r[amountKey] !== undefined ? String(r[amountKey]) : "";
-        copy.currency = r[currencyKey] !== undefined ? String(r[currencyKey]) : "USD";
-        copy.payment_format = r[formatKey] !== undefined ? String(r[formatKey]) : "Card";
-        copy.timestamp = r[timeKey] !== undefined ? String(r[timeKey]) : new Date().toISOString();
-        copy.from_account = r[senderKey] !== undefined ? String(r[senderKey]) : `USER_${i + 1}`;
-        copy.to_account = r[receiverKey] !== undefined ? String(r[receiverKey]) : `MERCHANT_${(i % 50) + 1}`;
-        copy.transaction_id = r[txIdKey] !== undefined ? String(r[txIdKey]) : `TX_${i + 1}`;
-        return copy;
-      });
+      const preparedRows = rows.map((r) => prepareInferenceRow(r, modelToUse, roleMap));
 
       // 3. Graph Analytics across the uploaded batch (TASK 4)
       let gData = null;
@@ -259,7 +243,8 @@ export function AmlProvider({ children }: { children: ReactNode }) {
 
       const scoredRecords: ScoredTransaction[] = preparedRows.map((r, i) => {
         const p = probas[i] || [];
-        const maxProb = Math.max(...p, 0);
+        const issue = inferenceIssue(modelToUse, r);
+        const maxProb = issue ? 0 : Math.max(...p, 0);
         const predIdx = p.indexOf(maxProb);
         let predClass = modelToUse.classes[predIdx] || "Unknown";
 
@@ -271,8 +256,8 @@ export function AmlProvider({ children }: { children: ReactNode }) {
         // Graph context for this transaction
         const sAccount = r.from_account;
         const rAccount = r.to_account;
-        const sStat = gData?.top.find((t) => t.account === sAccount);
-        const rStat = gData?.top.find((t) => t.account === rAccount);
+        const sStat = gData?.accounts.find((t) => t.account === sAccount);
+        const rStat = gData?.accounts.find((t) => t.account === rAccount);
         const inSuspCycle = cycleAccountSet.has(sAccount) || cycleAccountSet.has(rAccount);
 
         const riskEval = evaluateTransactionRisk(
@@ -297,7 +282,7 @@ export function AmlProvider({ children }: { children: ReactNode }) {
         }
 
         categoryBreakdown[predClass] = (categoryBreakdown[predClass] || 0) + 1;
-        riskScoresList.push(riskEval.riskScore);
+        if (!issue && riskEval.classificationStatus === "CLASSIFIED") riskScoresList.push(riskEval.riskScore);
 
         if (riskEval.isSuspicious) {
           flaggedCount++;
@@ -310,7 +295,7 @@ export function AmlProvider({ children }: { children: ReactNode }) {
 
         return {
           ...r,
-          _row_id: r.transaction_id,
+          _row_id: r.transaction_id || `row_${i + 1}`,
           _predicted_class: predClass,
           _confidence: maxProb,
           _risk_score: riskEval.riskScore,
@@ -318,9 +303,9 @@ export function AmlProvider({ children }: { children: ReactNode }) {
           _is_suspicious: riskEval.isSuspicious,
           _status: riskEval.classificationStatus,
           _reliability: riskEval.reliability,
-          _evidence_notes: riskEval.evidenceNotes,
-          _probabilities: probList,
-          _explanations: exp,
+          _evidence_notes: issue || riskEval.evidenceNotes,
+          _probabilities: issue ? [] : probList,
+          _explanations: issue ? [] : exp,
         };
       });
 

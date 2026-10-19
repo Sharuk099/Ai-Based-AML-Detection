@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Panel, Stat, DataTable, Chip, Note, fmt, selectCls } from "./ui";
 import { pipelineProba, localExplain } from "@/lib/aml/pipeline";
+import { evaluateTransactionRisk } from "@/lib/aml/risk";
+import { inferenceIssue } from "@/lib/aml/inference";
 import type { Row } from "@/lib/aml/types";
 
 export function PredictPanel() {
@@ -36,7 +38,7 @@ export function PredictPanel() {
   // Batch inference state
   const [batchRows, setBatchRows] = useState<Row[]>([]);
   const [batchResults, setBatchResults] = useState<{
-    rows: (Row & { _predicted_class: string; _confidence: number; _risk_level: string })[];
+    rows: Record<string, string | number>[];
     summary: { total: number; flagged: number; flaggedPct: number };
   } | null>(null);
   const [batchError, setBatchError] = useState<string>();
@@ -46,7 +48,7 @@ export function PredictPanel() {
   // Pre-fill singleInputs from activeModel reference values
   useEffect(() => {
     if (activeModel) {
-      setSingleInputs({ ...activeModel.reference });
+      setSingleInputs(Object.fromEntries(activeModel.prep.inputColumns.map((c) => [c, ""])));
       setSingleResult(null);
     }
   }, [activeModel]);
@@ -58,7 +60,8 @@ export function PredictPanel() {
 
     const maxProb = Math.max(...probas);
     const predIdx = probas.indexOf(maxProb);
-    const predClass = activeModel.classes[predIdx] || "Unknown";
+    const issue = inferenceIssue(activeModel, singleInputs);
+    const predClass = issue ? "Unable to classify" : activeModel.classes[predIdx] || "Unable to classify";
 
     const probList = activeModel.classes
       .map((cls, idx) => ({
@@ -71,8 +74,8 @@ export function PredictPanel() {
 
     setSingleResult({
       prediction: predClass,
-      probabilities: probList,
-      explanations: explains,
+      probabilities: issue ? [] : probList,
+      explanations: issue ? [] : explains,
     });
   };
 
@@ -101,16 +104,15 @@ export function PredictPanel() {
         const maxP = Math.max(...p, 0);
         const idx = p.indexOf(maxP);
         const cls = activeModel.classes[idx] || "Unknown";
-        const isLaunderingOrHighRisk =
-          /laundering|fraud|darknet|blackmail|blacklist|ponzi|tumbler/i.test(cls);
-        if (isLaunderingOrHighRisk) flaggedCount++;
-
-        const risk = isLaunderingOrHighRisk ? (maxP > 0.7 ? "HIGH" : "MEDIUM") : "LOW";
+        const issue = inferenceIssue(activeModel, r);
+        const evaluation = evaluateTransactionRisk(r, cls, issue ? 0 : maxP, activeModel.classes.map((label, j) => ({label, prob: p[j] ?? 0})));
+        if (evaluation.isSuspicious) flaggedCount++;
+        const risk = evaluation.riskLevel;
 
         return {
           ...r,
-          _predicted_class: cls,
-          _confidence: maxP,
+          _predicted_class: evaluation.classificationStatus === "CLASSIFIED" ? cls : "Unable to classify",
+          _confidence: issue ? 0 : maxP,
           _risk_level: risk,
         };
       });

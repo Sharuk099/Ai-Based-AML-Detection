@@ -229,13 +229,13 @@ export function ModelsPanel() {
                 <div className="rounded border border-border/70 p-3 bg-muted/20">
                   <div className="label-mono mb-1">Standardized Numeric Features:</div>
                   <div className="text-foreground/90">
-                    {activeModel.prep.numCols.join(", ") || "None"}
+                    {activeModel.prep.numeric.map((f) => f.col).join(", ") || "None"}
                   </div>
                 </div>
                 <div className="rounded border border-border/70 p-3 bg-muted/20">
                   <div className="label-mono mb-1">One-Hot Categorical Features:</div>
                   <div className="text-foreground/90">
-                    {activeModel.prep.catCols.join(", ") || "None"}
+                    {activeModel.prep.categorical.map((f) => f.col).join(", ") || "None"}
                   </div>
                 </div>
               </div>

@@ -57,7 +57,9 @@ export function trainAll(
     );
   }
   const assess = assessFeatures(rows, columns, target, cfg.roles);
-  const features = cfg.features.filter((f) => columns.includes(f) && f !== target);
+  const forbidden = cfg.features.filter((f) => f === target || assess.excluded[f]);
+  if (forbidden.length) throw new Error(`Excluded or leaking features selected: ${forbidden.join(", ")}`);
+  const features = cfg.features.filter((f) => assess.eligible.includes(f));
   if (!features.length) throw new Error("No eligible feature columns selected.");
   const roles = { ...cfg.roles };
   const graphOk = !!(roles.sender && roles.receiver);
@@ -65,10 +67,12 @@ export function trainAll(
     rows,
     target,
     cfg.split,
-    features.includes(roles.timestamp || "") ? roles.timestamp : undefined,
+    roles.timestamp,
     cfg.split === "group" ? roles.sender : undefined,
   );
+  if (sp.used !== cfg.split && !sp.used.startsWith(cfg.split)) throw new Error("Requested split requires its timestamp or sender role.");
   const classes = [...new Set(sp.train.map((r) => r[target]))].sort();
+  if (classes.length < 2 || [...sp.val, ...sp.test].some((r) => !classes.includes(r[target]))) throw new Error("Split lacks training classes represented in validation/test; choose a different split or supply more data.");
   const enc = (rs: Row[]) => rs.map((r) => classes.indexOf(r[target]));
   const keep = (rs: Row[]) => rs.filter((r) => classes.includes(r[target]));
   const train = sp.train,
@@ -135,7 +139,9 @@ export function trainAll(
       }
       const prep = fitPrep(trRows, features, roles, fs);
       if (!prep.outNames.length) throw new Error("No usable features for this feature set.");
-      const model = makers[name]!(transform(prep, trRows), y, key);
+      const maker = makers[name];
+      if (!maker) throw new Error("Unsupported model architecture");
+      const model = maker(transform(prep, trRows), y, key);
       const seconds = (performance.now() - st) / 1000;
       const ti = performance.now();
       const P = pipelineProba(prep, model, val);
@@ -186,10 +192,10 @@ export function trainAll(
           .filter(Boolean)
           .join("; "),
     );
-  const score = (b: LeaderRow) => (b.val![cfg.metric] ?? -1) as number;
+  const score = (b: LeaderRow) => (b.val?.[cfg.metric] ?? -1) as number;
   const best = ok.reduce((a, b) => (score(b) > score(a) ? b : a));
   best.selected = true;
-  const notes: string[] = [];
+  const notes: string[] = ["Held-out metrics use supplied labels; label authenticity and real-world AML accuracy have not been independently verified.", "Risk scores are configurable review heuristics, not calibrated probabilities of criminal activity."];
   const stk = ok.find((b) => b.model === "Stacking");
   if (stk) {
     const others = ok.filter((b) => b !== stk && b.featureSet === stk.featureSet).map(score);
@@ -198,7 +204,9 @@ export function trainAll(
   }
 
   log({ event: "testing", model: best.key });
-  const { prep, model } = fitted.get(best.key)!;
+  const winner = fitted.get(best.key);
+  if (!winner) throw new Error("Selected model is missing.");
+  const { prep, model } = winner;
   const Pt = pipelineProba(prep, model, test);
   const testM = evaluate(yte, Pt.map(argmax), Pt, classes);
   log({ event: "explaining" });
