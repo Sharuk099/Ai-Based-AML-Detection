@@ -125,12 +125,7 @@ export function rawVector(p: Prep, r: Row, dynamicStats?: Record<string, Account
 }
 
 export function transform(p: Prep, rows: Row[], dynamicStats?: Record<string, AccountStat>): number[][] {
-  let stats = dynamicStats;
-  if (!stats && p.graph && rows.length >= 10 && rows[0] && rows[0][p.graph.sender] && rows[0][p.graph.receiver]) {
-    stats = accountStats(rows, p.graph.sender, p.graph.receiver);
-  } else if (!stats && p.graph) {
-    stats = p.graph.stats;
-  }
+  const stats = dynamicStats ?? p.graph?.stats;
   return rows.map((r) => rawVector(p, r, stats).map((x, j) => (x - p.outMean[j]) / p.outStd[j]));
 }
 

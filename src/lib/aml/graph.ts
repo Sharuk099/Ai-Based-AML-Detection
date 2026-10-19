@@ -112,7 +112,7 @@ export interface CycleInfo {
   length: number;
   avgAmount: number;
   isSuspicious: boolean;
-  classification: "Suspicious Layering Ring" | "Routine Commercial Loop";
+  classification: "Unvalidated Circular Flow";
   evidence: string;
 }
 
@@ -183,18 +183,16 @@ export function graphSummary(
       return st && st.passthrough >= 0.90 && st.passthrough <= 1.10 && st.out_total > 5000;
     });
 
-    const isSuspicious = hasMuleAccount || avgAmt > 9000;
-
+    // Volume and pass-through alone do not establish laundering or chronology.
     return {
       path,
       length: path.length,
       avgAmount: avgAmt,
-      isSuspicious,
-      classification: isSuspicious ? "Suspicious Layering Ring" : "Routine Commercial Loop",
-      evidence: isSuspicious
-        ? `Contains pass-through conduit account with average transfer of $${Math.round(avgAmt).toLocaleString()}`
-        : "Standard cyclical counterparty flow with normal commercial volumes and no mule indicators.",
+      isSuspicious: false,
+      classification: "Unvalidated Circular Flow",
+      evidence: `Directed cycle of ${path.length} accounts; average aggregated edge amount ${avgAmt.toFixed(2)} (currency not normalized). ${hasMuleAccount ? "Pass-through pattern observed. " : ""}No validated temporal or laundering evidence; cycle alone is not suspicious.`,
     };
+
   });
 
   const suspiciousCycles = analyzedCycles.filter((c) => c.isSuspicious);
@@ -216,13 +214,16 @@ export function graphSummary(
   const topSet = new Set(top.map((t) => t.account));
   const edges = [...edgeW.entries()]
     .map(([k, w]) => {
-      const [a, b] = k.split("\u0001");
+      const [a = "", b = ""] = k.split("\u0001");
       return { source: a, target: b, weight: w };
     })
     .filter((e) => topSet.has(e.source) && topSet.has(e.target));
 
   return {
+    accounts,
     nodes: accounts.length,
+    transactionEdges: rows.filter((row) => row[s] && row[r]).length,
+    cycleSearchNote: "Bounded search: cycles of 2–4 accounts, at most 200 results and 2,000,000 search steps; not exhaustive.",
     edges: edgeW.size,
     top,
     indicators,

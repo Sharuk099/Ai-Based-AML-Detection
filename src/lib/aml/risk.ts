@@ -35,7 +35,7 @@ export interface RiskEvaluation {
 }
 
 /**
- * Validated, multi-factor risk scoring engine separating classification from risk.
+ * Uncalibrated, configurable multi-factor review policy separating classification from risk.
  * A transaction is not automatically labeled suspicious simply because of a predicted label.
  */
 export function evaluateTransactionRisk(
@@ -53,13 +53,13 @@ export function evaluateTransactionRisk(
 ): RiskEvaluation {
   const reasons: string[] = [];
   const rawAmt = parseFloat(String(row["amount"] || "").replace(/,/g, ""));
-  const isAmtValid = !Number.isNaN(rawAmt) && rawAmt >= 0;
+  const isAmtValid = Number.isFinite(rawAmt) && rawAmt >= 0;
 
   // 1. Reliability Gate:
   // If required attributes are missing or model confidence is too low (< 0.40):
   if (!isAmtValid || confidence < 0.38) {
     return {
-      riskScore: 0.10,
+      riskScore: 0,
       riskLevel: "LOW",
       isSuspicious: false,
       classificationStatus: "UNABLE_TO_CLASSIFY",
@@ -78,12 +78,12 @@ export function evaluateTransactionRisk(
   }
 
   if (suspicionProb > 0.45) {
-    reasons.push(`Model identified ${(suspicionProb * 100).toFixed(1)}% probability of ${predictedClass}`);
+    reasons.push(`Model assigned ${(suspicionProb * 100).toFixed(1)}% total score to configured review classes (top class: ${predictedClass})`);
   }
 
   // 3. Amount & Structuring Anomaly Factor:
   let amountRisk = 0;
-  if (rawAmt >= config.structuringMin && rawAmt <= config.structuringMax) {
+  if (String(row["currency"]).toUpperCase() === "USD" && rawAmt >= config.structuringMin && rawAmt <= config.structuringMax) {
     amountRisk += 0.35;
     reasons.push(`Structuring indicator: $${rawAmt.toLocaleString()} is just below the $10,000 regulatory threshold`);
   } else if (rawAmt > 50000 && String(row["payment_format"]).toLowerCase() === "cash") {
@@ -99,17 +99,17 @@ export function evaluateTransactionRisk(
 
     if (sStat && sStat.passthrough >= 0.90 && sStat.passthrough <= 1.10 && sStat.out_total > 5000) {
       networkRisk += 0.25;
-      reasons.push(`Sender account acts as a pass-through mule (Out/In flow ${(sStat.passthrough * 100).toFixed(0)}%)`);
+      reasons.push(`Sender shows an unvalidated pass-through pattern (Out/In flow ${(sStat.passthrough * 100).toFixed(0)}%)`);
     }
 
     if (sStat && sStat.fan_out) {
       networkRisk += 0.15;
-      reasons.push(`Smurfing indicator: Sender disperses funds to ≥10 unique receivers`);
+      reasons.push(`Fan-out indicator: Sender disperses funds to ≥10 unique receivers`);
     }
 
     if (rStat && rStat.fan_in) {
       networkRisk += 0.15;
-      reasons.push(`Aggregation indicator: Receiver pools deposits from ≥10 unique senders`);
+      reasons.push(`Fan-in indicator: Receiver pools deposits from ≥10 unique senders`);
     }
 
     if (graphContext.inSuspiciousCycle) {
@@ -122,7 +122,7 @@ export function evaluateTransactionRisk(
   // Weighted combination: 50% model prediction, 25% amount anomaly, 25% network evidence
   const composite = Math.min(
     1.0,
-    0.50 * suspicionProb + 0.25 * amountRisk + 0.25 * networkRisk
+    0.50 * suspicionProb + 0.25 * Math.min(1, amountRisk / 0.35) + 0.25 * Math.min(1, networkRisk / 0.80)
   );
 
   const roundedScore = Math.round(composite * 1000) / 1000;
@@ -135,7 +135,8 @@ export function evaluateTransactionRisk(
     riskLevel = "MEDIUM";
   }
 
-  const isSuspicious = riskLevel !== "LOW";
+  const isSuspicious = riskLevel !== "LOW" && (amountRisk > 0 || networkRisk > 0);
+  if (!isSuspicious) riskLevel = "LOW";
 
   if (!isSuspicious && reasons.length === 0) {
     reasons.push("Standard transaction: ordinary commercial activity with no structural risk flags.");
