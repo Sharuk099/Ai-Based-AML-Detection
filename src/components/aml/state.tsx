@@ -26,7 +26,7 @@ import {
   checkModelCompatibility,
   type ModelCompatibilityResult,
 } from "@/lib/aml/inference";
-import defaultPretrained from "@/lib/aml/pretrained.json";
+import approvedModels from "@/lib/aml/approved-models.json";
 import {
   generateIndianBankingCsv,
   generateInternationalBankingCsv,
@@ -303,21 +303,24 @@ export function AmlProvider({ children }: { children: ReactNode }) {
     setRiskConfig((prev) => ({ ...prev, ...cfg }));
   };
 
-  const verifiedBackendModel = defaultPretrained as unknown as SavedModel;
+  const approvedCandidates = approvedModels.candidates as unknown as SavedModel[];
 
   const refreshModels = useCallback(async () => {
     const stored = await listModels();
+    for (const candidate of approvedCandidates) {
+      if (!stored.some((m) => m.id === candidate.id)) await saveModel(candidate);
+    }
     const existing = stored.filter(
       (m) =>
         m.id !== "20261018145236_gradient_boosting" &&
         m.report.dataset !== "ibm_aml_synthetic_benchmark.csv",
     );
-    // Respect AGENTS.md rule: do not seed synthetic models if user models exist
-    setModels(existing.length > 0 ? existing : [verifiedBackendModel]);
+    const merged = [...existing, ...approvedCandidates.filter((m) => !existing.some((s) => s.id === m.id))];
+    setModels(merged);
     if (!focusModel) {
-      setFocusModel(existing[0]?.id || verifiedBackendModel.id);
+      setFocusModel(approvedModels.activeId);
     }
-  }, [focusModel, verifiedBackendModel]);
+  }, [focusModel]);
 
   const loadPresetDataset = useCallback(
     async (
@@ -327,9 +330,11 @@ export function AmlProvider({ children }: { children: ReactNode }) {
       let name = "";
       let prov = "";
       if (type === "banking_accounts_100") {
-        csv = generateSyntheticBankingAccounts100Csv();
+        const response = await fetch('/synthetic_banking_accounts_100_50_risk_50_normal.csv');
+        if (!response.ok) throw new Error('Approved account sample unavailable.');
+        csv = await response.text();
         name = "synthetic_banking_accounts_100_50_risk_50_normal.csv";
-        prov = "Benchmark Banking Accounts Dataset (100 Accounts: 50 Risk / 50 Normal)";
+        prov = "Synthetic training-source accounts; not independent validation";
       } else if (type === "indian") {
         csv = generateIndianBankingCsv(5000);
         name = "Indian_Core_Banking_5000_txns.csv";
@@ -380,7 +385,7 @@ export function AmlProvider({ children }: { children: ReactNode }) {
     setAnalysisResult(undefined);
   }, []);
 
-  const activeModel = models.find((m) => m.id === focusModel) || models[0] || verifiedBackendModel;
+  const activeModel = models.find((m) => m.id === focusModel) || models[0];
   const activeDs = datasets.find((d) => d.name === active) ?? datasets[0];
 
   const modelCompatibility =
@@ -461,7 +466,7 @@ export function AmlProvider({ children }: { children: ReactNode }) {
 
       // 3. Graph Analytics across the uploaded batch (TASK 4 & Requirement 9: Do not invent circular transaction loops)
       let gData = null;
-      if (roleMap.sender && roleMap.receiver) {
+      if (roleMap.sender && roleMap.receiver && roleMap.amount && roleMap.timestamp && roleMap.transaction_id) {
         gData = graphSummary(preparedRows, "from_account", "to_account", "amount", "timestamp");
       }
 
@@ -594,7 +599,7 @@ export function AmlProvider({ children }: { children: ReactNode }) {
           ? ds.audit.roles.label
           : undefined);
 
-      if (groundTruthCol) {
+      if (groundTruthCol && ds.fingerprint !== modelToUse.report.fingerprint) {
         let tr = 0,
           fr = 0,
           tn = 0,
@@ -607,7 +612,8 @@ export function AmlProvider({ children }: { children: ReactNode }) {
           const predVal = String(scoredRecords[i]._predicted_class ?? "")
             .toLowerCase()
             .trim();
-          if (!trueVal) return;
+          if (!trueVal || scoredRecords[i]._status !== "CLASSIFIED" ||
+            !modelToUse.classes.some((c) => c.toLowerCase() === trueVal)) return;
           evaluatedCount++;
           const isTrueRisk =
             trueVal === "risk" || trueVal === "1" || isSuspiciousClass(trueVal, riskConfig);

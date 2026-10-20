@@ -50,14 +50,13 @@ export function ModelsPanel() {
             <ShieldCheck className="h-12 w-12 text-muted-foreground/50" />
             <h3 className="text-base font-semibold text-foreground">No Models Stored Yet</h3>
             <p className="max-w-md text-xs text-muted-foreground">
-              Trained models are automatically verified, serialized, and persisted in your browser's
-              local IndexedDB. Launch a training job on the Train tab to generate your first model.
+              No approved model is available. Contact the model administrator.
             </p>
             <Button
               onClick={() => refreshModels()}
               className="mt-2 bg-primary text-primary-foreground font-bold"
             >
-              Restore Verified Backend Model
+              Refresh Models
             </Button>
           </div>
         </Panel>
@@ -167,7 +166,7 @@ export function ModelsPanel() {
                   size="sm"
                   onClick={() => {
                     setFocusModel(activeModel.id);
-                    setTab("predict");
+                    setTab("analyze");
                   }}
                   className="bg-primary text-primary-foreground hover:bg-primary/90 text-xs"
                 >

@@ -1,0 +1,1413 @@
+{
+  "activeId": "20261020045146_gradient_boosting_Gradient_Boosting__tabular_",
+  "reports": [
+    {
+      "id": "20261020045146_gradient_boosting_Gradient_Boosting__tabular_",
+      "selected": "Gradient Boosting [tabular]",
+      "selectionMetric": "macro_f1",
+      "dataset": "synthetic_banking_accounts_100_50_risk_50_normal.csv",
+      "fingerprint": "99f4782717897982",
+      "trainedAt": "2026-10-20T04:51:46.360Z",
+      "split": "stratified",
+      "trainSize": 70,
+      "valSize": 15,
+      "testSize": 15,
+      "records": 100,
+      "features": [
+        "customer_type",
+        "account_age_months",
+        "avg_balance",
+        "monthly_inflow",
+        "monthly_outflow",
+        "in_out_ratio",
+        "txn_count_monthly",
+        "cash_deposit_ratio",
+        "international_tx_ratio",
+        "night_activity_ratio"
+      ],
+      "excluded": {
+        "account_id": "identifier — kept for investigation, never a feature",
+        "from_account": "high-cardinality text (identifier-like)",
+        "to_account": "high-cardinality text (identifier-like)",
+        "representative_timestamp": "high-cardinality text (identifier-like)",
+        "pattern_type_synthetic": "synthetic label / indicator / metadata column — excluded from predictive features",
+        "circular_flow_indicator_synthetic": "synthetic label / indicator / metadata column — excluded from predictive features",
+        "rapid_pass_through_indicator_synthetic": "synthetic label / indicator / metadata column — excluded from predictive features",
+        "data_origin": "synthetic label / indicator / metadata column — excluded from predictive features"
+      },
+      "classes": [
+        "normal",
+        "risk"
+      ],
+      "leaderboard": [
+        {
+          "key": "Gradient Boosting [tabular]",
+          "model": "Gradient Boosting",
+          "featureSet": "tabular",
+          "status": "completed",
+          "seconds": 0.02,
+          "msPerRow": 0.0565,
+          "val": {
+            "n": 15,
+            "accuracy": 1,
+            "balanced_accuracy": 1,
+            "precision_macro": 1,
+            "recall_macro": 1,
+            "macro_f1": 1,
+            "weighted_f1": 1,
+            "roc_auc": 1,
+            "pr_auc": 1,
+            "brier": 0.0000011600338107202719,
+            "labels": [
+              "normal",
+              "risk"
+            ],
+            "confusion": [
+              [
+                8,
+                0
+              ],
+              [
+                0,
+                7
+              ]
+            ],
+            "perClass": {
+              "normal": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 8
+              },
+              "risk": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 7
+              }
+            },
+            "warnings": []
+          },
+          "selected": true
+        },
+        {
+          "key": "Random Forest [tabular]",
+          "model": "Random Forest",
+          "featureSet": "tabular",
+          "status": "completed",
+          "seconds": 0,
+          "msPerRow": 0.0221,
+          "val": {
+            "n": 15,
+            "accuracy": 1,
+            "balanced_accuracy": 1,
+            "precision_macro": 1,
+            "recall_macro": 1,
+            "macro_f1": 1,
+            "weighted_f1": 1,
+            "roc_auc": 1,
+            "pr_auc": 1,
+            "brier": 0.0010867486518867174,
+            "labels": [
+              "normal",
+              "risk"
+            ],
+            "confusion": [
+              [
+                8,
+                0
+              ],
+              [
+                0,
+                7
+              ]
+            ],
+            "perClass": {
+              "normal": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 8
+              },
+              "risk": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 7
+              }
+            },
+            "warnings": []
+          }
+        },
+        {
+          "key": "Logistic Regression [tabular]",
+          "model": "Logistic Regression",
+          "featureSet": "tabular",
+          "status": "completed",
+          "seconds": 0,
+          "msPerRow": 0.0059,
+          "val": {
+            "n": 15,
+            "accuracy": 1,
+            "balanced_accuracy": 1,
+            "precision_macro": 1,
+            "recall_macro": 1,
+            "macro_f1": 1,
+            "weighted_f1": 1,
+            "roc_auc": 1,
+            "pr_auc": 1,
+            "brier": 0.000021476066235344343,
+            "labels": [
+              "normal",
+              "risk"
+            ],
+            "confusion": [
+              [
+                8,
+                0
+              ],
+              [
+                0,
+                7
+              ]
+            ],
+            "perClass": {
+              "normal": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 8
+              },
+              "risk": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 7
+              }
+            },
+            "warnings": []
+          }
+        },
+        {
+          "key": "Stacking [tabular]",
+          "model": "Stacking",
+          "featureSet": "tabular",
+          "status": "completed",
+          "seconds": 0.04,
+          "msPerRow": 0.0202,
+          "val": {
+            "n": 15,
+            "accuracy": 1,
+            "balanced_accuracy": 1,
+            "precision_macro": 1,
+            "recall_macro": 1,
+            "macro_f1": 1,
+            "weighted_f1": 1,
+            "roc_auc": 1,
+            "pr_auc": 1,
+            "brier": 0.00005053228134728935,
+            "labels": [
+              "normal",
+              "risk"
+            ],
+            "confusion": [
+              [
+                8,
+                0
+              ],
+              [
+                0,
+                7
+              ]
+            ],
+            "perClass": {
+              "normal": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 8
+              },
+              "risk": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 7
+              }
+            },
+            "warnings": []
+          }
+        }
+      ],
+      "test": {
+        "n": 15,
+        "accuracy": 1,
+        "balanced_accuracy": 1,
+        "precision_macro": 1,
+        "recall_macro": 1,
+        "macro_f1": 1,
+        "weighted_f1": 1,
+        "roc_auc": 1,
+        "pr_auc": 1,
+        "brier": 0.0000011600338107202602,
+        "labels": [
+          "normal",
+          "risk"
+        ],
+        "confusion": [
+          [
+            7,
+            0
+          ],
+          [
+            0,
+            8
+          ]
+        ],
+        "perClass": {
+          "normal": {
+            "precision": 1,
+            "recall": 1,
+            "f1": 1,
+            "fpr": 0,
+            "support": 7
+          },
+          "risk": {
+            "precision": 1,
+            "recall": 1,
+            "f1": 1,
+            "fpr": 0,
+            "support": 8
+          }
+        },
+        "warnings": []
+      },
+      "importance": [
+        {
+          "feature": "monthly_inflow",
+          "importance": 0.4017857142857143
+        },
+        {
+          "feature": "customer_type",
+          "importance": 0
+        },
+        {
+          "feature": "account_age_months",
+          "importance": 0
+        },
+        {
+          "feature": "avg_balance",
+          "importance": 0
+        },
+        {
+          "feature": "monthly_outflow",
+          "importance": 0
+        },
+        {
+          "feature": "in_out_ratio",
+          "importance": 0
+        },
+        {
+          "feature": "txn_count_monthly",
+          "importance": 0
+        },
+        {
+          "feature": "cash_deposit_ratio",
+          "importance": 0
+        },
+        {
+          "feature": "international_tx_ratio",
+          "importance": 0
+        },
+        {
+          "feature": "night_activity_ratio",
+          "importance": 0
+        }
+      ],
+      "notes": [
+        "Held-out metrics use supplied labels; label authenticity and real-world AML accuracy have not been independently verified.",
+        "Risk scores are configurable review heuristics, not calibrated probabilities of criminal activity.",
+        "Stacking did not improve over the best individual model on validation data.",
+        "Explicitly requested synthetic account-profile training; 50 risk and 50 normal accounts. Labels are generated, not confirmed AML outcomes.",
+        "Account identifiers, representative transaction data, timestamps and synthetic pattern indicators are excluded. No transaction-level or 12-category validity is claimed.",
+        "Training-source uploads are not independent validation. Only the saved 15-account held-out partition provides synthetic test metrics.",
+        "Explicitly requested synthetic account-profile training; 50 risk and 50 normal accounts. Labels are generated, not confirmed AML outcomes.",
+        "Account identifiers, representative transaction data, timestamps and synthetic pattern indicators are excluded. No transaction-level or 12-category validity is claimed.",
+        "Training-source uploads are not independent validation. Only the saved 15-account held-out partition provides synthetic test metrics.",
+        "Explicitly requested synthetic account-profile training; 50 risk and 50 normal accounts. Labels are generated, not confirmed AML outcomes.",
+        "Account identifiers, representative transaction data, timestamps and synthetic pattern indicators are excluded. No transaction-level or 12-category validity is claimed.",
+        "Training-source uploads are not independent validation. Only the saved 15-account held-out partition provides synthetic test metrics.",
+        "Explicitly requested synthetic account-profile training; 50 risk and 50 normal accounts. Labels are generated, not confirmed AML outcomes.",
+        "Account identifiers, representative transaction data, timestamps and synthetic pattern indicators are excluded. No transaction-level or 12-category validity is claimed.",
+        "Training-source uploads are not independent validation. Only the saved 15-account held-out partition provides synthetic test metrics."
+      ],
+      "warnings": [],
+      "totalSeconds": 0.07,
+      "reloadVerified": true,
+      "mapping": {}
+    },
+    {
+      "id": "20261020045146_gradient_boosting_Random_Forest__tabular_",
+      "selected": "Gradient Boosting [tabular]",
+      "selectionMetric": "macro_f1",
+      "dataset": "synthetic_banking_accounts_100_50_risk_50_normal.csv",
+      "fingerprint": "99f4782717897982",
+      "trainedAt": "2026-10-20T04:51:46.360Z",
+      "split": "stratified",
+      "trainSize": 70,
+      "valSize": 15,
+      "testSize": 15,
+      "records": 100,
+      "features": [
+        "customer_type",
+        "account_age_months",
+        "avg_balance",
+        "monthly_inflow",
+        "monthly_outflow",
+        "in_out_ratio",
+        "txn_count_monthly",
+        "cash_deposit_ratio",
+        "international_tx_ratio",
+        "night_activity_ratio"
+      ],
+      "excluded": {
+        "account_id": "identifier — kept for investigation, never a feature",
+        "from_account": "high-cardinality text (identifier-like)",
+        "to_account": "high-cardinality text (identifier-like)",
+        "representative_timestamp": "high-cardinality text (identifier-like)",
+        "pattern_type_synthetic": "synthetic label / indicator / metadata column — excluded from predictive features",
+        "circular_flow_indicator_synthetic": "synthetic label / indicator / metadata column — excluded from predictive features",
+        "rapid_pass_through_indicator_synthetic": "synthetic label / indicator / metadata column — excluded from predictive features",
+        "data_origin": "synthetic label / indicator / metadata column — excluded from predictive features"
+      },
+      "classes": [
+        "normal",
+        "risk"
+      ],
+      "leaderboard": [
+        {
+          "key": "Gradient Boosting [tabular]",
+          "model": "Gradient Boosting",
+          "featureSet": "tabular",
+          "status": "completed",
+          "seconds": 0.02,
+          "msPerRow": 0.0565,
+          "val": {
+            "n": 15,
+            "accuracy": 1,
+            "balanced_accuracy": 1,
+            "precision_macro": 1,
+            "recall_macro": 1,
+            "macro_f1": 1,
+            "weighted_f1": 1,
+            "roc_auc": 1,
+            "pr_auc": 1,
+            "brier": 0.0000011600338107202719,
+            "labels": [
+              "normal",
+              "risk"
+            ],
+            "confusion": [
+              [
+                8,
+                0
+              ],
+              [
+                0,
+                7
+              ]
+            ],
+            "perClass": {
+              "normal": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 8
+              },
+              "risk": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 7
+              }
+            },
+            "warnings": []
+          },
+          "selected": true
+        },
+        {
+          "key": "Random Forest [tabular]",
+          "model": "Random Forest",
+          "featureSet": "tabular",
+          "status": "completed",
+          "seconds": 0,
+          "msPerRow": 0.0221,
+          "val": {
+            "n": 15,
+            "accuracy": 1,
+            "balanced_accuracy": 1,
+            "precision_macro": 1,
+            "recall_macro": 1,
+            "macro_f1": 1,
+            "weighted_f1": 1,
+            "roc_auc": 1,
+            "pr_auc": 1,
+            "brier": 0.0010867486518867174,
+            "labels": [
+              "normal",
+              "risk"
+            ],
+            "confusion": [
+              [
+                8,
+                0
+              ],
+              [
+                0,
+                7
+              ]
+            ],
+            "perClass": {
+              "normal": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 8
+              },
+              "risk": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 7
+              }
+            },
+            "warnings": []
+          }
+        },
+        {
+          "key": "Logistic Regression [tabular]",
+          "model": "Logistic Regression",
+          "featureSet": "tabular",
+          "status": "completed",
+          "seconds": 0,
+          "msPerRow": 0.0059,
+          "val": {
+            "n": 15,
+            "accuracy": 1,
+            "balanced_accuracy": 1,
+            "precision_macro": 1,
+            "recall_macro": 1,
+            "macro_f1": 1,
+            "weighted_f1": 1,
+            "roc_auc": 1,
+            "pr_auc": 1,
+            "brier": 0.000021476066235344343,
+            "labels": [
+              "normal",
+              "risk"
+            ],
+            "confusion": [
+              [
+                8,
+                0
+              ],
+              [
+                0,
+                7
+              ]
+            ],
+            "perClass": {
+              "normal": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 8
+              },
+              "risk": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 7
+              }
+            },
+            "warnings": []
+          }
+        },
+        {
+          "key": "Stacking [tabular]",
+          "model": "Stacking",
+          "featureSet": "tabular",
+          "status": "completed",
+          "seconds": 0.04,
+          "msPerRow": 0.0202,
+          "val": {
+            "n": 15,
+            "accuracy": 1,
+            "balanced_accuracy": 1,
+            "precision_macro": 1,
+            "recall_macro": 1,
+            "macro_f1": 1,
+            "weighted_f1": 1,
+            "roc_auc": 1,
+            "pr_auc": 1,
+            "brier": 0.00005053228134728935,
+            "labels": [
+              "normal",
+              "risk"
+            ],
+            "confusion": [
+              [
+                8,
+                0
+              ],
+              [
+                0,
+                7
+              ]
+            ],
+            "perClass": {
+              "normal": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 8
+              },
+              "risk": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 7
+              }
+            },
+            "warnings": []
+          }
+        }
+      ],
+      "test": {
+        "n": 15,
+        "accuracy": 1,
+        "balanced_accuracy": 1,
+        "precision_macro": 1,
+        "recall_macro": 1,
+        "macro_f1": 1,
+        "weighted_f1": 1,
+        "roc_auc": 1,
+        "pr_auc": 1,
+        "brier": 0.0029361500381501074,
+        "labels": [
+          "normal",
+          "risk"
+        ],
+        "confusion": [
+          [
+            7,
+            0
+          ],
+          [
+            0,
+            8
+          ]
+        ],
+        "perClass": {
+          "normal": {
+            "precision": 1,
+            "recall": 1,
+            "f1": 1,
+            "fpr": 0,
+            "support": 7
+          },
+          "risk": {
+            "precision": 1,
+            "recall": 1,
+            "f1": 1,
+            "fpr": 0,
+            "support": 8
+          }
+        },
+        "warnings": []
+      },
+      "importance": [
+        {
+          "feature": "customer_type",
+          "importance": 0
+        },
+        {
+          "feature": "account_age_months",
+          "importance": 0
+        },
+        {
+          "feature": "avg_balance",
+          "importance": 0
+        },
+        {
+          "feature": "monthly_inflow",
+          "importance": 0
+        },
+        {
+          "feature": "monthly_outflow",
+          "importance": 0
+        },
+        {
+          "feature": "in_out_ratio",
+          "importance": 0
+        },
+        {
+          "feature": "txn_count_monthly",
+          "importance": 0
+        },
+        {
+          "feature": "cash_deposit_ratio",
+          "importance": 0
+        },
+        {
+          "feature": "international_tx_ratio",
+          "importance": 0
+        },
+        {
+          "feature": "night_activity_ratio",
+          "importance": 0
+        }
+      ],
+      "notes": [
+        "Held-out metrics use supplied labels; label authenticity and real-world AML accuracy have not been independently verified.",
+        "Risk scores are configurable review heuristics, not calibrated probabilities of criminal activity.",
+        "Stacking did not improve over the best individual model on validation data.",
+        "Explicitly requested synthetic account-profile training; 50 risk and 50 normal accounts. Labels are generated, not confirmed AML outcomes.",
+        "Account identifiers, representative transaction data, timestamps and synthetic pattern indicators are excluded. No transaction-level or 12-category validity is claimed.",
+        "Training-source uploads are not independent validation. Only the saved 15-account held-out partition provides synthetic test metrics.",
+        "Explicitly requested synthetic account-profile training; 50 risk and 50 normal accounts. Labels are generated, not confirmed AML outcomes.",
+        "Account identifiers, representative transaction data, timestamps and synthetic pattern indicators are excluded. No transaction-level or 12-category validity is claimed.",
+        "Training-source uploads are not independent validation. Only the saved 15-account held-out partition provides synthetic test metrics.",
+        "Explicitly requested synthetic account-profile training; 50 risk and 50 normal accounts. Labels are generated, not confirmed AML outcomes.",
+        "Account identifiers, representative transaction data, timestamps and synthetic pattern indicators are excluded. No transaction-level or 12-category validity is claimed.",
+        "Training-source uploads are not independent validation. Only the saved 15-account held-out partition provides synthetic test metrics.",
+        "Explicitly requested synthetic account-profile training; 50 risk and 50 normal accounts. Labels are generated, not confirmed AML outcomes.",
+        "Account identifiers, representative transaction data, timestamps and synthetic pattern indicators are excluded. No transaction-level or 12-category validity is claimed.",
+        "Training-source uploads are not independent validation. Only the saved 15-account held-out partition provides synthetic test metrics."
+      ],
+      "warnings": [],
+      "totalSeconds": 0.07,
+      "reloadVerified": true,
+      "mapping": {}
+    },
+    {
+      "id": "20261020045146_gradient_boosting_Logistic_Regression__tabular_",
+      "selected": "Gradient Boosting [tabular]",
+      "selectionMetric": "macro_f1",
+      "dataset": "synthetic_banking_accounts_100_50_risk_50_normal.csv",
+      "fingerprint": "99f4782717897982",
+      "trainedAt": "2026-10-20T04:51:46.360Z",
+      "split": "stratified",
+      "trainSize": 70,
+      "valSize": 15,
+      "testSize": 15,
+      "records": 100,
+      "features": [
+        "customer_type",
+        "account_age_months",
+        "avg_balance",
+        "monthly_inflow",
+        "monthly_outflow",
+        "in_out_ratio",
+        "txn_count_monthly",
+        "cash_deposit_ratio",
+        "international_tx_ratio",
+        "night_activity_ratio"
+      ],
+      "excluded": {
+        "account_id": "identifier — kept for investigation, never a feature",
+        "from_account": "high-cardinality text (identifier-like)",
+        "to_account": "high-cardinality text (identifier-like)",
+        "representative_timestamp": "high-cardinality text (identifier-like)",
+        "pattern_type_synthetic": "synthetic label / indicator / metadata column — excluded from predictive features",
+        "circular_flow_indicator_synthetic": "synthetic label / indicator / metadata column — excluded from predictive features",
+        "rapid_pass_through_indicator_synthetic": "synthetic label / indicator / metadata column — excluded from predictive features",
+        "data_origin": "synthetic label / indicator / metadata column — excluded from predictive features"
+      },
+      "classes": [
+        "normal",
+        "risk"
+      ],
+      "leaderboard": [
+        {
+          "key": "Gradient Boosting [tabular]",
+          "model": "Gradient Boosting",
+          "featureSet": "tabular",
+          "status": "completed",
+          "seconds": 0.02,
+          "msPerRow": 0.0565,
+          "val": {
+            "n": 15,
+            "accuracy": 1,
+            "balanced_accuracy": 1,
+            "precision_macro": 1,
+            "recall_macro": 1,
+            "macro_f1": 1,
+            "weighted_f1": 1,
+            "roc_auc": 1,
+            "pr_auc": 1,
+            "brier": 0.0000011600338107202719,
+            "labels": [
+              "normal",
+              "risk"
+            ],
+            "confusion": [
+              [
+                8,
+                0
+              ],
+              [
+                0,
+                7
+              ]
+            ],
+            "perClass": {
+              "normal": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 8
+              },
+              "risk": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 7
+              }
+            },
+            "warnings": []
+          },
+          "selected": true
+        },
+        {
+          "key": "Random Forest [tabular]",
+          "model": "Random Forest",
+          "featureSet": "tabular",
+          "status": "completed",
+          "seconds": 0,
+          "msPerRow": 0.0221,
+          "val": {
+            "n": 15,
+            "accuracy": 1,
+            "balanced_accuracy": 1,
+            "precision_macro": 1,
+            "recall_macro": 1,
+            "macro_f1": 1,
+            "weighted_f1": 1,
+            "roc_auc": 1,
+            "pr_auc": 1,
+            "brier": 0.0010867486518867174,
+            "labels": [
+              "normal",
+              "risk"
+            ],
+            "confusion": [
+              [
+                8,
+                0
+              ],
+              [
+                0,
+                7
+              ]
+            ],
+            "perClass": {
+              "normal": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 8
+              },
+              "risk": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 7
+              }
+            },
+            "warnings": []
+          }
+        },
+        {
+          "key": "Logistic Regression [tabular]",
+          "model": "Logistic Regression",
+          "featureSet": "tabular",
+          "status": "completed",
+          "seconds": 0,
+          "msPerRow": 0.0059,
+          "val": {
+            "n": 15,
+            "accuracy": 1,
+            "balanced_accuracy": 1,
+            "precision_macro": 1,
+            "recall_macro": 1,
+            "macro_f1": 1,
+            "weighted_f1": 1,
+            "roc_auc": 1,
+            "pr_auc": 1,
+            "brier": 0.000021476066235344343,
+            "labels": [
+              "normal",
+              "risk"
+            ],
+            "confusion": [
+              [
+                8,
+                0
+              ],
+              [
+                0,
+                7
+              ]
+            ],
+            "perClass": {
+              "normal": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 8
+              },
+              "risk": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 7
+              }
+            },
+            "warnings": []
+          }
+        },
+        {
+          "key": "Stacking [tabular]",
+          "model": "Stacking",
+          "featureSet": "tabular",
+          "status": "completed",
+          "seconds": 0.04,
+          "msPerRow": 0.0202,
+          "val": {
+            "n": 15,
+            "accuracy": 1,
+            "balanced_accuracy": 1,
+            "precision_macro": 1,
+            "recall_macro": 1,
+            "macro_f1": 1,
+            "weighted_f1": 1,
+            "roc_auc": 1,
+            "pr_auc": 1,
+            "brier": 0.00005053228134728935,
+            "labels": [
+              "normal",
+              "risk"
+            ],
+            "confusion": [
+              [
+                8,
+                0
+              ],
+              [
+                0,
+                7
+              ]
+            ],
+            "perClass": {
+              "normal": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 8
+              },
+              "risk": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 7
+              }
+            },
+            "warnings": []
+          }
+        }
+      ],
+      "test": {
+        "n": 15,
+        "accuracy": 1,
+        "balanced_accuracy": 1,
+        "precision_macro": 1,
+        "recall_macro": 1,
+        "macro_f1": 1,
+        "weighted_f1": 1,
+        "roc_auc": 1,
+        "pr_auc": 1,
+        "brier": 0.000003993208225874156,
+        "labels": [
+          "normal",
+          "risk"
+        ],
+        "confusion": [
+          [
+            7,
+            0
+          ],
+          [
+            0,
+            8
+          ]
+        ],
+        "perClass": {
+          "normal": {
+            "precision": 1,
+            "recall": 1,
+            "f1": 1,
+            "fpr": 0,
+            "support": 7
+          },
+          "risk": {
+            "precision": 1,
+            "recall": 1,
+            "f1": 1,
+            "fpr": 0,
+            "support": 8
+          }
+        },
+        "warnings": []
+      },
+      "importance": [
+        {
+          "feature": "customer_type",
+          "importance": 0
+        },
+        {
+          "feature": "account_age_months",
+          "importance": 0
+        },
+        {
+          "feature": "avg_balance",
+          "importance": 0
+        },
+        {
+          "feature": "monthly_inflow",
+          "importance": 0
+        },
+        {
+          "feature": "monthly_outflow",
+          "importance": 0
+        },
+        {
+          "feature": "in_out_ratio",
+          "importance": 0
+        },
+        {
+          "feature": "txn_count_monthly",
+          "importance": 0
+        },
+        {
+          "feature": "cash_deposit_ratio",
+          "importance": 0
+        },
+        {
+          "feature": "international_tx_ratio",
+          "importance": 0
+        },
+        {
+          "feature": "night_activity_ratio",
+          "importance": 0
+        }
+      ],
+      "notes": [
+        "Held-out metrics use supplied labels; label authenticity and real-world AML accuracy have not been independently verified.",
+        "Risk scores are configurable review heuristics, not calibrated probabilities of criminal activity.",
+        "Stacking did not improve over the best individual model on validation data.",
+        "Explicitly requested synthetic account-profile training; 50 risk and 50 normal accounts. Labels are generated, not confirmed AML outcomes.",
+        "Account identifiers, representative transaction data, timestamps and synthetic pattern indicators are excluded. No transaction-level or 12-category validity is claimed.",
+        "Training-source uploads are not independent validation. Only the saved 15-account held-out partition provides synthetic test metrics.",
+        "Explicitly requested synthetic account-profile training; 50 risk and 50 normal accounts. Labels are generated, not confirmed AML outcomes.",
+        "Account identifiers, representative transaction data, timestamps and synthetic pattern indicators are excluded. No transaction-level or 12-category validity is claimed.",
+        "Training-source uploads are not independent validation. Only the saved 15-account held-out partition provides synthetic test metrics.",
+        "Explicitly requested synthetic account-profile training; 50 risk and 50 normal accounts. Labels are generated, not confirmed AML outcomes.",
+        "Account identifiers, representative transaction data, timestamps and synthetic pattern indicators are excluded. No transaction-level or 12-category validity is claimed.",
+        "Training-source uploads are not independent validation. Only the saved 15-account held-out partition provides synthetic test metrics.",
+        "Explicitly requested synthetic account-profile training; 50 risk and 50 normal accounts. Labels are generated, not confirmed AML outcomes.",
+        "Account identifiers, representative transaction data, timestamps and synthetic pattern indicators are excluded. No transaction-level or 12-category validity is claimed.",
+        "Training-source uploads are not independent validation. Only the saved 15-account held-out partition provides synthetic test metrics."
+      ],
+      "warnings": [],
+      "totalSeconds": 0.07,
+      "reloadVerified": true,
+      "mapping": {}
+    },
+    {
+      "id": "20261020045146_gradient_boosting_Stacking__tabular_",
+      "selected": "Gradient Boosting [tabular]",
+      "selectionMetric": "macro_f1",
+      "dataset": "synthetic_banking_accounts_100_50_risk_50_normal.csv",
+      "fingerprint": "99f4782717897982",
+      "trainedAt": "2026-10-20T04:51:46.360Z",
+      "split": "stratified",
+      "trainSize": 70,
+      "valSize": 15,
+      "testSize": 15,
+      "records": 100,
+      "features": [
+        "customer_type",
+        "account_age_months",
+        "avg_balance",
+        "monthly_inflow",
+        "monthly_outflow",
+        "in_out_ratio",
+        "txn_count_monthly",
+        "cash_deposit_ratio",
+        "international_tx_ratio",
+        "night_activity_ratio"
+      ],
+      "excluded": {
+        "account_id": "identifier — kept for investigation, never a feature",
+        "from_account": "high-cardinality text (identifier-like)",
+        "to_account": "high-cardinality text (identifier-like)",
+        "representative_timestamp": "high-cardinality text (identifier-like)",
+        "pattern_type_synthetic": "synthetic label / indicator / metadata column — excluded from predictive features",
+        "circular_flow_indicator_synthetic": "synthetic label / indicator / metadata column — excluded from predictive features",
+        "rapid_pass_through_indicator_synthetic": "synthetic label / indicator / metadata column — excluded from predictive features",
+        "data_origin": "synthetic label / indicator / metadata column — excluded from predictive features"
+      },
+      "classes": [
+        "normal",
+        "risk"
+      ],
+      "leaderboard": [
+        {
+          "key": "Gradient Boosting [tabular]",
+          "model": "Gradient Boosting",
+          "featureSet": "tabular",
+          "status": "completed",
+          "seconds": 0.02,
+          "msPerRow": 0.0565,
+          "val": {
+            "n": 15,
+            "accuracy": 1,
+            "balanced_accuracy": 1,
+            "precision_macro": 1,
+            "recall_macro": 1,
+            "macro_f1": 1,
+            "weighted_f1": 1,
+            "roc_auc": 1,
+            "pr_auc": 1,
+            "brier": 0.0000011600338107202719,
+            "labels": [
+              "normal",
+              "risk"
+            ],
+            "confusion": [
+              [
+                8,
+                0
+              ],
+              [
+                0,
+                7
+              ]
+            ],
+            "perClass": {
+              "normal": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 8
+              },
+              "risk": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 7
+              }
+            },
+            "warnings": []
+          },
+          "selected": true
+        },
+        {
+          "key": "Random Forest [tabular]",
+          "model": "Random Forest",
+          "featureSet": "tabular",
+          "status": "completed",
+          "seconds": 0,
+          "msPerRow": 0.0221,
+          "val": {
+            "n": 15,
+            "accuracy": 1,
+            "balanced_accuracy": 1,
+            "precision_macro": 1,
+            "recall_macro": 1,
+            "macro_f1": 1,
+            "weighted_f1": 1,
+            "roc_auc": 1,
+            "pr_auc": 1,
+            "brier": 0.0010867486518867174,
+            "labels": [
+              "normal",
+              "risk"
+            ],
+            "confusion": [
+              [
+                8,
+                0
+              ],
+              [
+                0,
+                7
+              ]
+            ],
+            "perClass": {
+              "normal": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 8
+              },
+              "risk": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 7
+              }
+            },
+            "warnings": []
+          }
+        },
+        {
+          "key": "Logistic Regression [tabular]",
+          "model": "Logistic Regression",
+          "featureSet": "tabular",
+          "status": "completed",
+          "seconds": 0,
+          "msPerRow": 0.0059,
+          "val": {
+            "n": 15,
+            "accuracy": 1,
+            "balanced_accuracy": 1,
+            "precision_macro": 1,
+            "recall_macro": 1,
+            "macro_f1": 1,
+            "weighted_f1": 1,
+            "roc_auc": 1,
+            "pr_auc": 1,
+            "brier": 0.000021476066235344343,
+            "labels": [
+              "normal",
+              "risk"
+            ],
+            "confusion": [
+              [
+                8,
+                0
+              ],
+              [
+                0,
+                7
+              ]
+            ],
+            "perClass": {
+              "normal": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 8
+              },
+              "risk": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 7
+              }
+            },
+            "warnings": []
+          }
+        },
+        {
+          "key": "Stacking [tabular]",
+          "model": "Stacking",
+          "featureSet": "tabular",
+          "status": "completed",
+          "seconds": 0.04,
+          "msPerRow": 0.0202,
+          "val": {
+            "n": 15,
+            "accuracy": 1,
+            "balanced_accuracy": 1,
+            "precision_macro": 1,
+            "recall_macro": 1,
+            "macro_f1": 1,
+            "weighted_f1": 1,
+            "roc_auc": 1,
+            "pr_auc": 1,
+            "brier": 0.00005053228134728935,
+            "labels": [
+              "normal",
+              "risk"
+            ],
+            "confusion": [
+              [
+                8,
+                0
+              ],
+              [
+                0,
+                7
+              ]
+            ],
+            "perClass": {
+              "normal": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 8
+              },
+              "risk": {
+                "precision": 1,
+                "recall": 1,
+                "f1": 1,
+                "fpr": 0,
+                "support": 7
+              }
+            },
+            "warnings": []
+          }
+        }
+      ],
+      "test": {
+        "n": 15,
+        "accuracy": 1,
+        "balanced_accuracy": 1,
+        "precision_macro": 1,
+        "recall_macro": 1,
+        "macro_f1": 1,
+        "weighted_f1": 1,
+        "roc_auc": 1,
+        "pr_auc": 1,
+        "brier": 0.00005737500156799201,
+        "labels": [
+          "normal",
+          "risk"
+        ],
+        "confusion": [
+          [
+            7,
+            0
+          ],
+          [
+            0,
+            8
+          ]
+        ],
+        "perClass": {
+          "normal": {
+            "precision": 1,
+            "recall": 1,
+            "f1": 1,
+            "fpr": 0,
+            "support": 7
+          },
+          "risk": {
+            "precision": 1,
+            "recall": 1,
+            "f1": 1,
+            "fpr": 0,
+            "support": 8
+          }
+        },
+        "warnings": []
+      },
+      "importance": [
+        {
+          "feature": "customer_type",
+          "importance": 0
+        },
+        {
+          "feature": "account_age_months",
+          "importance": 0
+        },
+        {
+          "feature": "avg_balance",
+          "importance": 0
+        },
+        {
+          "feature": "monthly_inflow",
+          "importance": 0
+        },
+        {
+          "feature": "monthly_outflow",
+          "importance": 0
+        },
+        {
+          "feature": "in_out_ratio",
+          "importance": 0
+        },
+        {
+          "feature": "txn_count_monthly",
+          "importance": 0
+        },
+        {
+          "feature": "cash_deposit_ratio",
+          "importance": 0
+        },
+        {
+          "feature": "international_tx_ratio",
+          "importance": 0
+        },
+        {
+          "feature": "night_activity_ratio",
+          "importance": 0
+        }
+      ],
+      "notes": [
+        "Held-out metrics use supplied labels; label authenticity and real-world AML accuracy have not been independently verified.",
+        "Risk scores are configurable review heuristics, not calibrated probabilities of criminal activity.",
+        "Stacking did not improve over the best individual model on validation data.",
+        "Explicitly requested synthetic account-profile training; 50 risk and 50 normal accounts. Labels are generated, not confirmed AML outcomes.",
+        "Account identifiers, representative transaction data, timestamps and synthetic pattern indicators are excluded. No transaction-level or 12-category validity is claimed.",
+        "Training-source uploads are not independent validation. Only the saved 15-account held-out partition provides synthetic test metrics.",
+        "Explicitly requested synthetic account-profile training; 50 risk and 50 normal accounts. Labels are generated, not confirmed AML outcomes.",
+        "Account identifiers, representative transaction data, timestamps and synthetic pattern indicators are excluded. No transaction-level or 12-category validity is claimed.",
+        "Training-source uploads are not independent validation. Only the saved 15-account held-out partition provides synthetic test metrics.",
+        "Explicitly requested synthetic account-profile training; 50 risk and 50 normal accounts. Labels are generated, not confirmed AML outcomes.",
+        "Account identifiers, representative transaction data, timestamps and synthetic pattern indicators are excluded. No transaction-level or 12-category validity is claimed.",
+        "Training-source uploads are not independent validation. Only the saved 15-account held-out partition provides synthetic test metrics.",
+        "Explicitly requested synthetic account-profile training; 50 risk and 50 normal accounts. Labels are generated, not confirmed AML outcomes.",
+        "Account identifiers, representative transaction data, timestamps and synthetic pattern indicators are excluded. No transaction-level or 12-category validity is claimed.",
+        "Training-source uploads are not independent validation. Only the saved 15-account held-out partition provides synthetic test metrics."
+      ],
+      "warnings": [],
+      "totalSeconds": 0.07,
+      "reloadVerified": true,
+      "mapping": {}
+    }
+  ]
+}

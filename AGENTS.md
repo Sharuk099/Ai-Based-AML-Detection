@@ -11,7 +11,8 @@
 
 <!-- LOVABLE:END -->
 
-- Never seed bundled synthetic AML models into the model registry; only explicit user training/import may provide a model, because demo scores are not verified banking performance.
+- Only explicitly requested training/import may populate the model registry; approved offline synthetic training artifacts must disclose their limited account-level scope and must never be described as verified banking performance.
+- Train approved bundled models offline and import their saved artifacts without retraining on page load or inference; this keeps investigator uploads separate from training.
 - Fit preprocessing and graph reference statistics on training rows only and reuse the saved state for inference, so uploaded batch composition cannot change model features.
 - Preserve original trained feature names and reject missing or unseen required inputs before presenting classification, because fabricated defaults create unsupported evidence.
 - Keep the Python AML folder standalone; the live TanStack app runs browser-side training and does not host Flask.

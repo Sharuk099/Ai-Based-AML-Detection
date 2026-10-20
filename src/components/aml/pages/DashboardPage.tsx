@@ -57,7 +57,7 @@ export function DashboardPage() {
               <CheckCircle2 className="h-3.5 w-3.5 text-success" />
               <span>
                 {activeModel
-                  ? `${activeModel.name} · Verified Test Macro F1 ${(activeModel.report.test.macro_f1 * 100).toFixed(1)}%`
+                  ? `${activeModel.name} · Synthetic Held-out Macro F1 ${(activeModel.report.test.macro_f1 * 100).toFixed(1)}%`
                   : "Loading model"}
               </span>
             </div>
@@ -65,9 +65,7 @@ export function DashboardPage() {
               AI Anti-Money Laundering Detection System
             </h1>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Real-time multi-factor screening across 10,000+ banking transactions. Integrates
-              machine-learning typology classification, Indian UPI / international banking flow
-              analytics, structuring anomaly detection, and interactive counterparty network graphs.
+              Account-profile classification trained on 100 synthetic accounts. Real-world AML accuracy is unverified; transaction-only uploads cannot be evaluated by this model.
             </p>
           </div>
 
@@ -104,7 +102,7 @@ export function DashboardPage() {
                   {activeDs.name} ({activeDs.rows.length.toLocaleString()} rows)
                 </b>
               ) : (
-                <span className="text-amber-500 font-bold">No dataset uploaded yet</span>
+                <span className="text-warning font-bold">No dataset uploaded yet</span>
               )}
             </span>
           </div>

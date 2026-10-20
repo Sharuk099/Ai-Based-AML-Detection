@@ -27,7 +27,7 @@ export function UploadPage() {
   const [provenance, setProvenance] = useState("");
   const [license, setLicense] = useState("");
 
-  const ingestPreset = async (type: "indian" | "international" | "ordinary" | "suspicious") => {
+  const ingestPreset = async (type: "indian" | "international" | "ordinary" | "suspicious" | "banking_accounts_100") => {
     setError(undefined);
     setBusy(true);
     try {
@@ -136,7 +136,7 @@ export function UploadPage() {
           <div className="border-t border-border/60 pt-4 mt-4">
             <div className="label-mono mb-2 flex items-center gap-1.5 text-xs text-foreground font-semibold">
               <Database className="h-3.5 w-3.5 text-primary" />
-              <span>Or Load Built-in Verified Banking Benchmarks:</span>
+              <span>Synthetic examples (not independent validation):</span>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <div
@@ -152,7 +152,7 @@ export function UploadPage() {
                     <Chip tone="ok">50 Risk / 50 Normal</Chip>
                   </div>
                   <p className="text-[11px] text-muted-foreground mt-1">
-                    Benchmark dataset (synthetic_banking_accounts_100_50_risk_50_normal.csv). 100 account profiles with 1 representative transaction each (0 circular loops).
+                    Training-source sample: 100 synthetic account profiles. Reusing these rows is not independent testing.
                   </p>
                 </div>
                 <div className="mt-2 text-[10px] text-primary font-mono font-bold">
@@ -170,8 +170,7 @@ export function UploadPage() {
                     <Chip tone="ok">5,000 Txns</Chip>
                   </div>
                   <p className="text-[11px] text-muted-foreground mt-1">
-                    UPI, IMPS, NEFT, RTGS, Cash in INR. Real Indian VPAs, IFSCs, and UPI layering
-                    loops.
+                    Synthetic UPI, IMPS, NEFT, RTGS and cash examples in INR. Not compatible with an account-profile model.
                   </p>
                 </div>
                 <div className="mt-2 text-[10px] text-primary font-mono font-medium">
@@ -208,8 +207,7 @@ export function UploadPage() {
                     <Chip>1,000 Txns</Chip>
                   </div>
                   <p className="text-[11px] text-muted-foreground mt-1">
-                    100% ordinary consumer transactions. Used to verify zero false-positives under
-                    ordinary banking flow.
+                    Synthetic ordinary-looking transactions. No promised false-positive rate; account-profile models require account features.
                   </p>
                 </div>
                 <div className="mt-2 text-[10px] text-primary font-mono font-medium">

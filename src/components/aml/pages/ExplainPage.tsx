@@ -110,10 +110,10 @@ export function ExplainPage() {
               <div className="label-mono mb-2">Transaction Attributes:</div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <div>
-                  From: <b className="text-foreground">{selectedRecord["from_account"] || "—"}</b>
+                  From: <b className="text-foreground">{String(selectedRecord["from_account"] || "—")}</b>
                 </div>
                 <div>
-                  To: <b className="text-foreground">{selectedRecord["to_account"] || "—"}</b>
+                  To: <b className="text-foreground">{String(selectedRecord["to_account"] || "—")}</b>
                 </div>
                 <div>
                   Amount: <b className="text-foreground">{formatAmount(selectedRecord)}</b>
@@ -121,7 +121,7 @@ export function ExplainPage() {
                 <div>
                   Channel:{" "}
                   <b className="text-foreground">
-                    {selectedRecord["payment_format"] || selectedRecord["channel"] || "—"}
+                    {String(selectedRecord["payment_format"] || selectedRecord["channel"] || "—")}
                   </b>
                 </div>
               </div>
@@ -130,7 +130,7 @@ export function ExplainPage() {
             {/* Local Feature Attribution Waterfall */}
             <div>
               <div className="label-mono mb-2 flex items-center justify-between">
-                <span>Local SHAP-Style Feature Attributions</span>
+                <span>Local Reference Perturbation Attributions</span>
                 <span className="text-[10px] text-muted-foreground">
                   Impact on {selectedRecord._predicted_class} probability vs baseline
                 </span>

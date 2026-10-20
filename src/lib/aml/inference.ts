@@ -9,7 +9,7 @@ export interface ModelCompatibilityResult {
   isAccountLevelDataset: boolean;
   isTransactionModel: boolean;
   modelExpectedTarget: string;
-  datasetTarget?: string;
+  datasetTarget?: string | undefined;
   modelClasses: string[];
 }
 
@@ -100,7 +100,7 @@ export function checkModelCompatibility(
     modelExpectedTarget: model.target,
     datasetTarget: colsLower.has("risk_label_synthetic")
       ? "risk_label_synthetic"
-      : detectedRoles.label,
+      : detectedRoles['label'],
     modelClasses: model.classes,
   };
 }
@@ -154,7 +154,7 @@ export function inferenceIssue(model: SavedModel, row: Row): string | undefined 
   }
   for (const feature of model.prep.categorical) {
     const rawVal = (row[feature.col] ?? "").trim();
-    const hasMatch = feature.cats.some((c) => c.toLowerCase() === rawVal.toLowerCase());
+    const hasMatch = feature.cats.includes(rawVal);
     if (!hasMatch)
       return `Unseen category for ${feature.col} ("${rawVal}"); reliability not established.`;
   }

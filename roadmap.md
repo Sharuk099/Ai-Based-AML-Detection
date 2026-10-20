@@ -1,7 +1,6 @@
-# AML correction tasks
-- [ ] Remove seeded demo models, invented feature values, and unsupported readiness claims.
-- [ ] Repair training/inference consistency and independent validation.
-- [ ] Correct risk and graph evidence; add regression tests.
-- [ ] Preserve training/upload workflow and verify it in the live app.
-- [ ] Audit and correct the preserved Python pipeline.
-- [ ] Train production model on trustworthy labeled transactions (blocked: labeled dataset not supplied).
+# Requested AML training and alignment
+- [ ] Train all four candidates offline on the explicitly supplied account CSV with a 70/15/15 split; save all artifacts and validation winner.
+- [ ] Import approved artifacts into the existing persistent registry; hide investigator training controls and combine explanation/report navigation.
+- [ ] Require model + amount + network evidence for flags; retain actual transaction details and reject incompatible inputs.
+- [ ] Repair existing errors, run focused tests and verify upload → analysis → results → model information.
+- [ ] Validate real-world transaction AML performance (blocked: trustworthy transaction-level labeled data not supplied).

@@ -167,18 +167,24 @@ export function splitData(
   rows.forEach((r) => {
     const k = r[target];
     if (!by.has(k)) by.set(k, []);
-    by.get(k)!.push(r);
+    by.get(k)?.push(r);
   });
   const train: Row[] = [],
     val: Row[] = [],
     test: Row[] = [];
+  let allocated = 0;
+  let allocatedTrain = 0;
+  let allocatedVal = 0;
   for (const g of by.values()) {
     shuffle(g, rnd);
-    const t = Math.max(1, Math.round(g.length * 0.15)),
-      v = Math.max(1, Math.round(g.length * 0.15));
-    test.push(...g.slice(0, t));
-    val.push(...g.slice(t, t + v));
-    train.push(...g.slice(t + v));
+    allocated += g.length;
+    const tr = Math.floor(allocated * 0.7) - allocatedTrain;
+    const v = Math.floor(allocated * 0.15) - allocatedVal;
+    allocatedTrain += tr;
+    allocatedVal += v;
+    train.push(...g.slice(0, tr));
+    val.push(...g.slice(tr, tr + v));
+    test.push(...g.slice(tr + v));
   }
   return { train, val, test, used: "stratified" };
 }

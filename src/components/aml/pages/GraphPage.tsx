@@ -88,7 +88,7 @@ export function GraphPage() {
 
   // Currency detection (Indian Rupee or USD/EUR)
   const currencySymbol = useMemo(() => {
-    const firstCurr = activeDs?.rows.find((r) => r.currency)?.currency?.toUpperCase();
+    const firstCurr = activeDs?.rows.find((r) => r["currency"])?.["currency"]?.toUpperCase();
     if (firstCurr === "INR") return "₹";
     if (firstCurr === "EUR") return "€";
     if (firstCurr === "GBP") return "£";
@@ -322,8 +322,9 @@ export function GraphPage() {
         // Node repulsion
         for (let i = 0; i < posArr.length; i++) {
           for (let j = i + 1; j < posArr.length; j++) {
-            const [, p1] = posArr[i];
-            const [, p2] = posArr[j];
+            const p1 = posArr[i]?.[1];
+            const p2 = posArr[j]?.[1];
+            if (!p1 || !p2) continue;
             const dx = p2.x - p1.x;
             const dy = p2.y - p1.y;
             const dist = Math.hypot(dx, dy) || 1;
@@ -466,12 +467,12 @@ export function GraphPage() {
 
   // Touch Support (Mobile / Tablet Pinch & Pan)
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 1) {
+    if (e.touches.length === 1 && e.touches[0]) {
       setIsPanning(true);
       dragStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
       initialPanRef.current = { ...pan };
       lastTouchDistRef.current = null;
-    } else if (e.touches.length === 2) {
+    } else if (e.touches.length === 2 && e.touches[0] && e.touches[1]) {
       setIsPanning(false);
       const dist = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
@@ -482,14 +483,14 @@ export function GraphPage() {
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length === 1 && isPanning) {
+    if (e.touches.length === 1 && isPanning && e.touches[0]) {
       const dx = e.touches[0].clientX - dragStartRef.current.x;
       const dy = e.touches[0].clientY - dragStartRef.current.y;
       setPan({
         x: initialPanRef.current.x + dx,
         y: initialPanRef.current.y + dy,
       });
-    } else if (e.touches.length === 2 && lastTouchDistRef.current) {
+    } else if (e.touches.length === 2 && lastTouchDistRef.current && e.touches[0] && e.touches[1]) {
       const dist = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY,
@@ -812,10 +813,10 @@ export function GraphPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => centerOnAccount(searchedAccounts[0].account)}
+                    onClick={() => searchedAccounts[0] && centerOnAccount(searchedAccounts[0].account)}
                     className="h-8 text-xs font-mono font-bold bg-primary/10 text-primary border-primary/40"
                   >
-                    <Eye className="mr-1 h-3.5 w-3.5" /> Jump to {searchedAccounts[0].account}
+                    <Eye className="mr-1 h-3.5 w-3.5" /> Jump to {searchedAccounts[0]?.account}
                   </Button>
                 )}
                 {selectedAccount && (
@@ -1203,7 +1204,7 @@ export function GraphPage() {
                       <div className="label-mono mb-1.5">Detected AML Typologies:</div>
                       <div className="flex flex-wrap gap-1.5">
                         {suspiciousLoopAccounts.has(selectedStats.account) && (
-                          <Chip tone="bad">Circular Layering Loop</Chip>
+                          <Chip tone="bad">Unvalidated Graph Cycle</Chip>
                         )}
                         {muleAccounts.has(selectedStats.account) && (
                           <Chip tone="bad">Pass-Through Mule</Chip>
@@ -1310,13 +1311,13 @@ export function GraphPage() {
               )}
             </Panel>
 
-            {/* Detected Circular Layering Loops List */}
+            {/* Detected Unvalidated Graph Cycles List */}
             {summary.cycles.length > 0 && (
               <Panel
                 title={
                   <div className="flex items-center gap-2">
                     <Repeat className="h-4 w-4 text-destructive" />
-                    <span>Circular Layering Rings ({summary.cycles.length})</span>
+                    <span>Unvalidated Graph Cycles ({summary.cycles.length})</span>
                   </div>
                 }
               >
@@ -1326,7 +1327,7 @@ export function GraphPage() {
                       key={i}
                       onClick={() => {
                         setHighlightLoops(true);
-                        centerOnAccount(cycle[0]);
+                        if (cycle[0]) centerOnAccount(cycle[0]);
                       }}
                       className="cursor-pointer rounded border border-destructive/30 bg-destructive/10 p-2.5 hover:bg-destructive/20 transition-all"
                       title="Click to focus this circular ring in graph"
@@ -1438,9 +1439,9 @@ export function GraphPage() {
                           </td>
                           <td className="px-3 py-2">
                             {isCycle ? (
-                              <Chip tone="bad">Circular Layering Loop</Chip>
+                              <Chip tone="bad">Unvalidated Graph Cycle</Chip>
                             ) : isMule ? (
-                              <Chip tone="warn">Mule Pass-Through Flow</Chip>
+                              <Chip>Unvalidated Pass-Through Flow</Chip>
                             ) : (
                               <Chip tone="ok">Direct Counterparty</Chip>
                             )}

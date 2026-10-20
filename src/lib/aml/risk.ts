@@ -70,8 +70,8 @@ export interface RiskEvaluation {
 }
 
 /**
- * Multi-factor review policy separating classification from risk.
- * Correctly evaluates both binary (risk vs normal) and multi-class typology models.
+ * Uncalibrated review policy. Weights are policy settings, not validated crime probabilities.
+ * Flags require all three evidence families and complete transaction provenance.
  */
 export function evaluateTransactionRisk(
   row: Row,
@@ -87,14 +87,8 @@ export function evaluateTransactionRisk(
   config: RiskConfig = DEFAULT_RISK_CONFIG,
 ): RiskEvaluation {
   const reasons: string[] = [];
-  const rawAmtStr = String(
-    row["amount"] ??
-      row["representative_tx_amount"] ??
-      row["monthly_inflow"] ??
-      row["avg_balance"] ??
-      "",
-  ).replace(/,/g, "");
-  const rawAmt = parseFloat(rawAmtStr);
+  const rawAmtStr = String(row["amount"] ?? "").replace(/,/g, "");
+  const rawAmt = rawAmtStr.trim() ? Number(rawAmtStr) : NaN;
   const isAmtValid = Number.isFinite(rawAmt) && rawAmt >= 0;
 
   // 1. Reliability Gate:
@@ -122,23 +116,23 @@ export function evaluateTransactionRisk(
 
   if (suspicionProb >= 0.4 || isPredictedRisk) {
     reasons.push(
-      `Model assigned ${(suspicionProb * 100).toFixed(1)}% probability to risk class (predicted: ${predictedClass})`,
+      `Model assigned ${(suspicionProb * 100).toFixed(1)}% total score to configured review classes (predicted: ${predictedClass}); not a calibrated crime probability`,
     );
   }
 
   // 3. Amount & Structuring Anomaly Factor:
-  const ccy = String(row["currency"] || "USD").toUpperCase();
+  const ccy = String(row["currency"] || "").toUpperCase();
   const fmt = String(row["payment_format"] || "").toLowerCase();
   let amountRisk = 0;
 
   if (
-    (ccy === "USD" || ccy === "EUR" || ccy === "GBP") &&
+    isAmtValid && ccy === "USD" &&
     rawAmt >= config.structuringMin &&
     rawAmt <= config.structuringMax
   ) {
     amountRisk += 0.35;
     reasons.push(
-      `Structuring indicator: ${ccy} ${rawAmt.toLocaleString()} is just below the 10,000 regulatory reporting threshold`,
+      `Amount-band policy: ${ccy} ${rawAmt.toLocaleString()} lies in configured range ${config.structuringMin}–${config.structuringMax}; not proof of structuring`,
     );
   } else if (
     ccy === "INR" &&
@@ -165,7 +159,7 @@ export function evaluateTransactionRisk(
     if (sStat && sStat.passthrough >= 0.85 && sStat.passthrough <= 1.15 && sStat.out_total > 5000) {
       networkRisk += 0.25;
       reasons.push(
-        `Pass-through mule account pattern (Out/In flow ratio ${(sStat.passthrough * 100).toFixed(0)}%)`,
+        `Unvalidated pass-through pattern (Out/In flow ratio ${(sStat.passthrough * 100).toFixed(0)}%)`,
       );
     }
 
@@ -191,28 +185,31 @@ export function evaluateTransactionRisk(
   // Incorporates model prediction probability and external structuring/graph indicators
   const composite = Math.min(
     1.0,
-    amountRisk > 0 || networkRisk > 0
-      ? 0.5 * suspicionProb +
+    0.5 * suspicionProb +
         0.25 * Math.min(1, amountRisk / 0.35) +
-        0.25 * Math.min(1, networkRisk / 0.7)
-      : suspicionProb,
+        0.25 * Math.min(1, networkRisk / 0.7),
   );
 
   const roundedScore = Math.round(composite * 1000) / 1000;
 
   // 6. Tier Stratification:
   let riskLevel: "HIGH" | "MEDIUM" | "LOW" = "LOW";
-  if (roundedScore >= config.highThreshold || (isPredictedRisk && suspicionProb >= 0.7)) {
+  if (roundedScore >= config.highThreshold) {
     riskLevel = "HIGH";
-  } else if (roundedScore >= config.lowThreshold || isPredictedRisk) {
+  } else if (roundedScore >= config.lowThreshold) {
     riskLevel = "MEDIUM";
   }
 
-  const isSuspicious =
-    isPredictedRisk ||
-    suspicionProb >= 0.5 ||
-    (riskLevel !== "LOW" && (amountRisk > 0 || networkRisk > 0));
-  if (!isSuspicious && riskLevel !== "LOW") riskLevel = "LOW";
+  const completeEvidence = !!(row['transaction_id'] && row['from_account'] && row['to_account'] &&
+    row['currency'] && isAmtValid && Number.isFinite(Date.parse(row['timestamp'] ?? '')));
+  const isSuspicious = completeEvidence && suspicionProb >= 0.4 && amountRisk > 0 &&
+    networkRisk > 0 && riskLevel !== "LOW";
+  if (!isSuspicious) riskLevel = "LOW";
+  if (isSuspicious) reasons.push(
+    `Review policy: model + amount + network evidence; transaction ${row['transaction_id']}, ` +
+    `${row['from_account']} → ${row['to_account']}, ${ccy} ${rawAmt}, ${row['timestamp']}`,
+  );
+  else reasons.push("Not flagged: corroborating model, amount and network evidence with complete transaction details is required. Low review tier does not establish safety.");
 
   if (!isSuspicious && reasons.length === 0) {
     reasons.push(
