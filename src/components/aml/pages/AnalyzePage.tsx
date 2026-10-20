@@ -35,22 +35,6 @@ export function AnalyzePage() {
     }
   };
 
-  if (!activeDs) return;
-    setIsTraining(true);
-    setTrainError(undefined);
-    setTrainSuccess(undefined);
-    try {
-      const model = await trainCompatibleModel(activeDs);
-      setTrainSuccess(
-        `Compatible AML model "${model.name}" trained and independently evaluated on a stratified test partition! Held-out Test Macro F1: ${(model.report.test.macro_f1 * 100).toFixed(1)}%, Accuracy: ${(model.report.test.accuracy * 100).toFixed(1)}%.`,
-      );
-    } catch (e) {
-      setTrainError((e as Error).message);
-    } finally {
-      setIsTraining(false);
-    }
-  };
-
   if (!activeDs) {
     return (
       <div className="space-y-4">
