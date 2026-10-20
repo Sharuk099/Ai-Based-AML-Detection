@@ -132,20 +132,131 @@ export function ResultsPage() {
   return (
     <div className="space-y-6">
       {/* KPI Stats */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
         <Stat label="Total Scored" value={analysisResult.totalTransactions.toLocaleString()} />
         <Stat
-          label="Flagged Alerts"
+          label="Model Risk Predictions"
+          value={analysisResult.riskPredictionsCount.toLocaleString()}
+          tone={analysisResult.riskPredictionsCount > 0 ? "bad" : "ok"}
+        />
+        <Stat
+          label="Model Normal Predictions"
+          value={analysisResult.normalPredictionsCount.toLocaleString()}
+          tone="ok"
+        />
+        <Stat
+          label="Flagged for Review"
           value={analysisResult.flaggedCount.toLocaleString()}
-          tone={analysisResult.flaggedCount > 0 ? "bad" : "ok"}
+          tone={analysisResult.flaggedCount > 0 ? "warn" : "ok"}
         />
         <Stat
           label="High Risk Critical"
           value={analysisResult.highRiskCount.toLocaleString()}
           tone={analysisResult.highRiskCount > 0 ? "bad" : "ok"}
         />
-        <Stat label="Filtered Matches" value={filteredRecords.length.toLocaleString()} />
       </div>
+
+      {/* Independent Ground-Truth Target Label Evaluation Card */}
+      {analysisResult.evaluationVsGroundTruth && (
+        <Panel
+          title={
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-success" />
+              <span>
+                Independent Model Evaluation vs Target Label (
+                <code className="text-primary font-mono text-xs">
+                  {analysisResult.evaluationVsGroundTruth.targetColumn}
+                </code>
+                )
+              </span>
+            </div>
+          }
+          right={
+            <span className="text-xs font-mono text-muted-foreground">
+              Evaluated on {analysisResult.evaluationVsGroundTruth.n} Records
+            </span>
+          }
+        >
+          <div className="space-y-4">
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Model predictions were generated independently without knowledge of the target label or synthetic metadata.
+              Ground-truth labels were compared only after predictions were produced to verify true classification performance.
+            </p>
+
+            {/* Metrics Grid */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <Stat
+                label="Accuracy"
+                value={`${(analysisResult.evaluationVsGroundTruth.accuracy * 100).toFixed(1)}%`}
+                tone="ok"
+              />
+              <Stat
+                label="Precision (Risk)"
+                value={`${(analysisResult.evaluationVsGroundTruth.precision * 100).toFixed(1)}%`}
+                tone="ok"
+              />
+              <Stat
+                label="Recall (Risk)"
+                value={`${(analysisResult.evaluationVsGroundTruth.recall * 100).toFixed(1)}%`}
+                tone="ok"
+              />
+              <Stat
+                label="F1-Score (Risk)"
+                value={`${(analysisResult.evaluationVsGroundTruth.f1 * 100).toFixed(1)}%`}
+                tone="ok"
+              />
+            </div>
+
+            {/* Confusion Matrix Table */}
+            <div className="border-t border-border/60 pt-3">
+              <div className="label-mono mb-2 text-xs font-semibold text-foreground">
+                Confusion Matrix (Model Output vs Ground-Truth):
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full max-w-lg text-xs font-mono border border-border">
+                  <thead>
+                    <tr className="bg-muted/40 border-b border-border">
+                      <th className="p-2.5 border-r border-border text-muted-foreground text-left">
+                        Actual \ Predicted
+                      </th>
+                      <th className="p-2.5 border-r border-border text-center text-destructive font-bold">
+                        Predicted Risk
+                      </th>
+                      <th className="p-2.5 text-center text-success font-bold">
+                        Predicted Normal
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b border-border">
+                      <td className="p-2.5 border-r border-border font-bold text-muted-foreground">
+                        Actual Risk
+                      </td>
+                      <td className="p-2.5 border-r border-border text-center bg-destructive/10 font-bold text-foreground">
+                        {analysisResult.evaluationVsGroundTruth.confusionMatrix.trueRisk} (True Risk)
+                      </td>
+                      <td className="p-2.5 text-center bg-muted/20 font-bold text-foreground">
+                        {analysisResult.evaluationVsGroundTruth.confusionMatrix.falseNormal} (False Normal)
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="p-2.5 border-r border-border font-bold text-muted-foreground">
+                        Actual Normal
+                      </td>
+                      <td className="p-2.5 border-r border-border text-center bg-muted/20 font-bold text-foreground">
+                        {analysisResult.evaluationVsGroundTruth.confusionMatrix.falseRisk} (False Risk)
+                      </td>
+                      <td className="p-2.5 text-center bg-success/10 font-bold text-foreground">
+                        {analysisResult.evaluationVsGroundTruth.confusionMatrix.trueNormal} (True Normal)
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </Panel>
+      )}
 
       {/* Filter and Search Bar */}
       <Panel

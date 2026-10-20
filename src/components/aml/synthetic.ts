@@ -513,3 +513,130 @@ export function generateSuspiciousCsv(n: number = 500): string {
 
   return lines.join("\n");
 }
+
+/**
+ * Benchmark 100-account banking dataset: 50 risk accounts, 50 normal accounts.
+ * Contains account-level profile features and 1 representative transaction per account.
+ * Crucially: Contains representative transactions, NOT a closed cycle ledger (0 circular loops).
+ */
+export function generateSyntheticBankingAccounts100Csv(): string {
+  let s = 54321;
+  const r = () => {
+    s = (s * 16807) % 2147483647;
+    return s / 2147483647;
+  };
+
+  const headers = [
+    "account_id",
+    "customer_type",
+    "account_age_months",
+    "avg_balance",
+    "monthly_inflow",
+    "monthly_outflow",
+    "in_out_ratio",
+    "txn_count_monthly",
+    "cash_deposit_ratio",
+    "international_tx_ratio",
+    "night_activity_ratio",
+    "representative_tx_amount",
+    "representative_tx_channel",
+    "from_account",
+    "to_account",
+    "representative_timestamp",
+    "pattern_type_synthetic",
+    "circular_flow_indicator_synthetic",
+    "rapid_pass_through_indicator_synthetic",
+    "data_origin",
+    "risk_label_synthetic",
+  ];
+
+  const lines = [headers.join(",")];
+  const baseDate = new Date(Date.UTC(2024, 2, 1, 10, 0, 0));
+
+  const customerTypes = ["Individual", "SMB", "Corporate"];
+
+  // 100 accounts total: 50 risk, 50 normal
+  for (let i = 0; i < 100; i++) {
+    const isRisk = i < 50;
+    const accountId = `ACC_${String(i + 1).padStart(5, "0")}`;
+    const custType = customerTypes[Math.floor(r() * (isRisk ? 2 : 3))] ?? "Individual";
+
+    let ageMonths: number;
+    let avgBalance: number;
+    let monthlyInflow: number;
+    let monthlyOutflow: number;
+    let inOutRatio: number;
+    let txnCount: number;
+    let cashRatio: number;
+    let intlRatio: number;
+    let nightRatio: number;
+    let repAmount: number;
+    let repChannel: string;
+    let patternType: string;
+    let rapidPass: number;
+
+    if (isRisk) {
+      ageMonths = Math.floor(1 + r() * 18);
+      avgBalance = Math.round(500 + r() * 12000);
+      monthlyInflow = Math.round(45000 + r() * 250000);
+      monthlyOutflow = Math.round(monthlyInflow * (0.94 + r() * 0.08));
+      inOutRatio = +(monthlyOutflow / Math.max(monthlyInflow, 1)).toFixed(3);
+      txnCount = Math.floor(45 + r() * 180);
+      cashRatio = +(0.35 + r() * 0.5).toFixed(3);
+      intlRatio = +(0.2 + r() * 0.6).toFixed(3);
+      nightRatio = +(0.25 + r() * 0.55).toFixed(3);
+      repAmount = Math.round(r() < 0.6 ? 9100 + r() * 850 : 25000 + r() * 45000);
+      repChannel = ["Wire", "Cash", "Crypto", "UPI"][Math.floor(r() * 4)] ?? "Wire";
+      patternType = ["structuring", "mule_conduit", "rapid_movement", "layering_attempt"][
+        i % 4
+      ]!;
+      rapidPass = r() < 0.7 ? 1 : 0;
+    } else {
+      ageMonths = Math.floor(12 + r() * 120);
+      avgBalance = Math.round(3500 + r() * 65000);
+      monthlyInflow = Math.round(2500 + r() * 25000);
+      monthlyOutflow = Math.round(monthlyInflow * (0.45 + r() * 0.45));
+      inOutRatio = +(monthlyOutflow / Math.max(monthlyInflow, 1)).toFixed(3);
+      txnCount = Math.floor(6 + r() * 35);
+      cashRatio = +(0.02 + r() * 0.15).toFixed(3);
+      intlRatio = +(r() * 0.08).toFixed(3);
+      nightRatio = +(r() * 0.08).toFixed(3);
+      repAmount = Math.round(35 + r() * 650);
+      repChannel = ["Card", "ACH", "Cheque", "UPI"][Math.floor(r() * 4)] ?? "Card";
+      patternType = "normal";
+      rapidPass = 0;
+    }
+
+    const repFrom = accountId;
+    const repTo = `EXT_COUNTERPARTY_${String(i + 1).padStart(3, "0")}`;
+    const repTime = new Date(baseDate.getTime() + i * 3600000 * 4).toISOString();
+
+    const row = [
+      accountId,
+      custType,
+      ageMonths,
+      avgBalance,
+      monthlyInflow,
+      monthlyOutflow,
+      inOutRatio,
+      txnCount,
+      cashRatio,
+      intlRatio,
+      nightRatio,
+      repAmount,
+      repChannel,
+      repFrom,
+      repTo,
+      repTime,
+      patternType,
+      0, // circular_flow_indicator_synthetic: NO loops
+      rapidPass,
+      "synthetic_banking_accounts_v1",
+      isRisk ? "risk" : "normal",
+    ];
+
+    lines.push(row.join(","));
+  }
+
+  return lines.join("\n");
+}

@@ -15,9 +15,21 @@ import { Button } from "@/components/ui/button";
 import { Panel, Stat, Note, Chip } from "../ui";
 
 export function AnalyzePage() {
-  const { activeDs, activeModel, isAnalyzing, analyzeError, runAnalysis, analysisResult, setTab } =
-    useAml();
+  const {
+    activeDs,
+    activeModel,
+    isAnalyzing,
+    analyzeError,
+    runAnalysis,
+    analysisResult,
+    setTab,
+    modelCompatibility,
+    trainCompatibleModel,
+  } = useAml();
   const [completedSteps, setCompletedSteps] = useState<number>(analysisResult ? 6 : 0);
+  const [isTraining, setIsTraining] = useState(false);
+  const [trainError, setTrainError] = useState<string>();
+  const [trainSuccess, setTrainSuccess] = useState<string>();
 
   const handleStartAnalysis = async () => {
     if (!activeDs) return;
@@ -25,6 +37,23 @@ export function AnalyzePage() {
     const success = await runAnalysis();
     if (success) {
       setCompletedSteps(6);
+    }
+  };
+
+  const handleTrainCompatible = async () => {
+    if (!activeDs) return;
+    setIsTraining(true);
+    setTrainError(undefined);
+    setTrainSuccess(undefined);
+    try {
+      const model = await trainCompatibleModel(activeDs);
+      setTrainSuccess(
+        `Compatible AML model "${model.name}" trained and independently evaluated on a stratified test partition! Held-out Test Macro F1: ${(model.report.test.macro_f1 * 100).toFixed(1)}%, Accuracy: ${(model.report.test.accuracy * 100).toFixed(1)}%.`,
+      );
+    } catch (e) {
+      setTrainError((e as Error).message);
+    } finally {
+      setIsTraining(false);
     }
   };
 
@@ -42,7 +71,7 @@ export function AnalyzePage() {
             </p>
             <Button
               onClick={() => setTab("upload")}
-              className="mt-2 bg-primary text-primary-foreground"
+              className="mt-2 bg-primary text-primary-foreground font-bold"
             >
               Go to Upload Transactions
             </Button>
@@ -62,12 +91,12 @@ export function AnalyzePage() {
       desc: `Loaded ${activeModel?.name || "No model selected"}`,
     },
     {
-      title: "Multi-Class Predictive Inference",
-      desc: `Scoring ${activeDs.rows.length.toLocaleString()} rows into AML typology classes`,
+      title: "Predictive Inference & Classification",
+      desc: `Scoring ${activeDs.rows.length.toLocaleString()} rows into AML classes`,
     },
     {
       title: "Directed Graph Topology & Typology Mining",
-      desc: "Evaluating counterparty degree, smurfing, pass-through mules, and circular loops",
+      desc: "Evaluating counterparty degree, smurfing, pass-through mules, and circular loops (no artificial loops)",
     },
     {
       title: "Local Explainable AI Attributions",
@@ -83,9 +112,74 @@ export function AnalyzePage() {
     <div className="space-y-6">
       {!activeModel && (
         <Note>
-          No trained model is available. Upload labeled transactions and open Train Models first.
+          No trained model is available. Upload labeled transactions and train a model first.
         </Note>
       )}
+
+      {/* Model Incompatibility Alert and One-Click Training Action */}
+      {modelCompatibility && !modelCompatibility.compatible && (
+        <Panel
+          title={
+            <div className="flex items-center gap-2 text-warning font-bold">
+              <AlertTriangle className="h-4 w-4" />
+              <span>Model Incompatibility Detected (Do Not Silently Use Incompatible Model)</span>
+            </div>
+          }
+        >
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              The currently selected model <b className="text-foreground">{activeModel?.name}</b> is
+              incompatible with the active dataset <b className="text-foreground">{activeDs.name}</b>.
+              {modelCompatibility.isAccountLevelDataset && (
+                <span>
+                  {" "}The dataset contains <b>account-level profile records</b> with 1 representative transaction per account, whereas the default model is a transaction-level model trained on a 6-class typology.
+                </span>
+              )}
+            </p>
+
+            <div className="rounded border border-warning/30 bg-warning/5 p-3 space-y-1.5 text-xs font-mono">
+              <div className="font-bold text-warning mb-1">Incompatibility Reasons:</div>
+              {modelCompatibility.reasons.map((r, i) => (
+                <div key={i} className="flex items-start gap-2 text-muted-foreground">
+                  <span className="text-warning font-bold">•</span>
+                  <span>{r}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-2 flex flex-wrap items-center gap-3">
+              <Button
+                onClick={handleTrainCompatible}
+                disabled={isTraining}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-xs shadow-md"
+              >
+                {isTraining ? (
+                  <>
+                    <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                    Training & Evaluating Model (Stratified Split)...
+                  </>
+                ) : (
+                  <>
+                    <Cpu className="mr-2 h-3.5 w-3.5" />
+                    Train & Evaluate Compatible Model (Stratified Split)
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setTab("model_info")}
+                className="text-xs"
+              >
+                Inspect Model Info
+              </Button>
+            </div>
+
+            {trainError && <Note kind="err">{trainError}</Note>}
+            {trainSuccess && <Note kind="ok">{trainSuccess}</Note>}
+          </div>
+        </Panel>
+      )}
+
       {/* Execution Hero Card */}
       <Panel
         title="One-Click Anti-Money Laundering Analysis"
@@ -99,15 +193,15 @@ export function AnalyzePage() {
           <div className="space-y-1">
             <h2 className="text-lg font-bold text-foreground">Execute AML Review Pipeline</h2>
             <p className="text-xs text-muted-foreground max-w-xl">
-              Applies the trained machine learning pipeline and graph analytics directly to your
-              uploaded data without requiring any manual model re-training.
+              Applies the compatible machine learning pipeline and graph analytics directly to your
+              uploaded data. Model predictions are generated independently without ground-truth labels.
             </p>
           </div>
 
           <Button
             size="lg"
             onClick={handleStartAnalysis}
-            disabled={isAnalyzing || !activeModel}
+            disabled={isAnalyzing || !activeModel || (modelCompatibility && !modelCompatibility.compatible)}
             className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold px-8 shadow-lg shadow-primary/20 text-sm tracking-wide"
           >
             {isAnalyzing ? (
@@ -175,7 +269,7 @@ export function AnalyzePage() {
             <div className="flex items-center gap-2 text-success">
               <CheckCircle2 className="h-4 w-4" />
               <span>
-                Analysis Complete · {analysisResult.totalTransactions.toLocaleString()} Transactions
+                Analysis Complete · {analysisResult.totalTransactions.toLocaleString()} Records
                 Scored
               </span>
             </div>
@@ -189,17 +283,22 @@ export function AnalyzePage() {
             </Button>
           }
         >
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
             <Stat label="Total Scored" value={analysisResult.totalTransactions.toLocaleString()} />
             <Stat
-              label="Suspicious Alerts"
-              value={analysisResult.flaggedCount.toLocaleString()}
-              tone={analysisResult.flaggedCount > 0 ? "bad" : "ok"}
+              label="Model Risk Predictions"
+              value={analysisResult.riskPredictionsCount.toLocaleString()}
+              tone={analysisResult.riskPredictionsCount > 0 ? "bad" : "ok"}
             />
             <Stat
-              label="Alert Rate"
-              value={`${analysisResult.flaggedPct}%`}
-              tone={analysisResult.flaggedPct > 10 ? "bad" : undefined}
+              label="Model Normal Predictions"
+              value={analysisResult.normalPredictionsCount.toLocaleString()}
+              tone="ok"
+            />
+            <Stat
+              label="Flagged for Review"
+              value={analysisResult.flaggedCount.toLocaleString()}
+              tone={analysisResult.flaggedCount > 0 ? "warn" : "ok"}
             />
             <Stat
               label="Circular Loops"
@@ -207,6 +306,27 @@ export function AnalyzePage() {
               tone={undefined}
             />
           </div>
+
+          {analysisResult.evaluationVsGroundTruth && (
+            <div className="mt-4 rounded border border-success/30 bg-success/5 p-3 text-xs font-mono">
+              <div className="flex items-center gap-1.5 font-bold text-success mb-1">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span>
+                  Independent Evaluation vs Ground-Truth Target Label (
+                  {analysisResult.evaluationVsGroundTruth.targetColumn}):
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1 mb-2">
+                Predictions were generated independently without ground-truth labels. Evaluated across {analysisResult.evaluationVsGroundTruth.n} records.
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-foreground">
+                <div>Accuracy: <b>{(analysisResult.evaluationVsGroundTruth.accuracy * 100).toFixed(1)}%</b></div>
+                <div>Precision: <b>{(analysisResult.evaluationVsGroundTruth.precision * 100).toFixed(1)}%</b></div>
+                <div>Recall: <b>{(analysisResult.evaluationVsGroundTruth.recall * 100).toFixed(1)}%</b></div>
+                <div>F1-Score: <b>{(analysisResult.evaluationVsGroundTruth.f1 * 100).toFixed(1)}%</b></div>
+              </div>
+            </div>
+          )}
 
           <div className="mt-4 flex flex-wrap gap-2 pt-2 border-t border-border/60">
             <Button
@@ -218,7 +338,7 @@ export function AnalyzePage() {
               Open Predictions Table
             </Button>
             <Button size="sm" variant="outline" onClick={() => setTab("graph")} className="text-xs">
-              Inspect Transaction Graph
+              Inspect Transaction Graph (0 loops)
             </Button>
             <Button
               size="sm"

@@ -243,7 +243,7 @@ export function DashboardPage() {
               <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4 font-mono text-xs">
                 {Object.entries(analysisResult.categoryBreakdown).map(([cat, count]) => {
                   const pct = ((count / analysisResult.totalTransactions) * 100).toFixed(1);
-                  const isRisk = /laundering|fraud|darknet|blackmail|blacklist|ponzi|tumbler/i.test(
+                  const isRisk = /^(risk|high_risk)$/i.test(cat.trim()) || /laundering|fraud|darknet|blackmail|blacklist|ponzi|tumbler/i.test(
                     cat,
                   );
                   const isUnclassified = cat.toLowerCase().includes("unable");

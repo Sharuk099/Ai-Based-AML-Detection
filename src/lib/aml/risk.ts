@@ -15,6 +15,10 @@ export const DEFAULT_RISK_CONFIG: RiskConfig = {
   structuringMin: 9000,
   structuringMax: 9999,
   suspiciousClasses: [
+    "risk",
+    "Risk",
+    "high_risk",
+    "High Risk",
     "Structuring & Smurfing",
     "Mule Pass-Through",
     "Circular Layering",
@@ -28,6 +32,33 @@ export const DEFAULT_RISK_CONFIG: RiskConfig = {
   ],
 };
 
+export function isSuspiciousClass(
+  label: string,
+  config: RiskConfig = DEFAULT_RISK_CONFIG,
+): boolean {
+  const norm = label.toLowerCase().trim();
+  if (
+    norm === "normal" ||
+    norm === "benign" ||
+    norm === "standard" ||
+    norm === "standard personal" ||
+    norm === "commercial & merchant"
+  ) {
+    return false;
+  }
+  if (
+    norm === "risk" ||
+    norm === "high_risk" ||
+    norm === "suspicious" ||
+    norm === "fraud" ||
+    norm === "laundering" ||
+    norm === "1"
+  ) {
+    return true;
+  }
+  return config.suspiciousClasses.some((c) => c.toLowerCase() === norm);
+}
+
 export interface RiskEvaluation {
   riskScore: number; // 0.0 to 1.0
   riskLevel: "HIGH" | "MEDIUM" | "LOW";
@@ -39,8 +70,8 @@ export interface RiskEvaluation {
 }
 
 /**
- * Uncalibrated, configurable multi-factor review policy separating classification from risk.
- * A transaction is not automatically labeled suspicious simply because of a predicted label.
+ * Multi-factor review policy separating classification from risk.
+ * Correctly evaluates both binary (risk vs normal) and multi-class typology models.
  */
 export function evaluateTransactionRisk(
   row: Row,
@@ -56,22 +87,24 @@ export function evaluateTransactionRisk(
   config: RiskConfig = DEFAULT_RISK_CONFIG,
 ): RiskEvaluation {
   const reasons: string[] = [];
-  const rawAmt = parseFloat(String(row["amount"] || "").replace(/,/g, ""));
+  const rawAmtStr = String(
+    row["amount"] ??
+      row["representative_tx_amount"] ??
+      row["monthly_inflow"] ??
+      row["avg_balance"] ??
+      "",
+  ).replace(/,/g, "");
+  const rawAmt = parseFloat(rawAmtStr);
   const isAmtValid = Number.isFinite(rawAmt) && rawAmt >= 0;
 
   // 1. Reliability Gate:
-  // If required attributes are missing or model confidence is too low (< 0.35):
-  if (!isAmtValid || confidence < 0.35) {
+  if (confidence < 0.35) {
     return {
       riskScore: 0,
       riskLevel: "LOW",
       isSuspicious: false,
       classificationStatus: "UNABLE_TO_CLASSIFY",
-      reasons: [
-        !isAmtValid
-          ? "Missing or invalid transaction amount"
-          : "Low model confidence / ambiguous profile",
-      ],
+      reasons: ["Low model confidence / ambiguous profile (< 35%)"],
       reliability: "INSUFFICIENT_EVIDENCE",
       evidenceNotes: "Transaction features insufficient for reliable AML risk assessment.",
     };
@@ -80,14 +113,16 @@ export function evaluateTransactionRisk(
   // 2. Suspicious AML Class Probability Factor:
   let suspicionProb = 0;
   for (const p of probabilities) {
-    if (config.suspiciousClasses.includes(p.label)) {
+    if (isSuspiciousClass(p.label, config)) {
       suspicionProb += p.prob;
     }
   }
 
-  if (suspicionProb > 0.4) {
+  const isPredictedRisk = isSuspiciousClass(predictedClass, config);
+
+  if (suspicionProb >= 0.4 || isPredictedRisk) {
     reasons.push(
-      `Model assigned ${(suspicionProb * 100).toFixed(1)}% suspicion probability to illicit crime typologies (top: ${predictedClass})`,
+      `Model assigned ${(suspicionProb * 100).toFixed(1)}% probability to risk class (predicted: ${predictedClass})`,
     );
   }
 
@@ -153,26 +188,30 @@ export function evaluateTransactionRisk(
   }
 
   // 5. Composite Risk Score:
-  // Weighted combination: 45% model prediction, 30% amount structuring anomaly, 25% network evidence
+  // Incorporates model prediction probability and external structuring/graph indicators
   const composite = Math.min(
     1.0,
-    0.45 * suspicionProb +
-      0.3 * Math.min(1, amountRisk / 0.35) +
-      0.25 * Math.min(1, networkRisk / 0.7),
+    amountRisk > 0 || networkRisk > 0
+      ? 0.5 * suspicionProb +
+        0.25 * Math.min(1, amountRisk / 0.35) +
+        0.25 * Math.min(1, networkRisk / 0.7)
+      : suspicionProb,
   );
 
   const roundedScore = Math.round(composite * 1000) / 1000;
 
   // 6. Tier Stratification:
   let riskLevel: "HIGH" | "MEDIUM" | "LOW" = "LOW";
-  if (roundedScore >= config.highThreshold) {
+  if (roundedScore >= config.highThreshold || (isPredictedRisk && suspicionProb >= 0.7)) {
     riskLevel = "HIGH";
-  } else if (roundedScore >= config.lowThreshold) {
+  } else if (roundedScore >= config.lowThreshold || isPredictedRisk) {
     riskLevel = "MEDIUM";
   }
 
   const isSuspicious =
-    riskLevel !== "LOW" && (amountRisk > 0 || networkRisk > 0 || suspicionProb > 0.45);
+    isPredictedRisk ||
+    suspicionProb >= 0.5 ||
+    (riskLevel !== "LOW" && (amountRisk > 0 || networkRisk > 0));
   if (!isSuspicious && riskLevel !== "LOW") riskLevel = "LOW";
 
   if (!isSuspicious && reasons.length === 0) {

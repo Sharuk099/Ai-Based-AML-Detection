@@ -42,10 +42,12 @@ export function fitPrep(
         const k = isMissing(r[c]) ? "__missing__" : r[c];
         m.set(k, (m.get(k) || 0) + 1);
       });
+      const minCount =
+        rows.length < 500 ? 1 : Math.min(5, Math.max(1, Math.floor(rows.length * 0.005)));
       const cats = [...m.entries()]
-        .filter(([, n]) => n >= 5)
+        .filter(([, n]) => n >= minCount)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 30)
+        .slice(0, 50)
         .map(([k]) => k);
       categorical.push({ col: c, cats });
     }

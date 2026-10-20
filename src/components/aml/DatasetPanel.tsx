@@ -7,7 +7,7 @@ import { audit, fingerprint } from "@/lib/aml/audit";
 import type { Row } from "@/lib/aml/types";
 import { useAml } from "./state";
 import { Chip, DataTable, Note, Panel, Stat, selectCls } from "./ui";
-import { syntheticCsv } from "./synthetic";
+import { syntheticCsv, generateSyntheticBankingAccounts100Csv } from "./synthetic";
 
 export function DatasetPanel() {
   const { datasets, addDataset, activeDs, setActiveDs } = useAml();
@@ -98,6 +98,19 @@ export function DatasetPanel() {
             }
           >
             Load synthetic demo
+          </Button>
+          <Button
+            variant="outline"
+            disabled={busy}
+            onClick={() =>
+              ingest(
+                generateSyntheticBankingAccounts100Csv(),
+                "synthetic_banking_accounts_100_50_risk_50_normal.csv",
+                "Benchmark Banking Accounts Dataset (100 Accounts: 50 Risk / 50 Normal)",
+              )
+            }
+          >
+            Load 100 Banking Accounts (50 Risk / 50 Normal)
           </Button>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">

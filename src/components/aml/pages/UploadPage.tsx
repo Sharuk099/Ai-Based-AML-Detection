@@ -138,7 +138,28 @@ export function UploadPage() {
               <Database className="h-3.5 w-3.5 text-primary" />
               <span>Or Load Built-in Verified Banking Benchmarks:</span>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div
+                onClick={() => ingestPreset("banking_accounts_100")}
+                className="cursor-pointer rounded border border-primary/60 bg-primary/5 p-3 hover:border-primary hover:bg-primary/10 transition-all flex flex-col justify-between"
+              >
+                <div>
+                  <div className="font-bold text-xs text-foreground flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5 text-primary" />
+                      <span>🏦 100 Banking Accounts</span>
+                    </span>
+                    <Chip tone="ok">50 Risk / 50 Normal</Chip>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    Benchmark dataset (synthetic_banking_accounts_100_50_risk_50_normal.csv). 100 account profiles with 1 representative transaction each (0 circular loops).
+                  </p>
+                </div>
+                <div className="mt-2 text-[10px] text-primary font-mono font-bold">
+                  Click to Load Benchmark →
+                </div>
+              </div>
+
               <div
                 onClick={() => ingestPreset("indian")}
                 className="cursor-pointer rounded border border-border/80 bg-card p-3 hover:border-primary/60 hover:bg-muted/40 transition-all flex flex-col justify-between"

@@ -1,8 +1,21 @@
 // @ts-nocheck -- strict index checks relaxed for numeric ML code
 import { INTENDED_CATEGORIES, type Roles, type Row } from "./types";
 
+export const FORBIDDEN_SYNTHETIC_FEATURES = new Set([
+  "risk_label_synthetic",
+  "pattern_type_synthetic",
+  "circular_flow_indicator_synthetic",
+  "rapid_pass_through_indicator_synthetic",
+  "data_origin",
+]);
+
 const PATTERNS: Record<keyof Roles, RegExp[]> = {
-  transaction_id: [/^(tx|txn|transaction)[_ ]?id$/i, /^id$/i, /txid/i, /hash/i],
+  transaction_id: [
+    /^(tx|txn|transaction|account|acct|user|customer)[_ ]?id$/i,
+    /^id$/i,
+    /txid/i,
+    /hash/i,
+  ],
   sender: [
     /from[_ ]?(account|acct|addr|address)?$/i,
     /sender/i,
@@ -21,7 +34,18 @@ const PATTERNS: Record<keyof Roles, RegExp[]> = {
   ],
   amount: [/amount/i, /value/i, /^amt/i, /paid/i],
   timestamp: [/time/i, /date/i, /^ts$/i, /^step$/i],
-  label: [/label/i, /^class$/i, /category/i, /is_?\s?laundering/i, /fraud/i, /target/i, /is_sar/i],
+  label: [
+    /^risk_label_synthetic$/i,
+    /risk_label/i,
+    /^(tx_)?label$/i,
+    /label/i,
+    /^class$/i,
+    /category/i,
+    /is_?\s?laundering/i,
+    /fraud/i,
+    /target/i,
+    /is_sar/i,
+  ],
 };
 
 export const isMissing = (v: unknown) => v === undefined || v === null || String(v).trim() === "";
@@ -204,6 +228,16 @@ export function assessFeatures(rows: Row[], columns: string[], target: string, r
   const n = rows.length;
   for (const c of columns) {
     if (c === target) continue;
+    const cLower = c.toLowerCase().trim();
+    if (
+      FORBIDDEN_SYNTHETIC_FEATURES.has(cLower) ||
+      /synthetic$/i.test(cLower) ||
+      /indicator_synthetic/i.test(cLower) ||
+      cLower === "data_origin"
+    ) {
+      excluded[c] = "synthetic label / indicator / metadata column — excluded from predictive features";
+      continue;
+    }
     const u = new Set<string>();
     let miss = 0;
     rows.forEach((r) => (isMissing(r[c]) ? miss++ : u.add(r[c])));

@@ -14,17 +14,30 @@ import type { SavedModel } from "@/lib/aml/pipeline";
 import { listModels, saveModel, deleteModel } from "@/lib/aml/store";
 import { pipelineProba, localExplain } from "@/lib/aml/pipeline";
 import { graphSummary } from "@/lib/aml/graph";
-import { evaluateTransactionRisk, DEFAULT_RISK_CONFIG, type RiskConfig } from "@/lib/aml/risk";
-import { prepareInferenceRow, inferenceIssue } from "@/lib/aml/inference";
+import {
+  evaluateTransactionRisk,
+  DEFAULT_RISK_CONFIG,
+  isSuspiciousClass,
+  type RiskConfig,
+} from "@/lib/aml/risk";
+import {
+  prepareInferenceRow,
+  inferenceIssue,
+  checkModelCompatibility,
+  type ModelCompatibilityResult,
+} from "@/lib/aml/inference";
 import defaultPretrained from "@/lib/aml/pretrained.json";
 import {
   generateIndianBankingCsv,
   generateInternationalBankingCsv,
   generateOrdinaryCsv,
   generateSuspiciousCsv,
+  generateSyntheticBankingAccounts100Csv,
 } from "./synthetic";
 import Papa from "papaparse";
-import { audit, fingerprint } from "@/lib/aml/audit";
+import { audit, fingerprint, assessFeatures, FORBIDDEN_SYNTHETIC_FEATURES } from "@/lib/aml/audit";
+import { trainAll } from "@/lib/aml/train";
+import { argmax } from "@/lib/aml/models";
 
 export interface Dataset {
   name: string;
@@ -56,6 +69,21 @@ export interface ScoredTransaction {
   _explanations: { feature: string; value: string; contribution: number }[];
 }
 
+export interface GroundTruthEvaluation {
+  targetColumn: string;
+  n: number;
+  accuracy: number;
+  precision: number;
+  recall: number;
+  f1: number;
+  confusionMatrix: {
+    trueRisk: number;
+    falseRisk: number;
+    trueNormal: number;
+    falseNormal: number;
+  };
+}
+
 export interface AnalysisResult {
   analyzedAt: string;
   datasetName: string;
@@ -65,6 +93,8 @@ export interface AnalysisResult {
   flaggedCount: number; // Medium + High risk
   highRiskCount: number;
   flaggedPct: number;
+  riskPredictionsCount: number;
+  normalPredictionsCount: number;
   modelUsed: string;
   modelId: string;
   records: ScoredTransaction[];
@@ -72,6 +102,8 @@ export interface AnalysisResult {
   classes: string[];
   categoryBreakdown: Record<string, number>;
   riskBuckets: { range: string; count: number }[];
+  evaluationVsGroundTruth?: GroundTruthEvaluation;
+  compatibility?: ModelCompatibilityResult;
 }
 
 export interface JobEvent {
@@ -109,17 +141,19 @@ interface Ctx {
   runAnalysis: (targetDs?: Dataset) => Promise<boolean>;
   riskConfig: RiskConfig;
   loadPresetDataset: (
-    type: "indian" | "international" | "ordinary" | "suspicious",
+    type: "indian" | "international" | "ordinary" | "suspicious" | "banking_accounts_100",
   ) => Promise<Dataset>;
   updateRiskConfig: (cfg: Partial<RiskConfig>) => void;
   job?: Job;
   startTraining: (ds: Dataset, cfg: TrainConfig) => void;
+  trainCompatibleModel: (targetDs?: Dataset) => Promise<SavedModel>;
   tab: string;
   setTab: (t: string) => void;
   focusModel?: string;
   setFocusModel: (id?: string) => void;
   selectedTransactionId?: string;
   setSelectedTransactionId: (id?: string) => void;
+  modelCompatibility?: ModelCompatibilityResult;
 }
 
 const C = createContext<Ctx | null>(null);
@@ -136,15 +170,24 @@ export function mapColumnRoles(columns: string[]): Record<string, string> {
 
   for (const c of columns) {
     const n = norm(c);
-    // NEVER map ground-truth label columns to input features
+    // NEVER map ground-truth label or synthetic evaluation/origin columns to input features
     if (
+      FORBIDDEN_SYNTHETIC_FEATURES.has(c.toLowerCase()) ||
+      n === "risklabelsynthetic" ||
+      n === "patterntypesynthetic" ||
+      n === "circularflowindicatorsynthetic" ||
+      n === "rapidpassthroughindicatorsynthetic" ||
+      n === "dataorigin" ||
       n === "label" ||
       n === "target" ||
       n === "class" ||
       n === "fraud" ||
-      n === "is_laundering" ||
+      n === "islaundering" ||
       n === "category"
     ) {
+      if (c.toLowerCase() === "risk_label_synthetic" || n === "risklabelsynthetic") {
+        mapping.label = c;
+      }
       continue;
     }
 
@@ -269,6 +312,7 @@ export function AmlProvider({ children }: { children: ReactNode }) {
         m.id !== "20261018145236_gradient_boosting" &&
         m.report.dataset !== "ibm_aml_synthetic_benchmark.csv",
     );
+    // Respect AGENTS.md rule: do not seed synthetic models if user models exist
     setModels(existing.length > 0 ? existing : [verifiedBackendModel]);
     if (!focusModel) {
       setFocusModel(existing[0]?.id || verifiedBackendModel.id);
@@ -276,11 +320,17 @@ export function AmlProvider({ children }: { children: ReactNode }) {
   }, [focusModel, verifiedBackendModel]);
 
   const loadPresetDataset = useCallback(
-    async (type: "indian" | "international" | "ordinary" | "suspicious") => {
+    async (
+      type: "indian" | "international" | "ordinary" | "suspicious" | "banking_accounts_100",
+    ) => {
       let csv = "";
       let name = "";
       let prov = "";
-      if (type === "indian") {
+      if (type === "banking_accounts_100") {
+        csv = generateSyntheticBankingAccounts100Csv();
+        name = "synthetic_banking_accounts_100_50_risk_50_normal.csv";
+        prov = "Benchmark Banking Accounts Dataset (100 Accounts: 50 Risk / 50 Normal)";
+      } else if (type === "indian") {
         csv = generateIndianBankingCsv(5000);
         name = "Indian_Core_Banking_5000_txns.csv";
         prov = "Core Indian Banking Feed (UPI / IMPS / NEFT / RTGS in INR)";
@@ -333,6 +383,51 @@ export function AmlProvider({ children }: { children: ReactNode }) {
   const activeModel = models.find((m) => m.id === focusModel) || models[0] || verifiedBackendModel;
   const activeDs = datasets.find((d) => d.name === active) ?? datasets[0];
 
+  const modelCompatibility =
+    activeModel && activeDs
+      ? checkModelCompatibility(activeModel, activeDs.columns, mapColumnRoles(activeDs.columns))
+      : undefined;
+
+  // Direct in-browser synchronous training of a compatible model tailored for the active dataset
+  const trainCompatibleModel = async (targetDs?: Dataset): Promise<SavedModel> => {
+    const ds = targetDs || activeDs;
+    if (!ds) throw new Error("No dataset loaded to train on.");
+
+    const roles = { ...ds.audit.roles };
+    const targetCol =
+      ds.columns.find((c) => c.toLowerCase() === "risk_label_synthetic") ||
+      roles.label ||
+      ds.columns.find((c) => /label|class|fraud|target|is_laundering/i.test(c));
+
+    if (!targetCol) {
+      throw new Error("No target label found in dataset. Labeled column required for training.");
+    }
+
+    roles.label = targetCol;
+    const assessment = assessFeatures(ds.rows, ds.columns, targetCol, roles);
+    if (!assessment.eligible.length) {
+      throw new Error("No eligible features available for training (all excluded or leaking).");
+    }
+
+    const cfg: TrainConfig = {
+      datasetName: ds.name,
+      fingerprint: ds.fingerprint,
+      target: targetCol,
+      roles,
+      features: assessment.eligible,
+      mapping: {},
+      split: "stratified",
+      metric: "macro_f1",
+      models: ["Gradient Boosting", "Random Forest", "Logistic Regression"],
+    };
+
+    const saved = trainAll(ds.rows, ds.columns, cfg, () => {});
+    await saveModel(saved);
+    await refreshModels();
+    setFocusModel(saved.id);
+    return saved;
+  };
+
   // ONE-CLICK ANALYSIS WORKFLOW
   const runAnalysis = async (targetDataset?: Dataset): Promise<boolean> => {
     const ds = targetDataset || activeDs;
@@ -346,6 +441,14 @@ export function AmlProvider({ children }: { children: ReactNode }) {
       return false;
     }
 
+    // Step 1: Check compatibility. Do not silently use an incompatible model!
+    const roleMap = mapColumnRoles(ds.columns);
+    const compat = checkModelCompatibility(modelToUse, ds.columns, roleMap);
+    if (!compat.compatible) {
+      setAnalyzeError(compat.reasons.join(" "));
+      return false;
+    }
+
     setAnalyzeError(undefined);
     setIsAnalyzing(true);
 
@@ -353,20 +456,10 @@ export function AmlProvider({ children }: { children: ReactNode }) {
       const rows = ds.rows;
       if (!rows.length) throw new Error("Uploaded transaction file contains no data rows.");
 
-      // 1. Column Role Mapping (TASK 1: Identical feature names, verify schema)
-      const roleMap = mapColumnRoles(ds.columns);
-      const amountKey = roleMap.amount || "amount";
-      const senderKey = roleMap.sender || "from_account";
-      const receiverKey = roleMap.receiver || "to_account";
-      const formatKey = roleMap.payment_format || "payment_format";
-      const currencyKey = roleMap.currency || "currency";
-      const timeKey = roleMap.timestamp || "timestamp";
-      const txIdKey = roleMap.transaction_id || "transaction_id";
-
-      // 2. Prepare rows cleanly without injecting false mule accounts
+      // 2. Prepare rows cleanly without injecting false mule accounts or predictive leakage
       const preparedRows = rows.map((r) => prepareInferenceRow(r, modelToUse, roleMap));
 
-      // 3. Graph Analytics across the uploaded batch (TASK 4)
+      // 3. Graph Analytics across the uploaded batch (TASK 4 & Requirement 9: Do not invent circular transaction loops)
       let gData = null;
       if (roleMap.sender && roleMap.receiver) {
         gData = graphSummary(preparedRows, "from_account", "to_account", "amount", "timestamp");
@@ -382,14 +475,14 @@ export function AmlProvider({ children }: { children: ReactNode }) {
           });
       }
 
-      // 4. Model Predictions
+      // 4. Model Predictions generated independently without ground-truth labels
       const probas = pipelineProba(modelToUse.prep, modelToUse.model, preparedRows);
 
       // 5. Local Explanations for sample
       const sampleSize = Math.min(preparedRows.length, 250);
       const explanations = localExplain(modelToUse, preparedRows.slice(0, sampleSize), 5);
 
-      // 6. Risk Decisions & Stratification (TASK 2: Separate prediction from risk decisions)
+      // 6. Risk Decisions & Stratification
       let flaggedCount = 0;
       let highRiskCount = 0;
       let classifiedCount = 0;
@@ -401,9 +494,9 @@ export function AmlProvider({ children }: { children: ReactNode }) {
       const scoredRecords: ScoredTransaction[] = preparedRows.map((r, i) => {
         const p = probas[i] || [];
         const issue = inferenceIssue(modelToUse, r);
-        const maxProb = issue ? 0 : Math.max(...p, 0);
-        const predIdx = p.indexOf(maxProb);
-        let predClass = modelToUse.classes[predIdx] || "Unknown";
+        const predIdx = issue ? -1 : argmax(p);
+        const maxProb = predIdx >= 0 ? p[predIdx] ?? 0 : 0;
+        let predClass = predIdx >= 0 ? modelToUse.classes[predIdx] || "Unknown" : "Unable to classify";
 
         const probList = modelToUse.classes
           .map((cls, idx) => ({
@@ -471,6 +564,83 @@ export function AmlProvider({ children }: { children: ReactNode }) {
         };
       });
 
+      // 7. Count risk and normal predictions actually produced by the model (DO NOT FORCE 50)
+      let riskPredictionsCount = 0;
+      let normalPredictionsCount = 0;
+      for (const rec of scoredRecords) {
+        const clsLower = rec._predicted_class.toLowerCase().trim();
+        if (
+          clsLower === "risk" ||
+          clsLower === "high_risk" ||
+          isSuspiciousClass(rec._predicted_class, riskConfig)
+        ) {
+          riskPredictionsCount++;
+        } else if (
+          clsLower === "normal" ||
+          clsLower === "benign" ||
+          clsLower === "standard" ||
+          clsLower === "standard personal" ||
+          clsLower === "commercial & merchant"
+        ) {
+          normalPredictionsCount++;
+        }
+      }
+
+      // 8. Compare predictions with synthetic labels ONLY AFTER predictions have been generated independently
+      let evaluationVsGroundTruth: GroundTruthEvaluation | undefined = undefined;
+      const groundTruthCol =
+        ds.columns.find((c) => c.toLowerCase() === "risk_label_synthetic") ||
+        (ds.audit.roles.label && ds.audit.roles.label !== modelToUse.target
+          ? ds.audit.roles.label
+          : undefined);
+
+      if (groundTruthCol) {
+        let tr = 0,
+          fr = 0,
+          tn = 0,
+          fn = 0;
+        let evaluatedCount = 0;
+        rows.forEach((origRow, i) => {
+          const trueVal = String(origRow[groundTruthCol] ?? "")
+            .toLowerCase()
+            .trim();
+          const predVal = String(scoredRecords[i]._predicted_class ?? "")
+            .toLowerCase()
+            .trim();
+          if (!trueVal) return;
+          evaluatedCount++;
+          const isTrueRisk =
+            trueVal === "risk" || trueVal === "1" || isSuspiciousClass(trueVal, riskConfig);
+          const isPredRisk =
+            predVal === "risk" || predVal === "1" || isSuspiciousClass(predVal, riskConfig);
+          if (isTrueRisk && isPredRisk) tr++;
+          else if (!isTrueRisk && isPredRisk) fr++;
+          else if (!isTrueRisk && !isPredRisk) tn++;
+          else if (isTrueRisk && !isPredRisk) fn++;
+        });
+
+        if (evaluatedCount > 0) {
+          const acc = (tr + tn) / evaluatedCount;
+          const prec = tr + fr > 0 ? tr / (tr + fr) : 0;
+          const rec = tr + fn > 0 ? tr / (tr + fn) : 0;
+          const f1 = prec + rec > 0 ? (2 * prec * rec) / (prec + rec) : 0;
+          evaluationVsGroundTruth = {
+            targetColumn: groundTruthCol,
+            n: evaluatedCount,
+            accuracy: +acc.toFixed(4),
+            precision: +prec.toFixed(4),
+            recall: +rec.toFixed(4),
+            f1: +f1.toFixed(4),
+            confusionMatrix: {
+              trueRisk: tr,
+              falseRisk: fr,
+              trueNormal: tn,
+              falseNormal: fn,
+            },
+          };
+        }
+      }
+
       // Compute risk score distribution histogram buckets (TASK 6)
       const buckets = [
         { range: "0.00 - 0.20 (Low)", count: riskScoresList.filter((s) => s < 0.2).length },
@@ -498,6 +668,8 @@ export function AmlProvider({ children }: { children: ReactNode }) {
         flaggedCount,
         highRiskCount,
         flaggedPct: +((100 * flaggedCount) / Math.max(preparedRows.length, 1)).toFixed(1),
+        riskPredictionsCount,
+        normalPredictionsCount,
         modelUsed: modelToUse.name,
         modelId: modelToUse.id,
         records: scoredRecords,
@@ -505,6 +677,8 @@ export function AmlProvider({ children }: { children: ReactNode }) {
         classes: modelToUse.classes,
         categoryBreakdown,
         riskBuckets: buckets,
+        evaluationVsGroundTruth,
+        compatibility: compat,
       };
 
       setAnalysisResult(result);
