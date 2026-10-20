@@ -39,6 +39,7 @@ export function trainAll(
   columns: string[],
   cfg: TrainConfig,
   log: Progress,
+  onCandidate?: (candidate: SavedModel) => void,
 ): SavedModel {
   const t0 = performance.now();
   const { target, mapping } = cfg;
@@ -56,7 +57,9 @@ export function trainAll(
       `Dataset randomly downsampled to ${MAX_TRAIN_ROWS.toLocaleString()} rows for in-browser training. Use the Python version for full-size training.`,
     );
   }
-  const assess = assessFeatures(rows, columns, target, cfg.roles);
+  const preliminarySplit = splitData(rows, target, cfg.split, cfg.roles.timestamp,
+    cfg.split === "group" ? cfg.roles.sender : undefined);
+  const assess = assessFeatures(preliminarySplit.train, columns, target, cfg.roles);
   const forbidden = cfg.features.filter((f) => f === target || assess.excluded[f]);
   if (forbidden.length)
     throw new Error(`Excluded or leaking features selected: ${forbidden.join(", ")}`);
@@ -64,13 +67,7 @@ export function trainAll(
   if (!features.length) throw new Error("No eligible feature columns selected.");
   const roles = { ...cfg.roles };
   const graphOk = !!(roles.sender && roles.receiver);
-  const sp = splitData(
-    rows,
-    target,
-    cfg.split,
-    roles.timestamp,
-    cfg.split === "group" ? roles.sender : undefined,
-  );
+  const sp = preliminarySplit;
   if (sp.used !== cfg.split && !sp.used.startsWith(cfg.split))
     throw new Error("Requested split requires its timestamp or sender role.");
   const classes = [...new Set(sp.train.map((r) => r[target]))].sort();
@@ -272,6 +269,30 @@ export function trainAll(
   if (a.some((x, i) => x !== b[i]))
     throw new Error("Reloaded model produced different predictions; artifact rejected.");
   saved.report.reloadVerified = true;
+  if (onCandidate) {
+    for (const entry of ok) {
+      const candidateFit = fitted.get(entry.key);
+      if (!candidateFit) continue;
+      const candidateId = id + "_" + entry.key.replace(/[^a-z0-9]/gi, "_");
+      const candidateP = pipelineProba(candidateFit.prep, candidateFit.model, test);
+      const candidate: SavedModel = {
+        ...saved, id: candidateId, name: entry.key,
+        prep: candidateFit.prep, model: candidateFit.model,
+        reference: referenceValues(train, candidateFit.prep.inputColumns),
+        report: {
+          ...saved.report, id: candidateId,
+          test: evaluate(yte, candidateP.map(argmax), candidateP, classes),
+          importance: permutationImportance(candidateFit.prep, candidateFit.model, valSample,
+            yva.slice(0, 1000), (yp) => evaluate(yva.slice(0, 1000), yp, null, classes).macro_f1),
+        },
+      };
+      const back: SavedModel = JSON.parse(JSON.stringify(candidate));
+      const backP = pipelineProba(back.prep, back.model, test);
+      if (candidateP.some((p, i) => p.some((value, k) => Math.abs(value - backP[i][k]) > 1e-12)))
+        throw new Error("Candidate probability reload parity failed");
+      onCandidate(candidate);
+    }
+  }
   log({ event: "verified" });
   return saved;
 }
