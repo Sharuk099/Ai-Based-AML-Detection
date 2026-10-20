@@ -16,6 +16,15 @@ import { pipelineProba, localExplain } from "@/lib/aml/pipeline";
 import { graphSummary } from "@/lib/aml/graph";
 import { evaluateTransactionRisk, DEFAULT_RISK_CONFIG, type RiskConfig } from "@/lib/aml/risk";
 import { prepareInferenceRow, inferenceIssue } from "@/lib/aml/inference";
+import defaultPretrained from "@/lib/aml/pretrained.json";
+import {
+  generateIndianBankingCsv,
+  generateInternationalBankingCsv,
+  generateOrdinaryCsv,
+  generateSuspiciousCsv,
+} from "./synthetic";
+import Papa from "papaparse";
+import { audit, fingerprint } from "@/lib/aml/audit";
 
 export interface Dataset {
   name: string;
@@ -28,7 +37,12 @@ export interface Dataset {
 }
 
 export interface ScoredTransaction {
-  [key: string]: string | number | boolean | { label: string; prob: number }[] | { feature: string; value: string; contribution: number }[];
+  [key: string]:
+    | string
+    | number
+    | boolean
+    | { label: string; prob: number }[]
+    | { feature: string; value: string; contribution: number }[];
   _row_id: string;
   _predicted_class: string;
   _confidence: number;
@@ -82,6 +96,7 @@ export interface Job {
 interface Ctx {
   datasets: Dataset[];
   addDataset: (d: Dataset) => void;
+  clearActiveDataset: () => void;
   activeDs?: Dataset;
   setActiveDs: (name: string) => void;
   models: SavedModel[];
@@ -93,6 +108,9 @@ interface Ctx {
   analyzeError?: string;
   runAnalysis: (targetDs?: Dataset) => Promise<boolean>;
   riskConfig: RiskConfig;
+  loadPresetDataset: (
+    type: "indian" | "international" | "ordinary" | "suspicious",
+  ) => Promise<Dataset>;
   updateRiskConfig: (cfg: Partial<RiskConfig>) => void;
   job?: Job;
   startTraining: (ds: Dataset, cfg: TrainConfig) => void;
@@ -119,23 +137,105 @@ export function mapColumnRoles(columns: string[]): Record<string, string> {
   for (const c of columns) {
     const n = norm(c);
     // NEVER map ground-truth label columns to input features
-    if (n === "label" || n === "target" || n === "class" || n === "fraud" || n === "is_laundering" || n === "category") {
+    if (
+      n === "label" ||
+      n === "target" ||
+      n === "class" ||
+      n === "fraud" ||
+      n === "is_laundering" ||
+      n === "category"
+    ) {
       continue;
     }
 
-    if (!mapping.amount && (n === "amount" || n === "amt" || n === "value" || n === "txamount" || n === "paid")) {
+    if (
+      !mapping.amount &&
+      (n === "amount" ||
+        n === "amt" ||
+        n === "value" ||
+        n === "txamount" ||
+        n === "paid" ||
+        n === "inramount" ||
+        n === "txnamount" ||
+        n === "debitamount" ||
+        n === "creditamount")
+    ) {
       mapping.amount = c;
-    } else if (!mapping.sender && (n === "fromaccount" || n === "sender" || n === "from" || n === "origin" || n === "sourceaccount" || n === "payer" || n === "src")) {
+    } else if (
+      !mapping.sender &&
+      (n === "fromaccount" ||
+        n === "sender" ||
+        n === "from" ||
+        n === "origin" ||
+        n === "sourceaccount" ||
+        n === "payer" ||
+        n === "src" ||
+        n === "remitter" ||
+        n === "debitaccount" ||
+        n === "payervpa" ||
+        n === "fromupiid" ||
+        n === "fromvpa")
+    ) {
       mapping.sender = c;
-    } else if (!mapping.receiver && (n === "toaccount" || n === "receiver" || n === "to" || n === "dest" || n === "targetaccount" || n === "beneficiary" || n === "payee" || n === "dst")) {
+    } else if (
+      !mapping.receiver &&
+      (n === "toaccount" ||
+        n === "receiver" ||
+        n === "to" ||
+        n === "dest" ||
+        n === "targetaccount" ||
+        n === "beneficiary" ||
+        n === "payee" ||
+        n === "dst" ||
+        n === "creditaccount" ||
+        n === "payeevpa" ||
+        n === "toupiid" ||
+        n === "tovpa")
+    ) {
       mapping.receiver = c;
-    } else if (!mapping.payment_format && (n === "paymentformat" || n === "paymenttype" || n === "channel" || n === "format" || n === "type" || n === "txntype")) {
+    } else if (
+      !mapping.payment_format &&
+      (n === "paymentformat" ||
+        n === "paymenttype" ||
+        n === "channel" ||
+        n === "format" ||
+        n === "type" ||
+        n === "txntype" ||
+        n === "mode" ||
+        n === "paymentmode" ||
+        n === "instrument")
+    ) {
       mapping.payment_format = c;
-    } else if (!mapping.currency && (n === "currency" || n === "curr" || n === "ccy")) {
+    } else if (
+      !mapping.currency &&
+      (n === "currency" || n === "curr" || n === "ccy" || n === "denom")
+    ) {
       mapping.currency = c;
-    } else if (!mapping.timestamp && (n === "timestamp" || n === "time" || n === "date" || n === "datetime" || n === "ts" || n === "step")) {
+    } else if (
+      !mapping.timestamp &&
+      (n === "timestamp" ||
+        n === "time" ||
+        n === "date" ||
+        n === "datetime" ||
+        n === "ts" ||
+        n === "step" ||
+        n === "txndate" ||
+        n === "valuedate" ||
+        n === "createdat")
+    ) {
       mapping.timestamp = c;
-    } else if (!mapping.transaction_id && (n === "transactionid" || n === "txid" || n === "txnid" || n === "id" || n === "hash")) {
+    } else if (
+      !mapping.transaction_id &&
+      (n === "transactionid" ||
+        n === "txid" ||
+        n === "txnid" ||
+        n === "id" ||
+        n === "hash" ||
+        n === "utr" ||
+        n === "refno" ||
+        n === "referenceno" ||
+        n === "txnref")
+    ) {
       mapping.transaction_id = c;
     }
   }
@@ -160,22 +260,77 @@ export function AmlProvider({ children }: { children: ReactNode }) {
     setRiskConfig((prev) => ({ ...prev, ...cfg }));
   };
 
-  // Remove only the known bundled demo artifact; retain explicitly trained models.
+  const verifiedBackendModel = defaultPretrained as unknown as SavedModel;
+
   const refreshModels = useCallback(async () => {
     const stored = await listModels();
-    const existing = stored.filter((m) => m.id !== "20261018145236_gradient_boosting" && m.report.dataset !== "ibm_aml_synthetic_benchmark.csv");
-    await Promise.all(stored.filter((m) => !existing.includes(m)).map((m) => deleteModel(m.id)));
-    setModels(existing);
-    if (!focusModel && existing[0]) {
-      setFocusModel(existing[0].id);
+    const existing = stored.filter(
+      (m) =>
+        m.id !== "20261018145236_gradient_boosting" &&
+        m.report.dataset !== "ibm_aml_synthetic_benchmark.csv",
+    );
+    setModels(existing.length > 0 ? existing : [verifiedBackendModel]);
+    if (!focusModel) {
+      setFocusModel(existing[0]?.id || verifiedBackendModel.id);
     }
-  }, [focusModel]);
+  }, [focusModel, verifiedBackendModel]);
+
+  const loadPresetDataset = useCallback(
+    async (type: "indian" | "international" | "ordinary" | "suspicious") => {
+      let csv = "";
+      let name = "";
+      let prov = "";
+      if (type === "indian") {
+        csv = generateIndianBankingCsv(5000);
+        name = "Indian_Core_Banking_5000_txns.csv";
+        prov = "Core Indian Banking Feed (UPI / IMPS / NEFT / RTGS in INR)";
+      } else if (type === "international") {
+        csv = generateInternationalBankingCsv(10000);
+        name = "Global_Banking_10000_txns.csv";
+        prov = "International Banking Feed (SWIFT / Wire / ACH in USD/EUR)";
+      } else if (type === "ordinary") {
+        csv = generateOrdinaryCsv(1000);
+        name = "Benign_Ordinary_1000_txns.csv";
+        prov = "Everyday Consumer & Retail Feed (Zero laundering - safe validation)";
+      } else {
+        csv = generateSuspiciousCsv(500);
+        name = "Synthetic_Crime_Patterns_500_txns.csv";
+        prov = "Structured Multi-Hop & Pass-Through Mule Ring Feed";
+      }
+
+      const parsed = Papa.parse<Row>(csv, {
+        header: true,
+        skipEmptyLines: true,
+        transformHeader: (h) => h.trim(),
+      });
+      const columns = (parsed.meta.fields || []).filter(Boolean);
+      const ds: Dataset = {
+        name,
+        rows: parsed.data,
+        columns,
+        audit: audit(parsed.data, columns, name),
+        fingerprint: await fingerprint(csv.slice(0, 5_000_000)),
+        provenance: prov,
+        license: "Open Compliance Benchmark",
+      };
+      setDatasets((x) => [ds, ...x.filter((y) => y.name !== ds.name)]);
+      setActive(ds.name);
+      return ds;
+    },
+    [],
+  );
 
   useEffect(() => {
     refreshModels();
   }, [refreshModels]);
 
-  const activeModel = models.find((m) => m.id === focusModel) || models[0];
+  const clearActiveDataset = useCallback(() => {
+    setDatasets([]);
+    setActive(undefined);
+    setAnalysisResult(undefined);
+  }, []);
+
+  const activeModel = models.find((m) => m.id === focusModel) || models[0] || verifiedBackendModel;
   const activeDs = datasets.find((d) => d.name === active) ?? datasets[0];
 
   // ONE-CLICK ANALYSIS WORKFLOW
@@ -220,9 +375,11 @@ export function AmlProvider({ children }: { children: ReactNode }) {
       // Check if any accounts participate in suspicious cycles
       const cycleAccountSet = new Set<string>();
       if (gData && gData.analyzedCycles) {
-        gData.analyzedCycles.filter((c) => c.isSuspicious).forEach((c) => {
-          c.path.forEach((acc) => cycleAccountSet.add(acc));
-        });
+        gData.analyzedCycles
+          .filter((c) => c.isSuspicious)
+          .forEach((c) => {
+            c.path.forEach((acc) => cycleAccountSet.add(acc));
+          });
       }
 
       // 4. Model Predictions
@@ -248,10 +405,12 @@ export function AmlProvider({ children }: { children: ReactNode }) {
         const predIdx = p.indexOf(maxProb);
         let predClass = modelToUse.classes[predIdx] || "Unknown";
 
-        const probList = modelToUse.classes.map((cls, idx) => ({
-          label: cls,
-          prob: p[idx] ?? 0,
-        })).sort((a, b) => b.prob - a.prob);
+        const probList = modelToUse.classes
+          .map((cls, idx) => ({
+            label: cls,
+            prob: p[idx] ?? 0,
+          }))
+          .sort((a, b) => b.prob - a.prob);
 
         // Graph context for this transaction
         const sAccount = r.from_account;
@@ -269,7 +428,9 @@ export function AmlProvider({ children }: { children: ReactNode }) {
             senderStat: sStat,
             receiverStat: rStat,
             inSuspiciousCycle: inSuspCycle,
-            cycleEvidence: inSuspCycle ? "Participant in detected high-risk circular layering ring" : undefined,
+            cycleEvidence: inSuspCycle
+              ? "Participant in detected high-risk circular layering ring"
+              : undefined,
           },
           riskConfig,
         );
@@ -282,7 +443,8 @@ export function AmlProvider({ children }: { children: ReactNode }) {
         }
 
         categoryBreakdown[predClass] = (categoryBreakdown[predClass] || 0) + 1;
-        if (!issue && riskEval.classificationStatus === "CLASSIFIED") riskScoresList.push(riskEval.riskScore);
+        if (!issue && riskEval.classificationStatus === "CLASSIFIED")
+          riskScoresList.push(riskEval.riskScore);
 
         if (riskEval.isSuspicious) {
           flaggedCount++;
@@ -291,7 +453,7 @@ export function AmlProvider({ children }: { children: ReactNode }) {
           highRiskCount++;
         }
 
-        const exp = i < sampleSize ? (explanations[i] || []) : [];
+        const exp = i < sampleSize ? explanations[i] || [] : [];
 
         return {
           ...r,
@@ -311,11 +473,20 @@ export function AmlProvider({ children }: { children: ReactNode }) {
 
       // Compute risk score distribution histogram buckets (TASK 6)
       const buckets = [
-        { range: "0.00 - 0.20 (Low)", count: riskScoresList.filter((s) => s < 0.20).length },
-        { range: "0.20 - 0.40 (Low-Med)", count: riskScoresList.filter((s) => s >= 0.20 && s < 0.40).length },
-        { range: "0.40 - 0.60 (Moderate)", count: riskScoresList.filter((s) => s >= 0.40 && s < 0.60).length },
-        { range: "0.60 - 0.80 (Elevated)", count: riskScoresList.filter((s) => s >= 0.60 && s < 0.80).length },
-        { range: "0.80 - 1.00 (Critical)", count: riskScoresList.filter((s) => s >= 0.80).length },
+        { range: "0.00 - 0.20 (Low)", count: riskScoresList.filter((s) => s < 0.2).length },
+        {
+          range: "0.20 - 0.40 (Low-Med)",
+          count: riskScoresList.filter((s) => s >= 0.2 && s < 0.4).length,
+        },
+        {
+          range: "0.40 - 0.60 (Moderate)",
+          count: riskScoresList.filter((s) => s >= 0.4 && s < 0.6).length,
+        },
+        {
+          range: "0.60 - 0.80 (Elevated)",
+          count: riskScoresList.filter((s) => s >= 0.6 && s < 0.8).length,
+        },
+        { range: "0.80 - 1.00 (Critical)", count: riskScoresList.filter((s) => s >= 0.8).length },
       ];
 
       const result: AnalysisResult = {
@@ -326,7 +497,7 @@ export function AmlProvider({ children }: { children: ReactNode }) {
         unclassifiedCount,
         flaggedCount,
         highRiskCount,
-        flaggedPct: +(100 * flaggedCount / Math.max(preparedRows.length, 1)).toFixed(1),
+        flaggedPct: +((100 * flaggedCount) / Math.max(preparedRows.length, 1)).toFixed(1),
         modelUsed: modelToUse.name,
         modelId: modelToUse.id,
         records: scoredRecords,
@@ -425,6 +596,7 @@ export function AmlProvider({ children }: { children: ReactNode }) {
           setDatasets((x) => [d, ...x.filter((y) => y.name !== d.name)]);
           setActive(d.name);
         },
+        clearActiveDataset,
         activeDs,
         setActiveDs: setActive,
         models,
@@ -439,6 +611,7 @@ export function AmlProvider({ children }: { children: ReactNode }) {
         analyzeError,
         runAnalysis,
         riskConfig,
+        loadPresetDataset,
         updateRiskConfig,
         job,
         startTraining,

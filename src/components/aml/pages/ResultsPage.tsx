@@ -1,5 +1,14 @@
 import { useState, useMemo } from "react";
-import { Download, Search, Filter, ShieldAlert, Play, Eye, ArrowRight, CheckCircle2 } from "lucide-react";
+import {
+  Download,
+  Search,
+  Filter,
+  ShieldAlert,
+  Play,
+  Eye,
+  ArrowRight,
+  CheckCircle2,
+} from "lucide-react";
 import Papa from "papaparse";
 import { useAml } from "../state";
 import { Button } from "@/components/ui/button";
@@ -13,22 +22,55 @@ export function ResultsPage() {
   const [riskFilter, setRiskFilter] = useState<string>("ALL");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
 
+  const [pageSize, setPageSize] = useState<number>(50);
+  const [page, setPage] = useState<number>(1);
+  const [sortBy, setSortBy] = useState<"risk" | "amount" | "id">("risk");
+
   const filteredRecords = useMemo(() => {
     if (!analysisResult) return [];
-    return analysisResult.records.filter((rec) => {
+    const res = analysisResult.records.filter((rec) => {
       if (riskFilter !== "ALL" && rec._risk_level !== riskFilter) return false;
       if (categoryFilter !== "ALL" && rec._predicted_class !== categoryFilter) return false;
       if (search.trim()) {
         const q = search.toLowerCase();
-        const matchesId = rec._row_id.toLowerCase().includes(q);
-        const matchesFrom = String(rec["from_account"] || "").toLowerCase().includes(q);
-        const matchesTo = String(rec["to_account"] || "").toLowerCase().includes(q);
-        const matchesClass = rec._predicted_class.toLowerCase().includes(q);
+        const matchesId = String(rec._row_id || "")
+          .toLowerCase()
+          .includes(q);
+        const matchesFrom = String(rec["from_account"] || "")
+          .toLowerCase()
+          .includes(q);
+        const matchesTo = String(rec["to_account"] || "")
+          .toLowerCase()
+          .includes(q);
+        const matchesClass = String(rec._predicted_class || "")
+          .toLowerCase()
+          .includes(q);
         return matchesId || matchesFrom || matchesTo || matchesClass;
       }
       return true;
     });
-  }, [analysisResult, search, riskFilter, categoryFilter]);
+
+    if (sortBy === "risk") {
+      res.sort((a, b) => Number(b._risk_score || 0) - Number(a._risk_score || 0));
+    } else if (sortBy === "amount") {
+      res.sort((a, b) => Number(b["amount"] || 0) - Number(a["amount"] || 0));
+    }
+    return res;
+  }, [analysisResult, search, riskFilter, categoryFilter, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredRecords.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedRecords = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredRecords.slice(start, start + pageSize);
+  }, [filteredRecords, currentPage, pageSize]);
+
+  const formatAmount = (rec: any) => {
+    const amt = Number(rec["amount"] || 0);
+    const ccy = String(rec["currency"] || "USD").toUpperCase();
+    const symbol = ccy === "INR" ? "₹" : ccy === "EUR" ? "€" : ccy === "GBP" ? "£" : "$";
+    return `${symbol}${amt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
 
   const exportCsv = () => {
     if (!analysisResult) return;
@@ -45,7 +87,9 @@ export function ResultsPage() {
 
   const exportJson = () => {
     if (!analysisResult) return;
-    const blob = new Blob([JSON.stringify(analysisResult.records, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(analysisResult.records, null, 2)], {
+      type: "application/json",
+    });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -61,11 +105,17 @@ export function ResultsPage() {
         <Panel title="Prediction Results">
           <div className="flex flex-col items-center justify-center p-12 text-center space-y-3">
             <ShieldAlert className="h-12 w-12 text-muted-foreground/40" />
-            <h3 className="text-base font-semibold text-foreground">No Analysis Results Available</h3>
+            <h3 className="text-base font-semibold text-foreground">
+              No Analysis Results Available
+            </h3>
             <p className="max-w-md text-xs text-muted-foreground">
-              Run transaction analysis to populate model predictions, confidence scores, and alert flags.
+              Run transaction analysis to populate model predictions, confidence scores, and alert
+              flags.
             </p>
-            <Button onClick={() => setTab("analyze")} className="mt-2 bg-primary text-primary-foreground">
+            <Button
+              onClick={() => setTab("analyze")}
+              className="mt-2 bg-primary text-primary-foreground font-bold"
+            >
               Analyze Transactions
             </Button>
           </div>
@@ -94,10 +144,7 @@ export function ResultsPage() {
           value={analysisResult.highRiskCount.toLocaleString()}
           tone={analysisResult.highRiskCount > 0 ? "bad" : "ok"}
         />
-        <Stat
-          label="Filtered Matches"
-          value={filteredRecords.length.toLocaleString()}
-        />
+        <Stat label="Filtered Matches" value={filteredRecords.length.toLocaleString()} />
       </div>
 
       {/* Filter and Search Bar */}
@@ -120,7 +167,10 @@ export function ResultsPage() {
             <Input
               placeholder="Search by ID, Account, or Category..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
               className="pl-8 text-xs font-mono h-9"
             />
           </div>
@@ -130,7 +180,10 @@ export function ResultsPage() {
             <select
               className={selectCls + " h-9 text-xs font-mono"}
               value={riskFilter}
-              onChange={(e) => setRiskFilter(e.target.value)}
+              onChange={(e) => {
+                setRiskFilter(e.target.value);
+                setPage(1);
+              }}
             >
               <option value="ALL">All Risk Levels</option>
               <option value="HIGH">High Risk Only</option>
@@ -144,12 +197,47 @@ export function ResultsPage() {
             <select
               className={selectCls + " h-9 text-xs font-mono"}
               value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
+              onChange={(e) => {
+                setCategoryFilter(e.target.value);
+                setPage(1);
+              }}
             >
               <option value="ALL">All Categories</option>
               {analysisResult.classes.map((cls) => (
-                <option key={cls} value={cls}>{cls}</option>
+                <option key={cls} value={cls}>
+                  {cls}
+                </option>
               ))}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Sort By:</span>
+            <select
+              className={selectCls + " h-9 text-xs font-mono"}
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+            >
+              <option value="risk">Highest Risk Score</option>
+              <option value="amount">Highest Amount</option>
+              <option value="id">Transaction ID</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Rows/Page:</span>
+            <select
+              className={selectCls + " h-9 text-xs font-mono"}
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setPage(1);
+              }}
+            >
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+              <option value={250}>250</option>
+              <option value={500}>500</option>
             </select>
           </div>
         </div>
@@ -158,47 +246,60 @@ export function ResultsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left font-mono text-xs">
             <thead>
-              <tr className="border-b border-border">
+              <tr className="border-b border-border bg-muted/20">
                 <th className="px-3 py-2 label-mono">Transaction ID</th>
-                <th className="px-3 py-2 label-mono">Sender</th>
-                <th className="px-3 py-2 label-mono">Receiver</th>
+                <th className="px-3 py-2 label-mono">Sender Account</th>
+                <th className="px-3 py-2 label-mono">Receiver Account</th>
                 <th className="px-3 py-2 label-mono">Amount</th>
-                <th className="px-3 py-2 label-mono">Channel</th>
+                <th className="px-3 py-2 label-mono">Channel / Mode</th>
                 <th className="px-3 py-2 label-mono">Predicted AML Typology</th>
-                <th className="px-3 py-2 label-mono">Confidence</th>
-                <th className="px-3 py-2 label-mono">Risk Level</th>
+                <th className="px-3 py-2 label-mono">Risk Score</th>
+                <th className="px-3 py-2 label-mono">Risk Tier</th>
                 <th className="px-3 py-2 label-mono text-right">Action</th>
               </tr>
             </thead>
             <tbody>
-              {filteredRecords.slice(0, 50).map((r) => {
-                const isRisk = r._risk_level === "HIGH" || r._risk_level === "MEDIUM";
+              {paginatedRecords.map((r) => {
+                const isHigh = r._risk_level === "HIGH";
+                const isMed = r._risk_level === "MEDIUM";
                 return (
                   <tr
                     key={r._row_id}
                     className={`border-b border-border/50 hover:bg-muted/40 ${
-                      r._risk_level === "HIGH" ? "bg-destructive/5" : ""
+                      isHigh ? "bg-destructive/10" : isMed ? "bg-warning/5" : ""
                     }`}
                   >
                     <td className="px-3 py-2 font-bold text-foreground">{r._row_id}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{r["from_account"] || "—"}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{r["to_account"] || "—"}</td>
-                    <td className="px-3 py-2 text-foreground font-medium">
-                      ${Number(r["amount"] || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    <td className="px-3 py-2 text-muted-foreground truncate max-w-[150px]">
+                      {String(r["from_account"] || "—")}
                     </td>
-                    <td className="px-3 py-2 text-muted-foreground">{r["payment_format"] || r["channel"] || "—"}</td>
+                    <td className="px-3 py-2 text-muted-foreground truncate max-w-[150px]">
+                      {String(r["to_account"] || "—")}
+                    </td>
+                    <td className="px-3 py-2 text-foreground font-semibold">{formatAmount(r)}</td>
+                    <td className="px-3 py-2 text-muted-foreground">
+                      <span className="rounded bg-muted/60 px-1.5 py-0.5 text-[10px] font-mono">
+                        {String(r["payment_format"] || r["channel"] || "—")}
+                      </span>
+                    </td>
                     <td className="px-3 py-2">
-                      <span className={isRisk ? "text-destructive font-bold" : "text-foreground font-medium"}>
+                      <span
+                        className={
+                          isHigh
+                            ? "text-destructive font-bold"
+                            : isMed
+                              ? "text-warning font-semibold"
+                              : "text-foreground font-medium"
+                        }
+                      >
                         {r._predicted_class}
                       </span>
                     </td>
-                    <td className="px-3 py-2 text-foreground">
-                      {(r._confidence * 100).toFixed(1)}%
+                    <td className="px-3 py-2 font-bold text-foreground">
+                      {((Number(r._risk_score) || 0) * 100).toFixed(0)}%
                     </td>
                     <td className="px-3 py-2">
-                      <Chip tone={r._risk_level === "HIGH" ? "bad" : r._risk_level === "MEDIUM" ? "bad" : "ok"}>
-                        {r._risk_level}
-                      </Chip>
+                      <Chip tone={isHigh ? "bad" : isMed ? "bad" : "ok"}>{r._risk_level}</Chip>
                     </td>
                     <td className="px-3 py-2 text-right">
                       <Button
@@ -217,11 +318,37 @@ export function ResultsPage() {
           </table>
         </div>
 
-        {filteredRecords.length > 50 && (
-          <div className="mt-3 text-center text-xs text-muted-foreground font-mono">
-            Showing first 50 matching transactions of {filteredRecords.length.toLocaleString()}. Export CSV to inspect full record set.
+        {/* Pagination Navigation Controls */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-3 border-t border-border/60 text-xs font-mono">
+          <div className="text-muted-foreground">
+            Showing {(currentPage - 1) * pageSize + 1} -{" "}
+            {Math.min(currentPage * pageSize, filteredRecords.length)} of{" "}
+            {filteredRecords.length.toLocaleString()} matching records
           </div>
-        )}
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={currentPage <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="h-8 text-xs font-mono"
+            >
+              Previous
+            </Button>
+            <span className="text-foreground font-bold px-2">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={currentPage >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              className="h-8 text-xs font-mono"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
       </Panel>
     </div>
   );

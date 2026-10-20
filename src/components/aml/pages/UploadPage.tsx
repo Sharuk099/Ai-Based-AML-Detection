@@ -1,5 +1,15 @@
 import { useRef, useState } from "react";
-import { Upload, FileSpreadsheet, CheckCircle2, AlertTriangle, ArrowRight, Sparkles, Database, FileText } from "lucide-react";
+import {
+  Upload,
+  FileSpreadsheet,
+  CheckCircle2,
+  AlertTriangle,
+  ArrowRight,
+  Sparkles,
+  Database,
+  FileText,
+  Trash2,
+} from "lucide-react";
 import Papa from "papaparse";
 import { useAml } from "../state";
 import { Button } from "@/components/ui/button";
@@ -8,14 +18,26 @@ import { Panel, Note, Chip, DataTable, Stat } from "../ui";
 import { audit, fingerprint } from "@/lib/aml/audit";
 import type { Row } from "@/lib/aml/types";
 
-
 export function UploadPage() {
-  const { addDataset, activeDs, setTab, runAnalysis } = useAml();
+  const { addDataset, clearActiveDataset, activeDs, setTab, runAnalysis, loadPresetDataset } =
+    useAml();
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [provenance, setProvenance] = useState("");
   const [license, setLicense] = useState("");
+
+  const ingestPreset = async (type: "indian" | "international" | "ordinary" | "suspicious") => {
+    setError(undefined);
+    setBusy(true);
+    try {
+      await loadPresetDataset(type);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const ingestFile = async (text: string, filename: string, prov: string, lic: string) => {
     setError(undefined);
@@ -77,7 +99,9 @@ export function UploadPage() {
       <Panel title="Upload Transaction CSV File">
         <div className="space-y-4">
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Upload your transactions table. The application will automatically inspect the columns, validate compatibility with the selected trained model, and prepare the dataset for one-click analysis.
+            Upload your transactions table. The application will automatically inspect the columns,
+            validate compatibility with the selected trained model, and prepare the dataset for
+            one-click analysis.
           </p>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -108,7 +132,90 @@ export function UploadPage() {
             </div>
           )}
 
+          {/* Quick Preset Benchmark Datasets */}
+          <div className="border-t border-border/60 pt-4 mt-4">
+            <div className="label-mono mb-2 flex items-center gap-1.5 text-xs text-foreground font-semibold">
+              <Database className="h-3.5 w-3.5 text-primary" />
+              <span>Or Load Built-in Verified Banking Benchmarks:</span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div
+                onClick={() => ingestPreset("indian")}
+                className="cursor-pointer rounded border border-border/80 bg-card p-3 hover:border-primary/60 hover:bg-muted/40 transition-all flex flex-col justify-between"
+              >
+                <div>
+                  <div className="font-bold text-xs text-foreground flex items-center justify-between">
+                    <span>🇮🇳 Indian Banking Feed</span>
+                    <Chip tone="ok">5,000 Txns</Chip>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    UPI, IMPS, NEFT, RTGS, Cash in INR. Real Indian VPAs, IFSCs, and UPI layering
+                    loops.
+                  </p>
+                </div>
+                <div className="mt-2 text-[10px] text-primary font-mono font-medium">
+                  Click to Load →
+                </div>
+              </div>
 
+              <div
+                onClick={() => ingestPreset("international")}
+                className="cursor-pointer rounded border border-border/80 bg-card p-3 hover:border-primary/60 hover:bg-muted/40 transition-all flex flex-col justify-between"
+              >
+                <div>
+                  <div className="font-bold text-xs text-foreground flex items-center justify-between">
+                    <span>🌐 Global High-Volume</span>
+                    <Chip tone="ok">10,000+ Txns</Chip>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    SWIFT, Wire, ACH, Card in USD/EUR. Corporate liquidity, international mules, and
+                    mixer hops.
+                  </p>
+                </div>
+                <div className="mt-2 text-[10px] text-primary font-mono font-medium">
+                  Click to Load →
+                </div>
+              </div>
+
+              <div
+                onClick={() => ingestPreset("ordinary")}
+                className="cursor-pointer rounded border border-border/80 bg-card p-3 hover:border-primary/60 hover:bg-muted/40 transition-all flex flex-col justify-between"
+              >
+                <div>
+                  <div className="font-bold text-xs text-foreground flex items-center justify-between">
+                    <span>✅ Benign Ordinary Feed</span>
+                    <Chip>1,000 Txns</Chip>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    100% ordinary consumer transactions. Used to verify zero false-positives under
+                    ordinary banking flow.
+                  </p>
+                </div>
+                <div className="mt-2 text-[10px] text-primary font-mono font-medium">
+                  Click to Load →
+                </div>
+              </div>
+
+              <div
+                onClick={() => ingestPreset("suspicious")}
+                className="cursor-pointer rounded border border-border/80 bg-card p-3 hover:border-primary/60 hover:bg-muted/40 transition-all flex flex-col justify-between"
+              >
+                <div>
+                  <div className="font-bold text-xs text-foreground flex items-center justify-between">
+                    <span>🚨 Suspicious Mule Rings</span>
+                    <Chip tone="bad">500 Txns</Chip>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    Structuring ($9,200-$9,950), rapid pass-through conduits, and circular layering
+                    loops.
+                  </p>
+                </div>
+                <div className="mt-2 text-[10px] text-primary font-mono font-medium">
+                  Click to Load →
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </Panel>
 
@@ -123,22 +230,41 @@ export function UploadPage() {
                 <Chip tone="ok">Ready for Analysis</Chip>
               </div>
               <p className="text-xs text-muted-foreground font-mono">
-                {activeDs.rows.length.toLocaleString()} rows · {activeDs.columns.length} columns · {activeDs.provenance}
+                {activeDs.rows.length.toLocaleString()} rows · {activeDs.columns.length} columns ·{" "}
+                {activeDs.provenance}
               </p>
             </div>
-            <Button
-              onClick={handleProceedToAnalyze}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold"
-            >
-              Analyze Transactions <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearActiveDataset}
+                className="text-xs text-destructive hover:bg-destructive/10 border-destructive/30"
+              >
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Remove Dataset
+              </Button>
+              <Button
+                onClick={handleProceedToAnalyze}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold"
+              >
+                Analyze Transactions <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <Stat label="Total Records" value={activeDs.rows.length.toLocaleString()} />
             <Stat label="Total Columns" value={activeDs.columns.length} />
-            <Stat label="Graph Support" value={activeDs.audit.graphSupported ? "Available" : "No Endpoints"} tone={activeDs.audit.graphSupported ? "ok" : undefined} />
-            <Stat label="Missing Values" value={activeDs.audit.totalMissing} tone={activeDs.audit.totalMissing > 0 ? "warn" : "ok"} />
+            <Stat
+              label="Graph Support"
+              value={activeDs.audit.graphSupported ? "Available" : "No Endpoints"}
+              tone={activeDs.audit.graphSupported ? "ok" : undefined}
+            />
+            <Stat
+              label="Missing Values"
+              value={activeDs.audit.totalMissing}
+              tone={activeDs.audit.totalMissing > 0 ? "warn" : "ok"}
+            />
           </div>
 
           {/* Detected column roles */}
@@ -151,7 +277,8 @@ export function UploadPage() {
               ))}
             </div>
             <p className="mt-3 text-[11px] text-muted-foreground font-mono">
-              The pipeline automatically maps <b>from_account</b> / <b>to_account</b> for graph analytics, <b>amount</b> / <b>timestamp</b> for velocity and cash flow modeling.
+              The pipeline automatically maps <b>from_account</b> / <b>to_account</b> for graph
+              analytics, <b>amount</b> / <b>timestamp</b> for velocity and cash flow modeling.
             </p>
           </Panel>
 

@@ -58,7 +58,8 @@ export function trainAll(
   }
   const assess = assessFeatures(rows, columns, target, cfg.roles);
   const forbidden = cfg.features.filter((f) => f === target || assess.excluded[f]);
-  if (forbidden.length) throw new Error(`Excluded or leaking features selected: ${forbidden.join(", ")}`);
+  if (forbidden.length)
+    throw new Error(`Excluded or leaking features selected: ${forbidden.join(", ")}`);
   const features = cfg.features.filter((f) => assess.eligible.includes(f));
   if (!features.length) throw new Error("No eligible feature columns selected.");
   const roles = { ...cfg.roles };
@@ -70,9 +71,13 @@ export function trainAll(
     roles.timestamp,
     cfg.split === "group" ? roles.sender : undefined,
   );
-  if (sp.used !== cfg.split && !sp.used.startsWith(cfg.split)) throw new Error("Requested split requires its timestamp or sender role.");
+  if (sp.used !== cfg.split && !sp.used.startsWith(cfg.split))
+    throw new Error("Requested split requires its timestamp or sender role.");
   const classes = [...new Set(sp.train.map((r) => r[target]))].sort();
-  if (classes.length < 2 || [...sp.val, ...sp.test].some((r) => !classes.includes(r[target]))) throw new Error("Split lacks training classes represented in validation/test; choose a different split or supply more data.");
+  if (classes.length < 2 || [...sp.val, ...sp.test].some((r) => !classes.includes(r[target])))
+    throw new Error(
+      "Split lacks training classes represented in validation/test; choose a different split or supply more data.",
+    );
   const enc = (rs: Row[]) => rs.map((r) => classes.indexOf(r[target]));
   const keep = (rs: Row[]) => rs.filter((r) => classes.includes(r[target]));
   const train = sp.train,
@@ -195,7 +200,10 @@ export function trainAll(
   const score = (b: LeaderRow) => (b.val?.[cfg.metric] ?? -1) as number;
   const best = ok.reduce((a, b) => (score(b) > score(a) ? b : a));
   best.selected = true;
-  const notes: string[] = ["Held-out metrics use supplied labels; label authenticity and real-world AML accuracy have not been independently verified.", "Risk scores are configurable review heuristics, not calibrated probabilities of criminal activity."];
+  const notes: string[] = [
+    "Held-out metrics use supplied labels; label authenticity and real-world AML accuracy have not been independently verified.",
+    "Risk scores are configurable review heuristics, not calibrated probabilities of criminal activity.",
+  ];
   const stk = ok.find((b) => b.model === "Stacking");
   if (stk) {
     const others = ok.filter((b) => b !== stk && b.featureSet === stk.featureSet).map(score);

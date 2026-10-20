@@ -132,8 +132,8 @@ export function TrainPanel() {
             <Cpu className="h-12 w-12 text-muted-foreground/50" />
             <h3 className="text-base font-semibold text-foreground">No Dataset Selected</h3>
             <p className="max-w-md text-xs text-muted-foreground">
-              Please load or upload a transaction dataset on the Upload Transactions tab before launching model
-              training experiments.
+              Please load or upload a transaction dataset on the Upload Transactions tab before
+              launching model training experiments.
             </p>
             <Button
               onClick={() => setTab("upload")}
@@ -276,7 +276,7 @@ export function TrainPanel() {
                       >
                         <option value="">-- None --</option>
                         <option value="">Select a ground-truth label column</option>
-                {activeDs.columns.map((c) => (
+                        {activeDs.columns.map((c) => (
                           <option key={c} value={c}>
                             {c}
                           </option>

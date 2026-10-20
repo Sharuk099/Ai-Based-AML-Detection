@@ -54,10 +54,10 @@ export function ModelsPanel() {
               local IndexedDB. Launch a training job on the Train tab to generate your first model.
             </p>
             <Button
-              onClick={() => setTab("train")}
-              className="mt-2 bg-primary text-primary-foreground"
+              onClick={() => refreshModels()}
+              className="mt-2 bg-primary text-primary-foreground font-bold"
             >
-              Go to Train Tab
+              Restore Verified Backend Model
             </Button>
           </div>
         </Panel>

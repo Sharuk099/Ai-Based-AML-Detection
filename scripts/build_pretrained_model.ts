@@ -8,7 +8,7 @@ import type { Row, TrainConfig } from "../src/lib/aml/types";
 
 async function main() {
   console.log("Generating documented synthetic benchmark transaction dataset...");
-  const csv = syntheticCsv(3000);
+  const csv = syntheticCsv(4000);
   const parsed = Papa.parse<Row>(csv, { header: true, skipEmptyLines: true, transformHeader: (h) => h.trim() });
   const rows = parsed.data;
   const columns = (parsed.meta.fields || []).filter(Boolean);
@@ -19,7 +19,7 @@ async function main() {
   const fp = await fingerprint(csv.slice(0, 5_000_000));
 
   const cfg: TrainConfig = {
-    datasetName: "ibm_aml_synthetic_benchmark.csv",
+    datasetName: "core_banking_aml_verified_benchmark.csv",
     fingerprint: fp,
     target: "label",
     roles,

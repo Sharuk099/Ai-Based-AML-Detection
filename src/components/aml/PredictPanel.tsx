@@ -61,7 +61,9 @@ export function PredictPanel() {
     const maxProb = Math.max(...probas);
     const predIdx = probas.indexOf(maxProb);
     const issue = inferenceIssue(activeModel, singleInputs);
-    const predClass = issue ? "Unable to classify" : activeModel.classes[predIdx] || "Unable to classify";
+    const predClass = issue
+      ? "Unable to classify"
+      : activeModel.classes[predIdx] || "Unable to classify";
 
     const probList = activeModel.classes
       .map((cls, idx) => ({
@@ -105,13 +107,19 @@ export function PredictPanel() {
         const idx = p.indexOf(maxP);
         const cls = activeModel.classes[idx] || "Unknown";
         const issue = inferenceIssue(activeModel, r);
-        const evaluation = evaluateTransactionRisk(r, cls, issue ? 0 : maxP, activeModel.classes.map((label, j) => ({label, prob: p[j] ?? 0})));
+        const evaluation = evaluateTransactionRisk(
+          r,
+          cls,
+          issue ? 0 : maxP,
+          activeModel.classes.map((label, j) => ({ label, prob: p[j] ?? 0 })),
+        );
         if (evaluation.isSuspicious) flaggedCount++;
         const risk = evaluation.riskLevel;
 
         return {
           ...r,
-          _predicted_class: evaluation.classificationStatus === "CLASSIFIED" ? cls : "Unable to classify",
+          _predicted_class:
+            evaluation.classificationStatus === "CLASSIFIED" ? cls : "Unable to classify",
           _confidence: issue ? 0 : maxP,
           _risk_level: risk,
         };

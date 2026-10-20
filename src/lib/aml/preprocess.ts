@@ -124,7 +124,11 @@ export function rawVector(p: Prep, r: Row, dynamicStats?: Record<string, Account
   return v;
 }
 
-export function transform(p: Prep, rows: Row[], dynamicStats?: Record<string, AccountStat>): number[][] {
+export function transform(
+  p: Prep,
+  rows: Row[],
+  dynamicStats?: Record<string, AccountStat>,
+): number[][] {
   const stats = dynamicStats ?? p.graph?.stats;
   return rows.map((r) => rawVector(p, r, stats).map((x, j) => (x - p.outMean[j]) / p.outStd[j]));
 }

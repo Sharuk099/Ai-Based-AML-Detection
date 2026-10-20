@@ -27,23 +27,43 @@ import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
-  head: () => ({ meta: [
-    { title: "AML Intelligence | Transaction Review & Model Validation" },
-    { name: "description", content: "Review uploaded transactions, train and independently evaluate AML models, and investigate evidence-backed alerts." },
-    { property: "og:title", content: "AML Intelligence | Transaction Review" },
-    { property: "og:description", content: "Transaction screening with transparent model validation and graph evidence." },
-    { property: "og:type", content: "website" },
-    { name: "twitter:card", content: "summary" },
-  ] }),
+  head: () => ({
+    meta: [
+      { title: "AML Intelligence | Transaction Review & Model Validation" },
+      {
+        name: "description",
+        content:
+          "Review uploaded transactions, train and independently evaluate AML models, and investigate evidence-backed alerts.",
+      },
+      { property: "og:title", content: "AML Intelligence | Transaction Review" },
+      {
+        property: "og:description",
+        content: "Transaction screening with transparent model validation and graph evidence.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: IndexPage,
 });
 
 function MainApp() {
   const { tab, setTab, activeDs, analysisResult, activeModel, isAnalyzing } = useAml();
 
-  const navItems: { id: string; label: string; icon: LucideIcon; badge?: string | number | undefined; badgeTone?: string }[] = [
+  const navItems: {
+    id: string;
+    label: string;
+    icon: LucideIcon;
+    badge?: string | number | undefined;
+    badgeTone?: string;
+  }[] = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "upload", label: "Upload Transactions", icon: Upload, badge: activeDs ? "ready" : undefined },
+    {
+      id: "upload",
+      label: "Upload Transactions",
+      icon: Upload,
+      badge: activeDs ? "ready" : undefined,
+    },
     {
       id: "analyze",
       label: "Analyze Transactions",
@@ -63,10 +83,12 @@ function MainApp() {
       id: "report",
       label: "Investigation Report",
       icon: FileText,
-      badge: analysisResult && analysisResult.flaggedCount > 0 ? `${analysisResult.flaggedCount} alerts` : undefined,
+      badge:
+        analysisResult && analysisResult.flaggedCount > 0
+          ? `${analysisResult.flaggedCount} alerts`
+          : undefined,
       badgeTone: "danger",
     },
-    { id: "train", label: "Train Models", icon: Sparkles },
     { id: "model_info", label: "Model Information", icon: Info },
   ];
 
@@ -100,8 +122,12 @@ function MainApp() {
             {activeDs && (
               <div className="hidden md:flex items-center gap-2 rounded border border-border/70 bg-card px-3 py-1 text-xs font-mono">
                 <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
-                <span className="text-foreground font-semibold truncate max-w-[150px]">{activeDs.name}</span>
-                <span className="text-muted-foreground">({activeDs.rows.length.toLocaleString()} rows)</span>
+                <span className="text-foreground font-semibold truncate max-w-[150px]">
+                  {activeDs.name}
+                </span>
+                <span className="text-muted-foreground">
+                  ({activeDs.rows.length.toLocaleString()} rows)
+                </span>
               </div>
             )}
 
@@ -136,7 +162,9 @@ function MainApp() {
                       : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                   }`}
                 >
-                  <Icon className={`h-4 w-4 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+                  <Icon
+                    className={`h-4 w-4 ${isActive ? "text-primary" : "text-muted-foreground"}`}
+                  />
                   <span>{item.label}</span>
                   {item.badge !== undefined && (
                     <span
@@ -144,8 +172,8 @@ function MainApp() {
                         item.badgeTone === "primary"
                           ? "bg-primary text-primary-foreground animate-pulse"
                           : item.badgeTone === "danger"
-                          ? "bg-destructive text-destructive-foreground"
-                          : "bg-muted-foreground/20 text-muted-foreground"
+                            ? "bg-destructive text-destructive-foreground"
+                            : "bg-muted-foreground/20 text-muted-foreground"
                       }`}
                     >
                       {item.badge}
@@ -168,7 +196,12 @@ function MainApp() {
         {tab === "explain" && <ExplainPage />}
         {tab === "report" && <ReportPage />}
         {tab === "train" && <TrainPanel />}
-        {tab === "model_info" && <><ModelInfoPage /><ModelsPanel /></>}
+        {tab === "model_info" && (
+          <>
+            <ModelInfoPage />
+            <ModelsPanel />
+          </>
+        )}
       </main>
 
       {/* Footer */}

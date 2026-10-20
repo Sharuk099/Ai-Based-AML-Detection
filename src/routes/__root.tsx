@@ -79,10 +79,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "AI-Based AML Detection | Anti-Money Laundering Intelligence" },
-      { name: "description", content: "Client-side machine learning and transaction network graph analytics for Anti-Money Laundering (AML) detection and typologies." },
+      {
+        name: "description",
+        content:
+          "Client-side machine learning and transaction network graph analytics for Anti-Money Laundering (AML) detection and typologies.",
+      },
       { name: "author", content: "AML Intelligence" },
       { property: "og:title", content: "AI-Based AML Detection" },
-      { property: "og:description", content: "Browser-based Anti-Money Laundering detection with Gradient Boosting, Stacking, Random Forest, explainability, and graph analytics." },
+      {
+        property: "og:description",
+        content:
+          "Browser-based Anti-Money Laundering detection with Gradient Boosting, Stacking, Random Forest, explainability, and graph analytics.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

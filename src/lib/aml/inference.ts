@@ -2,7 +2,11 @@ import type { SavedModel } from "./pipeline";
 import type { Row } from "./types";
 
 /** Keep original feature names; aliases only bridge roles recorded during training. */
-export function prepareInferenceRow(row: Row, model: SavedModel, detected: Record<string, string | undefined>): Row {
+export function prepareInferenceRow(
+  row: Row,
+  model: SavedModel,
+  detected: Record<string, string | undefined>,
+): Row {
   const prepared = { ...row };
   for (const [role, trainingColumn] of Object.entries(model.roles)) {
     const inputColumn = detected[role];
@@ -10,7 +14,15 @@ export function prepareInferenceRow(row: Row, model: SavedModel, detected: Recor
       prepared[trainingColumn] = row[inputColumn] ?? "";
     }
   }
-  const aliases: Record<string, string> = { amount: "amount", sender: "from_account", receiver: "to_account", timestamp: "timestamp", currency: "currency", payment_format: "payment_format", transaction_id: "transaction_id" };
+  const aliases: Record<string, string> = {
+    amount: "amount",
+    sender: "from_account",
+    receiver: "to_account",
+    timestamp: "timestamp",
+    currency: "currency",
+    payment_format: "payment_format",
+    transaction_id: "transaction_id",
+  };
   for (const [role, canonical] of Object.entries(aliases)) {
     const key = detected[role];
     if (key) prepared[canonical] = row[key] ?? "";
@@ -22,14 +34,20 @@ export function prepareInferenceRow(row: Row, model: SavedModel, detected: Recor
 export function inferenceIssue(model: SavedModel, row: Row): string | undefined {
   if (!model.report.reloadVerified) return "Model reload has not been verified.";
   for (const key of model.prep.inputColumns) {
-    if (row[key] === undefined || row[key]?.trim() === "") return `Missing required model feature: ${key}`;
+    if (row[key] === undefined || row[key]?.trim() === "")
+      return `Missing required model feature: ${key}`;
   }
   for (const feature of model.prep.numeric) {
-    if (!Number.isFinite(Number(String(row[feature.col]).replace(/,/g, "")))) return `Invalid numeric feature: ${feature.col}`;
+    if (!Number.isFinite(Number(String(row[feature.col]).replace(/,/g, ""))))
+      return `Invalid numeric feature: ${feature.col}`;
   }
   for (const feature of model.prep.categorical) {
-    if (!feature.cats.includes(row[feature.col] ?? "")) return `Unseen category for ${feature.col}; reliability not established.`;
+    const rawVal = (row[feature.col] ?? "").trim();
+    const hasMatch = feature.cats.some((c) => c.toLowerCase() === rawVal.toLowerCase());
+    if (!hasMatch)
+      return `Unseen category for ${feature.col} ("${rawVal}"); reliability not established.`;
   }
-  if (model.prep.time && !Number.isFinite(Date.parse(row[model.prep.time.col] ?? ""))) return "Invalid transaction timestamp.";
+  if (model.prep.time && !Number.isFinite(Date.parse(row[model.prep.time.col] ?? "")))
+    return "Invalid transaction timestamp.";
   return undefined;
 }
