@@ -21,7 +21,6 @@ import { GraphPage } from "@/components/aml/pages/GraphPage";
 import { ExplainPage } from "@/components/aml/pages/ExplainPage";
 import { ReportPage } from "@/components/aml/pages/ReportPage";
 import { ModelInfoPage } from "@/components/aml/pages/ModelInfoPage";
-import { TrainPanel } from "@/components/aml/TrainPanel";
 import { ModelsPanel } from "@/components/aml/ModelsPanel";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -78,17 +77,7 @@ function MainApp() {
       badge: analysisResult ? analysisResult.totalTransactions : undefined,
     },
     { id: "graph", label: "Transaction Graph", icon: Network },
-    { id: "explain", label: "Explainable AI", icon: HelpCircle },
-    {
-      id: "report",
-      label: "Investigation Report",
-      icon: FileText,
-      badge:
-        analysisResult && analysisResult.flaggedCount > 0
-          ? `${analysisResult.flaggedCount} alerts`
-          : undefined,
-      badgeTone: "danger",
-    },
+    { id: "explain", label: "Explainable AI & Report", icon: HelpCircle },
     { id: "model_info", label: "Model Information", icon: Info },
   ];
 
@@ -193,9 +182,7 @@ function MainApp() {
         {tab === "analyze" && <AnalyzePage />}
         {tab === "results" && <ResultsPage />}
         {tab === "graph" && <GraphPage />}
-        {tab === "explain" && <ExplainPage />}
-        {tab === "report" && <ReportPage />}
-        {tab === "train" && <TrainPanel />}
+        {(tab === "explain" || tab === "report") && <><ExplainPage /><ReportPage /></>}
         {tab === "model_info" && (
           <>
             <ModelInfoPage />
