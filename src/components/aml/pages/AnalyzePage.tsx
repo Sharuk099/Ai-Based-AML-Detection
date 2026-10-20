@@ -24,13 +24,8 @@ export function AnalyzePage() {
     analysisResult,
     setTab,
     modelCompatibility,
-    trainCompatibleModel,
   } = useAml();
   const [completedSteps, setCompletedSteps] = useState<number>(analysisResult ? 6 : 0);
-  const [isTraining, setIsTraining] = useState(false);
-  const [trainError, setTrainError] = useState<string>();
-  const [trainSuccess, setTrainSuccess] = useState<string>();
-
   const handleStartAnalysis = async () => {
     if (!activeDs) return;
     setCompletedSteps(1);
@@ -40,8 +35,7 @@ export function AnalyzePage() {
     }
   };
 
-  const handleTrainCompatible = async () => {
-    if (!activeDs) return;
+  if (!activeDs) return;
     setIsTraining(true);
     setTrainError(undefined);
     setTrainSuccess(undefined);
@@ -112,7 +106,7 @@ export function AnalyzePage() {
     <div className="space-y-6">
       {!activeModel && (
         <Note>
-          No trained model is available. Upload labeled transactions and train a model first.
+          No trained model is available. Contact the model administrator.
         </Note>
       )}
 
@@ -130,11 +124,6 @@ export function AnalyzePage() {
             <p className="text-xs text-muted-foreground leading-relaxed">
               The currently selected model <b className="text-foreground">{activeModel?.name}</b> is
               incompatible with the active dataset <b className="text-foreground">{activeDs.name}</b>.
-              {modelCompatibility.isAccountLevelDataset && (
-                <span>
-                  {" "}The dataset contains <b>account-level profile records</b> with 1 representative transaction per account, whereas the default model is a transaction-level model trained on a 6-class typology.
-                </span>
-              )}
             </p>
 
             <div className="rounded border border-warning/30 bg-warning/5 p-3 space-y-1.5 text-xs font-mono">
@@ -149,23 +138,6 @@ export function AnalyzePage() {
 
             <div className="pt-2 flex flex-wrap items-center gap-3">
               <Button
-                onClick={handleTrainCompatible}
-                disabled={isTraining}
-                className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-xs shadow-md"
-              >
-                {isTraining ? (
-                  <>
-                    <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                    Training & Evaluating Model (Stratified Split)...
-                  </>
-                ) : (
-                  <>
-                    <Cpu className="mr-2 h-3.5 w-3.5" />
-                    Train & Evaluate Compatible Model (Stratified Split)
-                  </>
-                )}
-              </Button>
-              <Button
                 variant="outline"
                 onClick={() => setTab("model_info")}
                 className="text-xs"
@@ -174,8 +146,6 @@ export function AnalyzePage() {
               </Button>
             </div>
 
-            {trainError && <Note kind="err">{trainError}</Note>}
-            {trainSuccess && <Note kind="ok">{trainSuccess}</Note>}
           </div>
         </Panel>
       )}
@@ -312,7 +282,7 @@ export function AnalyzePage() {
               <div className="flex items-center gap-1.5 font-bold text-success mb-1">
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 <span>
-                  Independent Evaluation vs Ground-Truth Target Label (
+                  Uploaded-label agreement (not independent validation) (
                   {analysisResult.evaluationVsGroundTruth.targetColumn}):
                 </span>
               </div>
@@ -338,7 +308,7 @@ export function AnalyzePage() {
               Open Predictions Table
             </Button>
             <Button size="sm" variant="outline" onClick={() => setTab("graph")} className="text-xs">
-              Inspect Transaction Graph (0 loops)
+              Inspect Transaction Graph
             </Button>
             <Button
               size="sm"

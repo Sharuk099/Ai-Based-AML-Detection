@@ -70,12 +70,12 @@ export function syntheticCsv(n: number = 3000): string {
         : (ordinaryAccounts[Math.floor(r() * 200)] ?? "");
       if (isIndian) {
         currency = "INR";
-        paymentFormat = ["UPI", "IMPS", "Cash", "NEFT"][Math.floor(r() * 4)];
+        paymentFormat = ["UPI", "IMPS", "Cash", "NEFT"][Math.floor(r() * 4)] ?? "";
         // Indian structuring: ₹48,000 - ₹49,950 (just below ₹50,000 PAN limit) or ₹9,50,000 (CTR limit)
         amount = r() < 0.7 ? 48000 + r() * 1900 : 950000 + r() * 45000;
       } else {
         currency = r() < 0.8 ? "USD" : "EUR";
-        paymentFormat = ["Wire", "Cash", "Crypto"][Math.floor(r() * 3)];
+        paymentFormat = ["Wire", "Cash", "Crypto"][Math.floor(r() * 3)] ?? "";
         // US/EU structuring: $9,200 - $9,950 (just below $10,000 reporting threshold)
         amount = 9200 + r() * 750;
       }
@@ -87,11 +87,11 @@ export function syntheticCsv(n: number = 3000): string {
       to = muleAccounts[10 + Math.floor(r() * 10)] ?? "";
       if (isIndian) {
         currency = "INR";
-        paymentFormat = ["IMPS", "UPI", "NEFT"][Math.floor(r() * 3)];
+        paymentFormat = ["IMPS", "UPI", "NEFT"][Math.floor(r() * 3)] ?? "";
         amount = 150000 + r() * 350000;
       } else {
         currency = "USD";
-        paymentFormat = ["Wire", "ACH"][Math.floor(r() * 2)];
+        paymentFormat = ["Wire", "ACH"][Math.floor(r() * 2)] ?? "";
         amount = 12000 + r() * 25000;
       }
       hour = Math.floor(r() * 24);
@@ -103,11 +103,11 @@ export function syntheticCsv(n: number = 3000): string {
       to = muleAccounts[(ringIdx + 1) % 5] ?? "";
       if (isIndian) {
         currency = "INR";
-        paymentFormat = ["UPI", "IMPS", "NEFT"][Math.floor(r() * 3)];
+        paymentFormat = ["UPI", "IMPS", "NEFT"][Math.floor(r() * 3)] ?? "";
         amount = 250000 + r() * 100000;
       } else {
         currency = "USD";
-        paymentFormat = ["Wire", "Crypto"][Math.floor(r() * 2)];
+        paymentFormat = ["Wire", "Crypto"][Math.floor(r() * 2)] ?? "";
         amount = 18000 + r() * 22000;
       }
       hour = 2 + Math.floor(r() * 4); // Late night layering
@@ -122,11 +122,11 @@ export function syntheticCsv(n: number = 3000): string {
         : (ordinaryAccounts[Math.floor(r() * 50)] ?? "");
       if (isIndian) {
         currency = "INR";
-        paymentFormat = ["UPI", "IMPS"][Math.floor(r() * 2)];
+        paymentFormat = ["UPI", "IMPS"][Math.floor(r() * 2)] ?? "";
         amount = 85000 + r() * 120000;
       } else {
         currency = "USD";
-        paymentFormat = ["Wire", "Crypto"][Math.floor(r() * 2)];
+        paymentFormat = ["Wire", "Crypto"][Math.floor(r() * 2)] ?? "";
         amount = 14000 + r() * 30000;
       }
       hour = Math.floor(r() * 24);
@@ -141,11 +141,11 @@ export function syntheticCsv(n: number = 3000): string {
       to = merchant;
       if (isIndianMerchant) {
         currency = "INR";
-        paymentFormat = ["UPI", "NetBanking", "Card", "Cheque"][Math.floor(r() * 4)];
+        paymentFormat = ["UPI", "NetBanking", "Card", "Cheque"][Math.floor(r() * 4)] ?? "";
         amount = 250 + Math.exp(4.0 + r() * 3.5); // ₹250 to ₹15,000
       } else {
         currency = r() < 0.8 ? "USD" : "EUR";
-        paymentFormat = ["Card", "ACH", "Wire"][Math.floor(r() * 3)];
+        paymentFormat = ["Card", "ACH", "Wire"][Math.floor(r() * 3)] ?? "";
         amount = 35 + Math.exp(3.0 + r() * 3.2); // $35 to $1,500
       }
       hour = 9 + Math.floor(r() * 12);
@@ -158,7 +158,7 @@ export function syntheticCsv(n: number = 3000): string {
         to = indianAccounts[Math.floor(r() * indianAccounts.length)] ?? "";
         if (from === to)
           to = indianAccounts[(indianAccounts.indexOf(from) + 1) % indianAccounts.length] ?? "";
-        paymentFormat = ["UPI", "UPI", "IMPS", "Card", "Cheque"][Math.floor(r() * 5)];
+        paymentFormat = ["UPI", "UPI", "IMPS", "Card", "Cheque"][Math.floor(r() * 5)] ?? "";
         amount = Math.max(50, Math.exp(3.5 + r() * 3.0)); // ₹50 to ₹3,000
       } else {
         currency = r() < 0.85 ? "USD" : "EUR";
@@ -167,7 +167,7 @@ export function syntheticCsv(n: number = 3000): string {
         if (from === to)
           to =
             ordinaryAccounts[(ordinaryAccounts.indexOf(from) + 1) % ordinaryAccounts.length] ?? "";
-        paymentFormat = ["Card", "Card", "ACH", "Cheque"][Math.floor(r() * 4)];
+        paymentFormat = ["Card", "Card", "ACH", "Cheque"][Math.floor(r() * 4)] ?? "";
         amount = Math.max(12.5, Math.exp(2.8 + r() * 2.8)); // $15 to $400
       }
       hour = 8 + Math.floor(r() * 13);
@@ -251,7 +251,7 @@ export function generateIndianBankingCsv(n: number = 5000): string {
       from = upiUsers[Math.floor(r() * upiUsers.length)] ?? "";
       to = accounts[Math.floor(r() * 50)] ?? "";
       amount = +(48500 + r() * 1400).toFixed(2); // ₹48,500 - ₹49,900
-      paymentFormat = ["UPI", "IMPS", "Cash"][Math.floor(r() * 3)];
+      paymentFormat = ["UPI", "IMPS", "Cash"][Math.floor(r() * 3)] ?? "";
       hour = r() < 0.5 ? 23 : 3; // Late night
     } else if (dice < 0.09) {
       // 4% Circular Layering Ring across UPI handles
@@ -260,7 +260,7 @@ export function generateIndianBankingCsv(n: number = 5000): string {
       from = muleRing[hop] ?? "";
       to = muleRing[(hop + 1) % muleRing.length] ?? "";
       amount = +(195000 + r() * 85000).toFixed(2);
-      paymentFormat = ["UPI", "IMPS"][Math.floor(r() * 2)];
+      paymentFormat = ["UPI", "IMPS"][Math.floor(r() * 2)] ?? "";
       hour = 1 + Math.floor(r() * 4);
     } else if (dice < 0.13) {
       // 4% Pass-through Mule account
@@ -268,7 +268,7 @@ export function generateIndianBankingCsv(n: number = 5000): string {
       from = accounts[Math.floor(r() * 20)] ?? "";
       to = accounts[20 + Math.floor(r() * 20)] ?? "";
       amount = +(350000 + r() * 250000).toFixed(2);
-      paymentFormat = ["RTGS", "NEFT", "IMPS"][Math.floor(r() * 3)];
+      paymentFormat = ["RTGS", "NEFT", "IMPS"][Math.floor(r() * 3)] ?? "";
       hour = 10 + Math.floor(r() * 6);
     } else if (dice < 0.45) {
       // 32% Commercial Merchant / Retail Payments
@@ -279,7 +279,7 @@ export function generateIndianBankingCsv(n: number = 5000): string {
           : (accounts[Math.floor(r() * accounts.length)] ?? "");
       to = merchants[Math.floor(r() * merchants.length)] ?? "";
       amount = +(150 + Math.exp(3.8 + r() * 3.2)).toFixed(2); // ₹150 - ₹12,000
-      paymentFormat = ["UPI", "NetBanking", "Card", "IMPS"][Math.floor(r() * 4)];
+      paymentFormat = ["UPI", "NetBanking", "Card", "IMPS"][Math.floor(r() * 4)] ?? "";
       hour = 9 + Math.floor(r() * 12);
     } else {
       // 55% Standard Personal (Peer-to-peer UPI, rent, family, bills)
@@ -294,7 +294,7 @@ export function generateIndianBankingCsv(n: number = 5000): string {
           : (accounts[Math.floor(r() * accounts.length)] ?? "");
       if (from === to) to = upiUsers[(upiUsers.indexOf(from) + 1) % upiUsers.length] ?? "";
       amount = +(40 + Math.exp(3.2 + r() * 2.8)).toFixed(2); // ₹40 - ₹2,500
-      paymentFormat = ["UPI", "UPI", "IMPS", "Card", "Cheque"][Math.floor(r() * 5)];
+      paymentFormat = ["UPI", "UPI", "IMPS", "Card", "Cheque"][Math.floor(r() * 5)] ?? "";
       hour = 7 + Math.floor(r() * 15);
     }
 
@@ -356,7 +356,7 @@ export function generateInternationalBankingCsv(n: number = 10000): string {
       from = accounts[Math.floor(r() * 100)] ?? "";
       to = mules[Math.floor(r() * mules.length)] ?? "";
       amount = +(9250 + r() * 700).toFixed(2);
-      paymentFormat = ["Wire", "Cash", "Crypto"][Math.floor(r() * 3)];
+      paymentFormat = ["Wire", "Cash", "Crypto"][Math.floor(r() * 3)] ?? "";
       hour = 2;
     } else if (dice < 0.08) {
       // Mule pass-through
@@ -373,7 +373,7 @@ export function generateInternationalBankingCsv(n: number = 10000): string {
       from = mules[idx] ?? "";
       to = mules[(idx + 1) % 5] ?? "";
       amount = +(38000 + r() * 15000).toFixed(2);
-      paymentFormat = ["Wire", "Crypto"][Math.floor(r() * 2)];
+      paymentFormat = ["Wire", "Crypto"][Math.floor(r() * 2)] ?? "";
       hour = 3;
     } else if (dice < 0.4) {
       // Corporate Commercial
@@ -381,7 +381,7 @@ export function generateInternationalBankingCsv(n: number = 10000): string {
       from = accounts[Math.floor(r() * accounts.length)] ?? "";
       to = corporates[Math.floor(r() * corporates.length)] ?? "";
       amount = +(150 + Math.exp(4.5 + r() * 3.5)).toFixed(2);
-      paymentFormat = ["Wire", "ACH", "Card"][Math.floor(r() * 3)];
+      paymentFormat = ["Wire", "ACH", "Card"][Math.floor(r() * 3)] ?? "";
       hour = 9 + Math.floor(r() * 10);
     } else {
       // Standard Personal
@@ -390,7 +390,7 @@ export function generateInternationalBankingCsv(n: number = 10000): string {
       to = accounts[Math.floor(r() * accounts.length)] ?? "";
       if (from === to) to = accounts[(accounts.indexOf(from) + 1) % accounts.length] ?? "";
       amount = +(15 + Math.exp(3.0 + r() * 2.8)).toFixed(2);
-      paymentFormat = ["Card", "ACH", "Cheque"][Math.floor(r() * 3)];
+      paymentFormat = ["Card", "ACH", "Cheque"][Math.floor(r() * 3)] ?? "";
       hour = 8 + Math.floor(r() * 12);
     }
 

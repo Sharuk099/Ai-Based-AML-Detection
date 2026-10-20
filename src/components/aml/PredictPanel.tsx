@@ -415,19 +415,19 @@ export function PredictPanel() {
                     head={["Row", "Predicted Class", "Confidence", "Alert Level"]}
                     rows={batchResults.rows.slice(0, 10).map((r, i) => [
                       `#${i + 1}`,
-                      r._predicted_class,
-                      `${(r._confidence * 100).toFixed(1)}%`,
+                      r["_predicted_class"],
+                      `${(Number(r["_confidence"]) * 100).toFixed(1)}%`,
                       <Chip
                         key={i}
                         tone={
-                          r._risk_level === "HIGH"
+                          r["_risk_level"] === "HIGH"
                             ? "bad"
-                            : r._risk_level === "MEDIUM"
+                            : r["_risk_level"] === "MEDIUM"
                               ? "bad"
                               : "ok"
                         }
                       >
-                        {r._risk_level}
+                        {r["_risk_level"]}
                       </Chip>,
                     ])}
                   />
