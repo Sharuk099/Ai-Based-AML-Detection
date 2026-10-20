@@ -139,7 +139,7 @@ export function graphSummary(
     if (!S || !R) continue;
 
     if (!adj.has(S)) adj.set(S, new Set());
-    adj.get(S)!.add(R);
+    adj.get(S)?.add(R);
     const k = S + "\u0001" + R;
     const a = amount ? toNum(row[amount]) || 0 : 1;
     edgeW.set(k, (edgeW.get(k) || 0) + a);
@@ -194,19 +194,15 @@ export function graphSummary(
       return st && st.passthrough >= 0.85 && st.passthrough <= 1.15 && st.out_total > 5000;
     });
 
-    const isSuspicious = hasMuleAccount && avgAmt > 1000;
+    const isSuspicious = false;
 
     return {
       path,
       length: path.length,
       avgAmount: avgAmt,
       isSuspicious,
-      classification: isSuspicious
-        ? "Suspicious Circular Layering Ring"
-        : "Routine Commercial Loop",
-      evidence: isSuspicious
-        ? `Directed circular ring of ${path.length} accounts with pass-through flow (${path.filter((a) => stats[a]?.passthrough >= 0.85).join(", ")}) and high transaction volume (avg ${avgAmt.toFixed(2)}). Corroborates layering typology.`
-        : `Directed cycle of ${path.length} accounts; average amount ${avgAmt.toFixed(2)}. Standard bilateral/multilateral commercial trade flow without pass-through mule indicators.`,
+      classification: "Unvalidated Circular Flow",
+      evidence: `Directed cycle of ${path.length} accounts; average amount ${avgAmt.toFixed(2)}. Cycle and aggregate flow alone do not validate laundering or establish routine commerce.`,
     };
   });
 
