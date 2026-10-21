@@ -15,7 +15,6 @@ import {
   Eye,
   AlertCircle,
   ArrowRight,
-  TrendingUp,
 } from "lucide-react";
 import { useAml } from "../state";
 import { Button } from "@/components/ui/button";
@@ -24,15 +23,14 @@ import { Panel, Stat, Chip } from "../ui";
 import { graphSummary } from "@/lib/aml/graph";
 import { ThreeGraph3D } from "../ThreeGraph3D";
 import { GraphDiagram2D } from "../GraphDiagram2D";
-import { ScatterPlot3D } from "../ScatterPlot3D";
 
 export function GraphPage() {
   const { activeDs, analysisResult, setTab } = useAml();
 
-  // Active View Tab: 3D Scatter Plot (R3F) vs 3D Flow Board vs 2D Flow Diagram vs All Connections vs Account Dossiers
-  const [activeView, setActiveView] = useState<
-    "scatter3d" | "graph" | "diagram2d" | "connections" | "accounts"
-  >("graph");
+  // Active View Tab: 3D Interactive Graph vs 2D Flow Diagram vs All Connections vs Account Dossiers
+  const [activeView, setActiveView] = useState<"graph" | "diagram2d" | "connections" | "accounts">(
+    "graph",
+  );
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
   const [searchAccount, setSearchAccount] = useState("");
   const [minAmountFilter, setMinAmountFilter] = useState<number>(0);
@@ -189,15 +187,6 @@ export function GraphPage() {
         <div className="flex items-center gap-1 bg-card border border-border p-1 rounded-md text-xs font-mono">
           <Button
             size="sm"
-            variant={activeView === "scatter3d" ? "default" : "ghost"}
-            onClick={() => setActiveView("scatter3d")}
-            className={`h-7 px-3 text-xs ${activeView === "scatter3d" ? "bg-primary text-primary-foreground font-bold" : ""}`}
-            title="3D Scatter Plot with React-Three-Fiber for inspecting AML transaction outliers"
-          >
-            <TrendingUp className="mr-1.5 h-3.5 w-3.5" /> 3D Scatter Plot (R3F)
-          </Button>
-          <Button
-            size="sm"
             variant={activeView === "graph" ? "default" : "ghost"}
             onClick={() => setActiveView("graph")}
             className={`h-7 px-3 text-xs ${activeView === "graph" ? "bg-primary text-primary-foreground font-bold" : ""}`}
@@ -251,32 +240,6 @@ export function GraphPage() {
           tone={(summary.velocity?.length ?? 0) > 0 ? "warn" : "ok"}
         />
       </div>
-
-      {/* VIEW 0: 3D OUTLIER SCATTER PLOT (React-Three-Fiber) */}
-      {activeView === "scatter3d" && (
-        <Panel
-          title={
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-primary" />
-              <span>3D Multi-Dimensional Outlier Scatter Plot (React-Three-Fiber)</span>
-            </div>
-          }
-          right={
-            <span className="rounded bg-primary/10 border border-primary/30 px-2 py-0.5 text-[10px] font-mono text-primary font-bold">
-              Amount (X) × Risk Probability (Y) × Velocity (Z)
-            </span>
-          }
-        >
-          <ScatterPlot3D
-            records={analysisResult?.records || activeDs.rows}
-            currencySymbol={currencySymbol}
-            onSelectRecord={(rec) => {
-              if (rec.from_account) setSelectedAccount(rec.from_account);
-            }}
-            onJumpToTab={setTab}
-          />
-        </Panel>
-      )}
 
       {/* VIEW 1: 3D INTERACTIVE GRAPH (Three.js) */}
       {activeView === "graph" && (

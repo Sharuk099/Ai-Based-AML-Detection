@@ -1,5 +1,5 @@
 // @ts-nocheck -- strict index checks relaxed for numeric ML code
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import {
   ArrowRight,
   ShieldAlert,
@@ -97,26 +97,26 @@ export function GraphDiagram2D({
   }, [accounts, loopAccounts, muleAccounts]);
 
   // Filter accounts
-  const filterList = useCallback(
-    (list: typeof accounts) => {
-      return list.filter((a) => {
-        if (filterType === "RINGS" && !loopAccounts.has(a.account)) return false;
-        if (filterType === "MULES" && !muleAccounts.has(a.account)) return false;
-        if (filterType === "NORMAL" && (loopAccounts.has(a.account) || muleAccounts.has(a.account)))
-          return false;
-        if (search.trim() && !a.account.toLowerCase().includes(search.toLowerCase())) return false;
-        return true;
-      });
-    },
-    [filterType, loopAccounts, muleAccounts, search],
-  );
+  const filterList = (list: typeof accounts) => {
+    return list.filter((a) => {
+      if (filterType === "RINGS" && !loopAccounts.has(a.account)) return false;
+      if (filterType === "MULES" && !muleAccounts.has(a.account)) return false;
+      if (filterType === "NORMAL" && (loopAccounts.has(a.account) || muleAccounts.has(a.account)))
+        return false;
+      if (search.trim() && !a.account.toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
+    });
+  };
 
-  const filteredSenders = useMemo(() => filterList(senders).slice(0, 15), [senders, filterList]);
+  const filteredSenders = useMemo(
+    () => filterList(senders).slice(0, 15),
+    [senders, filterType, search],
+  );
   const filteredIntermediaries = useMemo(
     () => filterList(intermediaries).slice(0, 20),
-    [intermediaries, filterList],
+    [intermediaries, filterType, search],
   );
-  const filteredSinks = useMemo(() => filterList(sinks).slice(0, 15), [sinks, filterList]);
+  const filteredSinks = useMemo(() => filterList(sinks).slice(0, 15), [sinks, filterType, search]);
 
   const visibleAccSet = useMemo(() => {
     const set = new Set<string>();

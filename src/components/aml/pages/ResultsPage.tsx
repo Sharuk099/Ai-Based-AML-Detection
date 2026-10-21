@@ -20,7 +20,6 @@ import {
   X,
   FileSpreadsheet,
   Printer,
-  TrendingUp,
 } from "lucide-react";
 import Papa from "papaparse";
 import { useAml } from "../state";
@@ -229,15 +228,6 @@ export function ResultsPage() {
         title="Multi-Model Prediction Ledger & Crime Diagnoses"
         right={
           <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setTab("graph")}
-              className="h-8 text-xs font-mono font-bold text-foreground hover:bg-muted border-border"
-              title="Inspect transactions and outliers in 3D Scatter Plot"
-            >
-              <TrendingUp className="mr-1.5 h-3.5 w-3.5 text-primary" /> 3D Scatter
-            </Button>
             <Button
               size="sm"
               variant="outline"
