@@ -6,7 +6,18 @@ export type Model =
   | { type: "logreg"; W: number[][]; b: number[]; K: number }
   | { type: "gb"; K: number; lr: number; base: number[]; trees: Tree[][]; bins: number[][] }
   | { type: "rf"; K: number; trees: Tree[]; bins: number[][] }
-  | { type: "stack"; K: number; bases: Model[]; meta: Model };
+  | { type: "stack"; K: number; bases: Model[]; meta: Model }
+  | {
+      type: "cnn";
+      K: number;
+      inputDim: number;
+      numFilters: number;
+      kernelSize: number;
+      convW: number[][];
+      convB: number[];
+      denseW: number[][];
+      denseB: number[];
+    };
 
 interface Tree {
   f: Int16Array | number[];
@@ -307,6 +318,148 @@ export function trainStacking(
   return { type: "stack", K, bases: makers.map((mk) => mk(X, y)), meta };
 }
 
+/* ---------- Convolutional Neural Network (1D Conv + MaxPool + Dense Softmax) ---------- */
+export function trainCNN(
+  X: number[][],
+  y: number[],
+  K: number,
+  epochs = 25,
+  lr = 0.03,
+  seed = 13,
+): Model {
+  const d = X[0].length;
+  const numFilters = 8;
+  const kernelSize = 3;
+  const halfK = Math.floor(kernelSize / 2);
+  const pooledLen = Math.ceil(d / 2);
+  const flattenDim = pooledLen * numFilters;
+
+  const rnd = mulberry(seed);
+  const convScale = Math.sqrt(2 / (kernelSize * 1));
+  const convW: number[][] = Array.from({ length: numFilters }, () =>
+    Array.from({ length: kernelSize }, () => (rnd() * 2 - 1) * convScale),
+  );
+  const convB: number[] = new Array(numFilters).fill(0);
+
+  const denseScale = Math.sqrt(2 / flattenDim);
+  const denseW: number[][] = Array.from({ length: K }, () =>
+    Array.from({ length: flattenDim }, () => (rnd() * 2 - 1) * denseScale),
+  );
+  const denseB: number[] = new Array(K).fill(0);
+
+  const w = classWeights(y, K);
+  const idx = X.map((_, i) => i);
+
+  for (let e = 0; e < epochs; e++) {
+    shuffle(idx, rnd);
+    const step = lr / (1 + e * 0.05);
+
+    for (const i of idx) {
+      const x = X[i];
+      const target = y[i];
+      const weight = w[i];
+
+      // 1. Forward 1D Conv
+      const convOut: number[][] = Array.from({ length: numFilters }, () => new Array(d).fill(0));
+      for (let f = 0; f < numFilters; f++) {
+        const wf = convW[f];
+        const bf = convB[f];
+        for (let j = 0; j < d; j++) {
+          let s = bf;
+          for (let k = 0; k < kernelSize; k++) {
+            const inIdx = Math.max(0, Math.min(d - 1, j + k - halfK));
+            s += wf[k] * x[inIdx];
+          }
+          convOut[f][j] = Math.max(0, s); // ReLU
+        }
+      }
+
+      // 2. Forward 1D Max Pool & cache argmax
+      const flat: number[] = new Array(flattenDim).fill(0);
+      const maxIndices: number[] = new Array(flattenDim).fill(0);
+      let ptr = 0;
+      for (let f = 0; f < numFilters; f++) {
+        for (let p = 0; p < pooledLen; p++) {
+          const idx1 = p * 2;
+          const idx2 = p * 2 + 1;
+          const v1 = convOut[f][idx1] ?? 0;
+          const v2 = idx2 < d ? (convOut[f][idx2] ?? 0) : -Infinity;
+          if (v1 >= v2) {
+            flat[ptr] = v1;
+            maxIndices[ptr] = idx1;
+          } else {
+            flat[ptr] = v2;
+            maxIndices[ptr] = idx2;
+          }
+          ptr++;
+        }
+      }
+
+      // 3. Dense Softmax
+      const logits = denseW.map((wRow, k) => denseB[k] + dot(wRow, flat));
+      const p = softmax(logits);
+
+      // 4. Backprop gradients
+      const dLogits = new Array(K).fill(0);
+      for (let k = 0; k < K; k++) {
+        dLogits[k] = (p[k] - (target === k ? 1 : 0)) * weight;
+      }
+
+      // Gradient for Dense
+      const dFlat = new Array(flattenDim).fill(0);
+      for (let k = 0; k < K; k++) {
+        const g = dLogits[k];
+        denseB[k] -= step * g;
+        const wRow = denseW[k];
+        for (let m = 0; m < flattenDim; m++) {
+          dFlat[m] += g * wRow[m];
+          wRow[m] -= step * (g * flat[m] + 1e-4 * wRow[m]);
+        }
+      }
+
+      // Backprop through MaxPool & ReLU into Conv
+      const dConv: number[][] = Array.from({ length: numFilters }, () => new Array(d).fill(0));
+      ptr = 0;
+      for (let f = 0; f < numFilters; f++) {
+        for (let p = 0; p < pooledLen; p++) {
+          const maxIdx = maxIndices[ptr];
+          if (convOut[f][maxIdx] > 0) {
+            dConv[f][maxIdx] += dFlat[ptr];
+          }
+          ptr++;
+        }
+      }
+
+      // Update Conv filters
+      for (let f = 0; f < numFilters; f++) {
+        const wf = convW[f];
+        for (let j = 0; j < d; j++) {
+          const g = dConv[f][j];
+          if (g !== 0) {
+            convB[f] -= step * g;
+            for (let k = 0; k < kernelSize; k++) {
+              const inIdx = Math.max(0, Math.min(d - 1, j + k - halfK));
+              wf[k] -= step * (g * x[inIdx] + 1e-4 * wf[k]);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return {
+    type: "cnn",
+    K,
+    inputDim: d,
+    numFilters,
+    kernelSize,
+    convW,
+    convB,
+    denseW,
+    denseB,
+  };
+}
+
 export function predictProba(m: Model, X: number[][]): number[][] {
   switch (m.type) {
     case "logreg":
@@ -334,6 +487,43 @@ export function predictProba(m: Model, X: number[][]): number[][] {
         m.meta,
         X.map((_, i) => Ps.flatMap((P) => P[i])),
       );
+    }
+    case "cnn": {
+      const d = m.inputDim;
+      const halfK = Math.floor(m.kernelSize / 2);
+      const pooledLen = Math.ceil(d / 2);
+      const flattenDim = pooledLen * m.numFilters;
+
+      return X.map((x) => {
+        const convOut: number[][] = Array.from({ length: m.numFilters }, () =>
+          new Array(d).fill(0),
+        );
+        for (let f = 0; f < m.numFilters; f++) {
+          const wf = m.convW[f];
+          const bf = m.convB[f];
+          for (let j = 0; j < d; j++) {
+            let s = bf;
+            for (let k = 0; k < m.kernelSize; k++) {
+              const inIdx = Math.max(0, Math.min(d - 1, j + k - halfK));
+              s += wf[k] * (x[inIdx] ?? 0);
+            }
+            convOut[f][j] = Math.max(0, s);
+          }
+        }
+
+        const flat: number[] = new Array(flattenDim).fill(0);
+        let ptr = 0;
+        for (let f = 0; f < m.numFilters; f++) {
+          for (let p = 0; p < pooledLen; p++) {
+            const v1 = convOut[f][p * 2] ?? 0;
+            const v2 = p * 2 + 1 < d ? (convOut[f][p * 2 + 1] ?? 0) : v1;
+            flat[ptr++] = Math.max(v1, v2);
+          }
+        }
+
+        const logits = m.denseW.map((wRow, k) => m.denseB[k] + dot(wRow, flat));
+        return softmax(logits);
+      });
     }
   }
 }

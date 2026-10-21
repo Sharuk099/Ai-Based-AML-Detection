@@ -40,6 +40,13 @@ import { audit, fingerprint, assessFeatures, FORBIDDEN_SYNTHETIC_FEATURES } from
 import { trainAll } from "@/lib/aml/train";
 import { argmax } from "@/lib/aml/models";
 
+import {
+  runMultiModelAnalysis,
+  type MultiModelEvaluationReport,
+  type TransactionDiagnostic,
+  type ModelPrediction,
+} from "@/lib/aml/multi-model";
+
 export interface Dataset {
   name: string;
   rows: Row[];
@@ -55,6 +62,9 @@ export interface ScoredTransaction {
     | string
     | number
     | boolean
+    | undefined
+    | TransactionDiagnostic
+    | ModelPrediction[]
     | { label: string; prob: number }[]
     | { feature: string; value: string; contribution: number }[];
   _row_id: string;
@@ -68,6 +78,12 @@ export interface ScoredTransaction {
   _evidence_notes: string;
   _probabilities: { label: string; prob: number }[];
   _explanations: { feature: string; value: string; contribution: number }[];
+  _diagnostic?: TransactionDiagnostic;
+  _multi_model_predictions?: ModelPrediction[];
+  _crime_typology?: string;
+  _problem_statement?: string;
+  _cleared_reason?: string;
+  _is_normal?: boolean;
 }
 
 export interface GroundTruthEvaluation {
@@ -105,6 +121,7 @@ export interface AnalysisResult {
   riskBuckets: { range: string; count: number }[];
   evaluationVsGroundTruth?: GroundTruthEvaluation;
   compatibility?: ModelCompatibilityResult;
+  multiModelReport?: MultiModelEvaluationReport;
 }
 
 export interface JobEvent {
@@ -553,6 +570,9 @@ export function AmlProvider({ children }: { children: ReactNode }) {
       const sampleSize = Math.min(preparedRows.length, 250);
       const explanations = localExplain(modelToUse, preparedRows.slice(0, sampleSize), 5);
 
+      // 5b. Concurrent Multi-Model Evaluation across all algorithms (GBDT, Stacking, CNN, RF, LogReg, XAI)
+      const multiModelReport = runMultiModelAnalysis(modelToUse, preparedRows, gData);
+
       // 6. Risk Decisions & Stratification
       let flaggedCount = 0;
       let highRiskCount = 0;
@@ -619,6 +639,7 @@ export function AmlProvider({ children }: { children: ReactNode }) {
         }
 
         const exp = i < sampleSize ? explanations[i] || [] : [];
+        const diag = multiModelReport.diagnostics[i];
 
         return {
           ...r,
@@ -633,6 +654,12 @@ export function AmlProvider({ children }: { children: ReactNode }) {
           _evidence_notes: issue || riskEval.evidenceNotes,
           _probabilities: issue ? [] : probList,
           _explanations: issue ? [] : exp,
+          _diagnostic: diag,
+          _multi_model_predictions: diag?.predictions,
+          _crime_typology: diag?.crimeTypology,
+          _problem_statement: diag?.problemStatement,
+          _cleared_reason: diag?.clearedReason,
+          _is_normal: diag?.isNormal,
         };
       });
 
@@ -756,6 +783,7 @@ export function AmlProvider({ children }: { children: ReactNode }) {
         riskBuckets: buckets,
         evaluationVsGroundTruth,
         compatibility: compat,
+        multiModelReport,
       };
 
       setAnalysisResult(result);

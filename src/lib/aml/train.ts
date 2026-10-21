@@ -12,6 +12,7 @@ import { fitPrep, mulberry, shuffle, splitData, transform, type FeatureSet } fro
 import {
   argmax,
   predictProba,
+  trainCNN,
   trainGB,
   trainLogReg,
   trainRF,
@@ -120,6 +121,7 @@ export function trainAll(
     "Random Forest": (X, y) => trainRF(X, y, K),
     Stacking: (X, y, tag) =>
       trainStacking(X, y, K, (d) => log({ event: "progress", model: tag, detail: d })),
+    CNN: (X, y) => trainCNN(X, y, K, 25, 0.03),
   };
   const experiments: [ModelName, FeatureSet][] = cfg.models
     .filter((m) => makers[m])

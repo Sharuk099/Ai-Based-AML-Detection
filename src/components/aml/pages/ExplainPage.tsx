@@ -129,6 +129,108 @@ export function ExplainPage() {
               </div>
             </div>
 
+            {/* Multi-Model Consensus & Root Problem Diagnosis */}
+            {selectedRecord._diagnostic && (
+              <div className="rounded-md border border-border/80 bg-card p-4 space-y-3">
+                <div className="flex items-start justify-between gap-4 border-b border-border/60 pb-3">
+                  <div className="space-y-1">
+                    <div className="label-mono flex items-center gap-1.5 text-foreground">
+                      {selectedRecord._diagnostic.isCrime ? (
+                        <>
+                          <AlertTriangle className="h-4 w-4 text-destructive" />
+                          <span className="text-destructive font-bold">
+                            Diagnosed Crime Problem:
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="h-4 w-4 text-success" />
+                          <span className="text-success font-bold">
+                            Cleared Normal Verification:
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    <h4 className="font-bold text-sm text-foreground">
+                      {selectedRecord._diagnostic.crimeTypology}
+                    </h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {selectedRecord._diagnostic.problemStatement}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="label-mono">Consensus Agreement</div>
+                    <span className="rounded bg-primary/20 text-primary font-bold px-2 py-0.5 text-xs font-mono">
+                      {selectedRecord._diagnostic.agreementText}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Red Flags Triggered */}
+                {selectedRecord._diagnostic.redFlags.length > 0 && (
+                  <div className="space-y-1">
+                    <div className="label-mono text-destructive">Triggered Risk Indicators:</div>
+                    <ul className="space-y-1">
+                      {selectedRecord._diagnostic.redFlags.map((flag, idx) => (
+                        <li
+                          key={idx}
+                          className="flex items-start gap-2 text-xs font-mono text-muted-foreground"
+                        >
+                          <span className="text-destructive font-bold">•</span>
+                          <span>{flag}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Normal Cleared Rationale */}
+                {selectedRecord._diagnostic.clearedReason && (
+                  <div className="space-y-1">
+                    <div className="label-mono text-success">
+                      Why This Transaction is Cleared Normal:
+                    </div>
+                    <p className="text-xs font-mono text-muted-foreground">
+                      {selectedRecord._diagnostic.clearedReason}
+                    </p>
+                  </div>
+                )}
+
+                {/* All 5 Models Vote Matrix */}
+                {selectedRecord._diagnostic.predictions && (
+                  <div className="pt-2 border-t border-border/60">
+                    <div className="label-mono mb-2">
+                      Individual Algorithm Classification Breakdown:
+                    </div>
+                    <div className="grid gap-2 grid-cols-2 sm:grid-cols-5 font-mono text-xs">
+                      {selectedRecord._diagnostic.predictions.map((p) => (
+                        <div
+                          key={p.category}
+                          className={`rounded border p-2 text-center ${
+                            p.isRisk
+                              ? "border-destructive/40 bg-destructive/10"
+                              : "border-success/40 bg-success/10"
+                          }`}
+                        >
+                          <div className="text-[10px] text-muted-foreground truncate font-semibold">
+                            {p.category}
+                          </div>
+                          <div
+                            className={`font-bold mt-0.5 ${p.isRisk ? "text-destructive" : "text-success"}`}
+                          >
+                            {p.predictedClass.toUpperCase()}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground">
+                            {(p.confidence * 100).toFixed(0)}% conf
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Local Feature Attribution Waterfall */}
             <div>
               <div className="label-mono mb-2 flex items-center justify-between">

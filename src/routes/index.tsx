@@ -77,7 +77,7 @@ function MainApp() {
       icon: FileSpreadsheet,
       badge: analysisResult ? analysisResult.totalTransactions : undefined,
     },
-    { id: "graph", label: "Transaction Graph", icon: Network },
+    { id: "graph", label: "3D Transaction Graph", icon: Network },
     { id: "explain", label: "Explainable AI & Report", icon: HelpCircle },
     { id: "model_info", label: "Model Information", icon: Info },
   ];
