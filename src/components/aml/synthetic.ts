@@ -519,8 +519,8 @@ export function generateSuspiciousCsv(n: number = 500): string {
  * Contains account-level profile features and 1 representative transaction per account.
  * Crucially: Contains representative transactions, NOT a closed cycle ledger (0 circular loops).
  */
-export function generateSyntheticBankingAccounts100Csv(): string {
-  let s = 54321;
+export function generateSyntheticBankingAccounts(count: number = 1000): string {
+  let s = 98765;
   const r = () => {
     s = (s * 16807) % 2147483647;
     return s / 2147483647;
@@ -552,12 +552,11 @@ export function generateSyntheticBankingAccounts100Csv(): string {
 
   const lines = [headers.join(",")];
   const baseDate = new Date(Date.UTC(2024, 2, 1, 10, 0, 0));
-
   const customerTypes = ["Individual", "SMB", "Corporate"];
+  const half = Math.floor(count / 2);
 
-  // 100 accounts total: 50 risk, 50 normal
-  for (let i = 0; i < 100; i++) {
-    const isRisk = i < 50;
+  for (let i = 0; i < count; i++) {
+    const isRisk = i < half;
     const accountId = `ACC_${String(i + 1).padStart(5, "0")}`;
     const custType = customerTypes[Math.floor(r() * (isRisk ? 2 : 3))] ?? "Individual";
 
@@ -576,40 +575,112 @@ export function generateSyntheticBankingAccounts100Csv(): string {
     let rapidPass: number;
 
     if (isRisk) {
-      ageMonths = Math.floor(1 + r() * 18);
-      avgBalance = Math.round(500 + r() * 12000);
-      monthlyInflow = Math.round(45000 + r() * 250000);
-      monthlyOutflow = Math.round(monthlyInflow * (0.94 + r() * 0.08));
+      const typologyIdx = i % 4;
+      if (typologyIdx === 0) {
+        // Structuring & Smurfing: cash deposits just below limits
+        patternType = "structuring";
+        ageMonths = Math.floor(3 + r() * 18);
+        avgBalance = Math.round(1500 + r() * 15000);
+        monthlyInflow = Math.round(65000 + r() * 180000);
+        monthlyOutflow = Math.round(monthlyInflow * (0.95 + r() * 0.05));
+        txnCount = Math.floor(40 + r() * 90);
+        cashRatio = +(0.55 + r() * 0.35).toFixed(3);
+        intlRatio = +(0.15 + r() * 0.35).toFixed(3);
+        nightRatio = +(0.15 + r() * 0.35).toFixed(3);
+        repAmount = Math.round(9150 + r() * 800);
+        repChannel = r() < 0.6 ? "Cash" : "Wire";
+        rapidPass = 0;
+      } else if (typologyIdx === 1) {
+        // Velocity Bursts: sudden massive transaction frequency & night activity
+        patternType = "velocity_burst";
+        ageMonths = Math.floor(1 + r() * 12);
+        avgBalance = Math.round(2000 + r() * 18000);
+        monthlyInflow = Math.round(90000 + r() * 280000);
+        monthlyOutflow = Math.round(monthlyInflow * (0.96 + r() * 0.06));
+        txnCount = Math.floor(180 + r() * 260);
+        cashRatio = +(0.25 + r() * 0.40).toFixed(3);
+        intlRatio = +(0.30 + r() * 0.45).toFixed(3);
+        nightRatio = +(0.38 + r() * 0.45).toFixed(3);
+        repAmount = Math.round(22000 + r() * 45000);
+        repChannel = r() < 0.5 ? "Crypto" : "UPI";
+        rapidPass = 1;
+      } else if (typologyIdx === 2) {
+        // Dormant Account Activation: old account suddenly handling huge velocity
+        patternType = "dormant_activation";
+        ageMonths = Math.floor(48 + r() * 72);
+        avgBalance = Math.round(300 + r() * 2500); // historically dormant
+        monthlyInflow = Math.round(180000 + r() * 450000);
+        monthlyOutflow = Math.round(monthlyInflow * (0.98 + r() * 0.03));
+        txnCount = Math.floor(80 + r() * 150);
+        cashRatio = +(0.40 + r() * 0.45).toFixed(3);
+        intlRatio = +(0.35 + r() * 0.45).toFixed(3);
+        nightRatio = +(0.28 + r() * 0.40).toFixed(3);
+        repAmount = Math.round(48000 + r() * 40000);
+        repChannel = r() < 0.6 ? "Wire" : "Crypto";
+        rapidPass = 1;
+      } else {
+        // Mule Rings: rapid in-and-out conduits
+        patternType = "mule_conduit";
+        ageMonths = Math.floor(2 + r() * 15);
+        avgBalance = Math.round(800 + r() * 6000);
+        monthlyInflow = Math.round(120000 + r() * 320000);
+        monthlyOutflow = Math.round(monthlyInflow * (0.97 + r() * 0.05));
+        txnCount = Math.floor(90 + r() * 170);
+        cashRatio = +(0.30 + r() * 0.50).toFixed(3);
+        intlRatio = +(0.40 + r() * 0.45).toFixed(3);
+        nightRatio = +(0.30 + r() * 0.45).toFixed(3);
+        repAmount = Math.round(35000 + r() * 55000);
+        repChannel = r() < 0.5 ? "Wire" : "UPI";
+        rapidPass = 1;
+      }
       inOutRatio = +(monthlyOutflow / Math.max(monthlyInflow, 1)).toFixed(3);
-      txnCount = Math.floor(45 + r() * 180);
-      cashRatio = +(0.35 + r() * 0.5).toFixed(3);
-      intlRatio = +(0.2 + r() * 0.6).toFixed(3);
-      nightRatio = +(0.25 + r() * 0.55).toFixed(3);
-      repAmount = Math.round(r() < 0.6 ? 9100 + r() * 850 : 25000 + r() * 45000);
-      repChannel = ["Wire", "Cash", "Crypto", "UPI"][Math.floor(r() * 4)] ?? "Wire";
-      patternType = ["structuring", "mule_conduit", "rapid_movement", "layering_attempt"][
-        i % 4
-      ]!;
-      rapidPass = r() < 0.7 ? 1 : 0;
     } else {
-      ageMonths = Math.floor(12 + r() * 120);
-      avgBalance = Math.round(3500 + r() * 65000);
-      monthlyInflow = Math.round(2500 + r() * 25000);
-      monthlyOutflow = Math.round(monthlyInflow * (0.45 + r() * 0.45));
+      // Normal accounts (retail, SMB, corporate)
+      const normalType = i % 3;
+      if (normalType === 0) {
+        patternType = "normal_retail";
+        ageMonths = Math.floor(18 + r() * 90);
+        avgBalance = Math.round(3500 + r() * 25000);
+        monthlyInflow = Math.round(3000 + r() * 12000);
+        monthlyOutflow = Math.round(monthlyInflow * (0.55 + r() * 0.35));
+        txnCount = Math.floor(8 + r() * 25);
+        cashRatio = +(0.02 + r() * 0.12).toFixed(3);
+        intlRatio = +(r() * 0.04).toFixed(3);
+        nightRatio = +(r() * 0.04).toFixed(3);
+        repAmount = Math.round(45 + r() * 450);
+        repChannel = "Card";
+      } else if (normalType === 1) {
+        patternType = "normal_smb";
+        ageMonths = Math.floor(24 + r() * 100);
+        avgBalance = Math.round(18000 + r() * 95000);
+        monthlyInflow = Math.round(35000 + r() * 120000);
+        monthlyOutflow = Math.round(monthlyInflow * (0.65 + r() * 0.25));
+        txnCount = Math.floor(35 + r() * 80);
+        cashRatio = +(0.05 + r() * 0.15).toFixed(3);
+        intlRatio = +(r() * 0.08).toFixed(3);
+        nightRatio = +(r() * 0.06).toFixed(3);
+        repAmount = Math.round(1200 + r() * 6500);
+        repChannel = "UPI";
+      } else {
+        patternType = "normal_corporate";
+        ageMonths = Math.floor(36 + r() * 120);
+        avgBalance = Math.round(80000 + r() * 400000);
+        monthlyInflow = Math.round(120000 + r() * 500000);
+        monthlyOutflow = Math.round(monthlyInflow * (0.70 + r() * 0.20));
+        txnCount = Math.floor(60 + r() * 140);
+        cashRatio = +(r() * 0.05).toFixed(3);
+        intlRatio = +(0.02 + r() * 0.10).toFixed(3);
+        nightRatio = +(r() * 0.03).toFixed(3);
+        repAmount = Math.round(15000 + r() * 45000);
+        repChannel = "Wire";
+      }
       inOutRatio = +(monthlyOutflow / Math.max(monthlyInflow, 1)).toFixed(3);
-      txnCount = Math.floor(6 + r() * 35);
-      cashRatio = +(0.02 + r() * 0.15).toFixed(3);
-      intlRatio = +(r() * 0.08).toFixed(3);
-      nightRatio = +(r() * 0.08).toFixed(3);
-      repAmount = Math.round(35 + r() * 650);
-      repChannel = ["Card", "ACH", "Cheque", "UPI"][Math.floor(r() * 4)] ?? "Card";
-      patternType = "normal";
       rapidPass = 0;
     }
 
     const repFrom = accountId;
-    const repTo = `EXT_COUNTERPARTY_${String(i + 1).padStart(3, "0")}`;
-    const repTime = new Date(baseDate.getTime() + i * 3600000 * 4).toISOString();
+    const repTo = `EXT_COUNTERPARTY_${String(i + 1).padStart(4, "0")}`;
+    const repTime = new Date(baseDate.getTime() + i * 1800000).toISOString();
 
     const row = [
       accountId,
@@ -629,9 +700,9 @@ export function generateSyntheticBankingAccounts100Csv(): string {
       repTo,
       repTime,
       patternType,
-      0, // circular_flow_indicator_synthetic: NO loops
+      0, // circular_flow_indicator_synthetic: strictly 0
       rapidPass,
-      "synthetic_banking_accounts_v1",
+      "synthetic_banking_accounts_v2",
       isRisk ? "risk" : "normal",
     ];
 
@@ -640,3 +711,4 @@ export function generateSyntheticBankingAccounts100Csv(): string {
 
   return lines.join("\n");
 }
+

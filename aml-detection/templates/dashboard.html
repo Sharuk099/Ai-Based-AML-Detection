@@ -1,43 +1,56 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="card" style="border-color: rgba(245, 158, 11, 0.4); background: linear-gradient(135deg, #18202c, #1a2636);">
-  <h1 style="font-size: 24px; margin-bottom: 8px;">AI-Based Anti-Money Laundering Detection</h1>
-  <p style="font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 20px;">
-    Production AML screening application with pretrained Gradient Boosting, Stacking, and Random Forest pipelines. Upload transaction CSV files for instant multi-class typology classification, counterparty graph analysis, and SHAP-style local explainability.
+{% extends "base.html" %} {% block content %}
+<div
+  class="card"
+  style="
+    border-color: rgba(245, 158, 11, 0.4);
+    background: linear-gradient(135deg, #18202c, #1a2636);
+  "
+>
+  <h1 style="font-size: 24px; margin-bottom: 8px">AI-Based Anti-Money Laundering Detection</h1>
+  <p style="font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 20px">
+    Production AML screening application with pretrained Gradient Boosting, Stacking, and Random
+    Forest pipelines. Upload transaction CSV files for instant multi-class typology classification,
+    counterparty graph analysis, and SHAP-style local explainability.
   </p>
   <div>
     {% if session.uploaded_df is not none %}
-      <form action="/analyze" method="POST" style="display: inline;">
-        <button type="submit" class="btn" style="font-size: 14px; padding: 12px 24px;">▶ ANALYZE TRANSACTIONS</button>
-      </form>
+    <form action="/analyze" method="POST" style="display: inline">
+      <button type="submit" class="btn" style="font-size: 14px; padding: 12px 24px">
+        ▶ ANALYZE TRANSACTIONS
+      </button>
+    </form>
     {% else %}
-      <a href="/upload" class="btn" style="font-size: 14px; padding: 12px 24px;">⬆ UPLOAD TRANSACTIONS CSV</a>
+    <a href="/upload" class="btn" style="font-size: 14px; padding: 12px 24px"
+      >⬆ UPLOAD TRANSACTIONS CSV</a
+    >
     {% endif %}
   </div>
 </div>
 
 <div class="stat-grid">
   <div class="stat-box">
-    <div class="stat-val" style="color: var(--primary);">
+    <div class="stat-val" style="color: var(--primary)">
       {% if session.uploaded_df is not none %}{{ session.uploaded_df|length }}{% else %}0{% endif %}
     </div>
     <div class="stat-lbl">Transactions Loaded</div>
   </div>
   <div class="stat-box">
-    <div class="stat-val" style="color: var(--success);">
+    <div class="stat-val" style="color: var(--success)">
       {% if has_model %}Pretrained (Ready){% else %}Missing{% endif %}
     </div>
     <div class="stat-lbl">Champion Model Status</div>
   </div>
   <div class="stat-box">
-    <div class="stat-val" style="color: var(--danger);">
-      {% if session.analysis_result %}{{ session.analysis_result.flagged_alerts }}{% else %}—{% endif %}
+    <div class="stat-val" style="color: var(--danger)">
+      {% if session.analysis_result %}{{ session.analysis_result.flagged_alerts }}{% else %}—{%
+      endif %}
     </div>
     <div class="stat-lbl">Flagged AML Alerts</div>
   </div>
   <div class="stat-box">
-    <div class="stat-val" style="color: var(--warning);">
-      {% if session.analysis_result %}{{ session.analysis_result.high_risk_critical }}{% else %}—{% endif %}
+    <div class="stat-val" style="color: var(--warning)">
+      {% if session.analysis_result %}{{ session.analysis_result.high_risk_critical }}{% else %}—{%
+      endif %}
     </div>
     <div class="stat-lbl">High Risk Critical</div>
   </div>
@@ -45,33 +58,53 @@
 
 {% if session.analysis_result %}
 <div class="card">
-  <h3 style="margin-bottom: 12px;">Latest Screening Summary ({{ session.filename }})</h3>
-  <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px;">
-    Scored {{ session.analysis_result.total_transactions }} records using pretrained Gradient Boosting. Found {{ session.analysis_result.flagged_alerts }} anomalies ({{ session.analysis_result.flagged_percentage }}%).
+  <h3 style="margin-bottom: 12px">Latest Screening Summary ({{ session.filename }})</h3>
+  <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px">
+    Scored {{ session.analysis_result.total_transactions }} records using pretrained Gradient
+    Boosting. Found {{ session.analysis_result.flagged_alerts }} anomalies ({{
+    session.analysis_result.flagged_percentage }}%).
   </p>
-  <div style="display: flex; gap: 8px;">
+  <div style="display: flex; gap: 8px">
     <a href="/results" class="btn">View Full Results Table →</a>
     <a href="/graph" class="btn btn-outline">Inspect Network Graph</a>
     <a href="/report" class="btn btn-outline">Generate Investigation Dossier</a>
   </div>
 </div>
 {% else %}
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px">
   <div class="card">
-    <h4 style="margin-bottom: 8px;">1. Upload File</h4>
-    <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Upload transaction CSV with from_account, to_account, amount, and channel columns.</p>
-    <a href="/upload" style="color: var(--primary); font-size: 12px; text-decoration: none; font-weight: bold;">Go to Upload →</a>
+    <h4 style="margin-bottom: 8px">1. Upload File</h4>
+    <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px">
+      Upload transaction CSV with from_account, to_account, amount, and channel columns.
+    </p>
+    <a
+      href="/upload"
+      style="color: var(--primary); font-size: 12px; text-decoration: none; font-weight: bold"
+      >Go to Upload →</a
+    >
   </div>
   <div class="card">
-    <h4 style="margin-bottom: 8px;">2. One-Click Analysis</h4>
-    <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Execute pretrained models instantly. No manual hyperparameter tuning or retraining needed.</p>
-    <a href="/analyze" style="color: var(--primary); font-size: 12px; text-decoration: none; font-weight: bold;">Go to Analyze →</a>
+    <h4 style="margin-bottom: 8px">2. One-Click Analysis</h4>
+    <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px">
+      Execute pretrained models instantly. No manual hyperparameter tuning or retraining needed.
+    </p>
+    <a
+      href="/analyze"
+      style="color: var(--primary); font-size: 12px; text-decoration: none; font-weight: bold"
+      >Go to Analyze →</a
+    >
   </div>
   <div class="card">
-    <h4 style="margin-bottom: 8px;">3. Audit & Dossier</h4>
-    <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Export formal investigation reports with circular loops, smurfing evidence, and SHAP attributions.</p>
-    <a href="/report" style="color: var(--primary); font-size: 12px; text-decoration: none; font-weight: bold;">Go to Reports →</a>
+    <h4 style="margin-bottom: 8px">3. Audit & Dossier</h4>
+    <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px">
+      Export formal investigation reports with circular loops, smurfing evidence, and SHAP
+      attributions.
+    </p>
+    <a
+      href="/report"
+      style="color: var(--primary); font-size: 12px; text-decoration: none; font-weight: bold"
+      >Go to Reports →</a
+    >
   </div>
 </div>
-{% endif %}
-{% endblock %}
+{% endif %} {% endblock %}

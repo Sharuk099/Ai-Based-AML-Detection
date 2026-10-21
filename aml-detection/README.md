@@ -3,6 +3,7 @@
 A production-ready Anti-Money Laundering Detection application with automated model preparation and pre-trained pipelines.
 
 ## Key Design Principles
+
 - **Ready-to-Use Inference**: Users do **NOT** need to operate a training dashboard or retrain models for every transaction file.
 - **One-Click Analysis Workflow**: Upload transaction CSV ➔ Click **ANALYZE TRANSACTIONS** ➔ Inspect risk alerts, graph typologies, local SHAP-style explanations, and downloadable investigation dossiers.
 - **Pretrained & Reload-Verified**: Trained on documented IBM AML benchmark data (comparing Gradient Boosting, Stacking, Random Forest, and Logistic Regression with combined tabular and graph features).
@@ -12,6 +13,7 @@ A production-ready Anti-Money Laundering Detection application with automated mo
 ---
 
 ## Project Structure
+
 ```
 aml-detection/
 ├── app.py                      # Production Flask web application (serves all 8 pages)
@@ -47,6 +49,7 @@ aml-detection/
 ## Quickstart & Local Setup
 
 ### 1. Install Dependencies
+
 ```bash
 cd aml-detection
 python3 -m venv venv
@@ -55,11 +58,15 @@ pip install -r requirements.txt
 ```
 
 ### 2. Automatic Model Setup & Verification
+
 Run the automated initialization script once:
+
 ```bash
 python setup_models.py
 ```
+
 This script will:
+
 1. Obtain the documented benchmark dataset.
 2. Audit the schema and 12 intended AML categories.
 3. Train Gradient Boosting, Stacking Classifier (with 5-fold out-of-fold predictions), and Random Forest.
@@ -69,14 +76,17 @@ This script will:
 7. Save the evaluation report to `reports/evaluation_report.json`.
 
 ### 3. Start the Web Application
+
 ```bash
 python app.py
 ```
+
 Open [http://localhost:5000](http://localhost:5000) in your web browser.
 
 ---
 
 ## Standard User Workflow
+
 1. Open the application dashboard.
 2. Go to **Upload Transactions** and submit your CSV file (or use the built-in sample).
 3. Click the prominent **ANALYZE TRANSACTIONS** button.
@@ -89,7 +99,9 @@ Open [http://localhost:5000](http://localhost:5000) in your web browser.
 ---
 
 ## 12 Target AML Categories & Transparent Audit
+
 The application monitors the 12 standard AML typologies:
+
 1. Blackmail
 2. Cyber-Security Service
 3. Darknet Market

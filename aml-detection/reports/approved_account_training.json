@@ -35,10 +35,7 @@
         "rapid_pass_through_indicator_synthetic": "synthetic label / indicator / metadata column — excluded from predictive features",
         "data_origin": "synthetic label / indicator / metadata column — excluded from predictive features"
       },
-      "classes": [
-        "normal",
-        "risk"
-      ],
+      "classes": ["normal", "risk"],
       "leaderboard": [
         {
           "key": "Gradient Boosting [tabular]",
@@ -58,19 +55,10 @@
             "roc_auc": 1,
             "pr_auc": 1,
             "brier": 0.0000011600338107202719,
-            "labels": [
-              "normal",
-              "risk"
-            ],
+            "labels": ["normal", "risk"],
             "confusion": [
-              [
-                8,
-                0
-              ],
-              [
-                0,
-                7
-              ]
+              [8, 0],
+              [0, 7]
             ],
             "perClass": {
               "normal": {
@@ -110,19 +98,10 @@
             "roc_auc": 1,
             "pr_auc": 1,
             "brier": 0.0010867486518867174,
-            "labels": [
-              "normal",
-              "risk"
-            ],
+            "labels": ["normal", "risk"],
             "confusion": [
-              [
-                8,
-                0
-              ],
-              [
-                0,
-                7
-              ]
+              [8, 0],
+              [0, 7]
             ],
             "perClass": {
               "normal": {
@@ -161,19 +140,10 @@
             "roc_auc": 1,
             "pr_auc": 1,
             "brier": 0.000021476066235344343,
-            "labels": [
-              "normal",
-              "risk"
-            ],
+            "labels": ["normal", "risk"],
             "confusion": [
-              [
-                8,
-                0
-              ],
-              [
-                0,
-                7
-              ]
+              [8, 0],
+              [0, 7]
             ],
             "perClass": {
               "normal": {
@@ -212,19 +182,10 @@
             "roc_auc": 1,
             "pr_auc": 1,
             "brier": 0.00005053228134728935,
-            "labels": [
-              "normal",
-              "risk"
-            ],
+            "labels": ["normal", "risk"],
             "confusion": [
-              [
-                8,
-                0
-              ],
-              [
-                0,
-                7
-              ]
+              [8, 0],
+              [0, 7]
             ],
             "perClass": {
               "normal": {
@@ -257,19 +218,10 @@
         "roc_auc": 1,
         "pr_auc": 1,
         "brier": 0.0000011600338107202602,
-        "labels": [
-          "normal",
-          "risk"
-        ],
+        "labels": ["normal", "risk"],
         "confusion": [
-          [
-            7,
-            0
-          ],
-          [
-            0,
-            8
-          ]
+          [7, 0],
+          [0, 8]
         ],
         "perClass": {
           "normal": {
@@ -387,10 +339,7 @@
         "rapid_pass_through_indicator_synthetic": "synthetic label / indicator / metadata column — excluded from predictive features",
         "data_origin": "synthetic label / indicator / metadata column — excluded from predictive features"
       },
-      "classes": [
-        "normal",
-        "risk"
-      ],
+      "classes": ["normal", "risk"],
       "leaderboard": [
         {
           "key": "Gradient Boosting [tabular]",
@@ -410,19 +359,10 @@
             "roc_auc": 1,
             "pr_auc": 1,
             "brier": 0.0000011600338107202719,
-            "labels": [
-              "normal",
-              "risk"
-            ],
+            "labels": ["normal", "risk"],
             "confusion": [
-              [
-                8,
-                0
-              ],
-              [
-                0,
-                7
-              ]
+              [8, 0],
+              [0, 7]
             ],
             "perClass": {
               "normal": {
@@ -462,19 +402,10 @@
             "roc_auc": 1,
             "pr_auc": 1,
             "brier": 0.0010867486518867174,
-            "labels": [
-              "normal",
-              "risk"
-            ],
+            "labels": ["normal", "risk"],
             "confusion": [
-              [
-                8,
-                0
-              ],
-              [
-                0,
-                7
-              ]
+              [8, 0],
+              [0, 7]
             ],
             "perClass": {
               "normal": {
@@ -513,19 +444,10 @@
             "roc_auc": 1,
             "pr_auc": 1,
             "brier": 0.000021476066235344343,
-            "labels": [
-              "normal",
-              "risk"
-            ],
+            "labels": ["normal", "risk"],
             "confusion": [
-              [
-                8,
-                0
-              ],
-              [
-                0,
-                7
-              ]
+              [8, 0],
+              [0, 7]
             ],
             "perClass": {
               "normal": {
@@ -564,19 +486,10 @@
             "roc_auc": 1,
             "pr_auc": 1,
             "brier": 0.00005053228134728935,
-            "labels": [
-              "normal",
-              "risk"
-            ],
+            "labels": ["normal", "risk"],
             "confusion": [
-              [
-                8,
-                0
-              ],
-              [
-                0,
-                7
-              ]
+              [8, 0],
+              [0, 7]
             ],
             "perClass": {
               "normal": {
@@ -609,19 +522,10 @@
         "roc_auc": 1,
         "pr_auc": 1,
         "brier": 0.0029361500381501074,
-        "labels": [
-          "normal",
-          "risk"
-        ],
+        "labels": ["normal", "risk"],
         "confusion": [
-          [
-            7,
-            0
-          ],
-          [
-            0,
-            8
-          ]
+          [7, 0],
+          [0, 8]
         ],
         "perClass": {
           "normal": {
@@ -739,10 +643,7 @@
         "rapid_pass_through_indicator_synthetic": "synthetic label / indicator / metadata column — excluded from predictive features",
         "data_origin": "synthetic label / indicator / metadata column — excluded from predictive features"
       },
-      "classes": [
-        "normal",
-        "risk"
-      ],
+      "classes": ["normal", "risk"],
       "leaderboard": [
         {
           "key": "Gradient Boosting [tabular]",
@@ -762,19 +663,10 @@
             "roc_auc": 1,
             "pr_auc": 1,
             "brier": 0.0000011600338107202719,
-            "labels": [
-              "normal",
-              "risk"
-            ],
+            "labels": ["normal", "risk"],
             "confusion": [
-              [
-                8,
-                0
-              ],
-              [
-                0,
-                7
-              ]
+              [8, 0],
+              [0, 7]
             ],
             "perClass": {
               "normal": {
@@ -814,19 +706,10 @@
             "roc_auc": 1,
             "pr_auc": 1,
             "brier": 0.0010867486518867174,
-            "labels": [
-              "normal",
-              "risk"
-            ],
+            "labels": ["normal", "risk"],
             "confusion": [
-              [
-                8,
-                0
-              ],
-              [
-                0,
-                7
-              ]
+              [8, 0],
+              [0, 7]
             ],
             "perClass": {
               "normal": {
@@ -865,19 +748,10 @@
             "roc_auc": 1,
             "pr_auc": 1,
             "brier": 0.000021476066235344343,
-            "labels": [
-              "normal",
-              "risk"
-            ],
+            "labels": ["normal", "risk"],
             "confusion": [
-              [
-                8,
-                0
-              ],
-              [
-                0,
-                7
-              ]
+              [8, 0],
+              [0, 7]
             ],
             "perClass": {
               "normal": {
@@ -916,19 +790,10 @@
             "roc_auc": 1,
             "pr_auc": 1,
             "brier": 0.00005053228134728935,
-            "labels": [
-              "normal",
-              "risk"
-            ],
+            "labels": ["normal", "risk"],
             "confusion": [
-              [
-                8,
-                0
-              ],
-              [
-                0,
-                7
-              ]
+              [8, 0],
+              [0, 7]
             ],
             "perClass": {
               "normal": {
@@ -961,19 +826,10 @@
         "roc_auc": 1,
         "pr_auc": 1,
         "brier": 0.000003993208225874156,
-        "labels": [
-          "normal",
-          "risk"
-        ],
+        "labels": ["normal", "risk"],
         "confusion": [
-          [
-            7,
-            0
-          ],
-          [
-            0,
-            8
-          ]
+          [7, 0],
+          [0, 8]
         ],
         "perClass": {
           "normal": {
@@ -1091,10 +947,7 @@
         "rapid_pass_through_indicator_synthetic": "synthetic label / indicator / metadata column — excluded from predictive features",
         "data_origin": "synthetic label / indicator / metadata column — excluded from predictive features"
       },
-      "classes": [
-        "normal",
-        "risk"
-      ],
+      "classes": ["normal", "risk"],
       "leaderboard": [
         {
           "key": "Gradient Boosting [tabular]",
@@ -1114,19 +967,10 @@
             "roc_auc": 1,
             "pr_auc": 1,
             "brier": 0.0000011600338107202719,
-            "labels": [
-              "normal",
-              "risk"
-            ],
+            "labels": ["normal", "risk"],
             "confusion": [
-              [
-                8,
-                0
-              ],
-              [
-                0,
-                7
-              ]
+              [8, 0],
+              [0, 7]
             ],
             "perClass": {
               "normal": {
@@ -1166,19 +1010,10 @@
             "roc_auc": 1,
             "pr_auc": 1,
             "brier": 0.0010867486518867174,
-            "labels": [
-              "normal",
-              "risk"
-            ],
+            "labels": ["normal", "risk"],
             "confusion": [
-              [
-                8,
-                0
-              ],
-              [
-                0,
-                7
-              ]
+              [8, 0],
+              [0, 7]
             ],
             "perClass": {
               "normal": {
@@ -1217,19 +1052,10 @@
             "roc_auc": 1,
             "pr_auc": 1,
             "brier": 0.000021476066235344343,
-            "labels": [
-              "normal",
-              "risk"
-            ],
+            "labels": ["normal", "risk"],
             "confusion": [
-              [
-                8,
-                0
-              ],
-              [
-                0,
-                7
-              ]
+              [8, 0],
+              [0, 7]
             ],
             "perClass": {
               "normal": {
@@ -1268,19 +1094,10 @@
             "roc_auc": 1,
             "pr_auc": 1,
             "brier": 0.00005053228134728935,
-            "labels": [
-              "normal",
-              "risk"
-            ],
+            "labels": ["normal", "risk"],
             "confusion": [
-              [
-                8,
-                0
-              ],
-              [
-                0,
-                7
-              ]
+              [8, 0],
+              [0, 7]
             ],
             "perClass": {
               "normal": {
@@ -1313,19 +1130,10 @@
         "roc_auc": 1,
         "pr_auc": 1,
         "brier": 0.00005737500156799201,
-        "labels": [
-          "normal",
-          "risk"
-        ],
+        "labels": ["normal", "risk"],
         "confusion": [
-          [
-            7,
-            0
-          ],
-          [
-            0,
-            8
-          ]
+          [7, 0],
+          [0, 8]
         ],
         "perClass": {
           "normal": {

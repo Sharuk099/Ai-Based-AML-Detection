@@ -88,11 +88,7 @@ export function AnalyzePage() {
 
   return (
     <div className="space-y-6">
-      {!activeModel && (
-        <Note>
-          No trained model is available. Contact the model administrator.
-        </Note>
-      )}
+      {!activeModel && <Note>No trained model is available. Contact the model administrator.</Note>}
 
       {/* Model Incompatibility Alert and One-Click Training Action */}
       {modelCompatibility && !modelCompatibility.compatible && (
@@ -107,7 +103,8 @@ export function AnalyzePage() {
           <div className="space-y-3">
             <p className="text-xs text-muted-foreground leading-relaxed">
               The currently selected model <b className="text-foreground">{activeModel?.name}</b> is
-              incompatible with the active dataset <b className="text-foreground">{activeDs.name}</b>.
+              incompatible with the active dataset{" "}
+              <b className="text-foreground">{activeDs.name}</b>.
             </p>
 
             <div className="rounded border border-warning/30 bg-warning/5 p-3 space-y-1.5 text-xs font-mono">
@@ -121,15 +118,10 @@ export function AnalyzePage() {
             </div>
 
             <div className="pt-2 flex flex-wrap items-center gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setTab("model_info")}
-                className="text-xs"
-              >
+              <Button variant="outline" onClick={() => setTab("model_info")} className="text-xs">
                 Inspect Model Info
               </Button>
             </div>
-
           </div>
         </Panel>
       )}
@@ -148,14 +140,17 @@ export function AnalyzePage() {
             <h2 className="text-lg font-bold text-foreground">Execute AML Review Pipeline</h2>
             <p className="text-xs text-muted-foreground max-w-xl">
               Applies the compatible machine learning pipeline and graph analytics directly to your
-              uploaded data. Model predictions are generated independently without ground-truth labels.
+              uploaded data. Model predictions are generated independently without ground-truth
+              labels.
             </p>
           </div>
 
           <Button
             size="lg"
             onClick={handleStartAnalysis}
-            disabled={isAnalyzing || !activeModel || (modelCompatibility && !modelCompatibility.compatible)}
+            disabled={
+              isAnalyzing || !activeModel || (modelCompatibility && !modelCompatibility.compatible)
+            }
             className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold px-8 shadow-lg shadow-primary/20 text-sm tracking-wide"
           >
             {isAnalyzing ? (
@@ -271,13 +266,24 @@ export function AnalyzePage() {
                 </span>
               </div>
               <p className="text-[11px] text-muted-foreground mt-1 mb-2">
-                Predictions were generated independently without ground-truth labels. Evaluated across {analysisResult.evaluationVsGroundTruth.n} records.
+                Predictions were generated independently without ground-truth labels. Evaluated
+                across {analysisResult.evaluationVsGroundTruth.n} records.
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-foreground">
-                <div>Accuracy: <b>{(analysisResult.evaluationVsGroundTruth.accuracy * 100).toFixed(1)}%</b></div>
-                <div>Precision: <b>{(analysisResult.evaluationVsGroundTruth.precision * 100).toFixed(1)}%</b></div>
-                <div>Recall: <b>{(analysisResult.evaluationVsGroundTruth.recall * 100).toFixed(1)}%</b></div>
-                <div>F1-Score: <b>{(analysisResult.evaluationVsGroundTruth.f1 * 100).toFixed(1)}%</b></div>
+                <div>
+                  Accuracy:{" "}
+                  <b>{(analysisResult.evaluationVsGroundTruth.accuracy * 100).toFixed(1)}%</b>
+                </div>
+                <div>
+                  Precision:{" "}
+                  <b>{(analysisResult.evaluationVsGroundTruth.precision * 100).toFixed(1)}%</b>
+                </div>
+                <div>
+                  Recall: <b>{(analysisResult.evaluationVsGroundTruth.recall * 100).toFixed(1)}%</b>
+                </div>
+                <div>
+                  F1-Score: <b>{(analysisResult.evaluationVsGroundTruth.f1 * 100).toFixed(1)}%</b>
+                </div>
               </div>
             </div>
           )}

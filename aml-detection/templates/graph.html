@@ -1,6 +1,4 @@
-{% extends "base.html" %}
-{% block content %}
-{% if graph_data %}
+{% extends "base.html" %} {% block content %} {% if graph_data %}
 <div class="stat-grid">
   <div class="stat-box">
     <div class="stat-val">{{ graph_data.total_nodes }}</div>
@@ -11,28 +9,39 @@
     <div class="stat-lbl">Directed Transaction Links</div>
   </div>
   <div class="stat-box">
-    <div class="stat-val" style="color: var(--danger);">{{ graph_data.cycles|length }}</div>
+    <div class="stat-val" style="color: var(--danger)">{{ graph_data.cycles|length }}</div>
     <div class="stat-lbl">Circular Layering Rings</div>
   </div>
 </div>
 
 {% if graph_data.cycles %}
-<div class="card" style="border-color: rgba(239, 68, 68, 0.4);">
-  <h3 style="color: var(--danger); margin-bottom: 8px;">Detected Circular Layering Rings</h3>
-  <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Directed cyclic loops (A → B → C → A) detected by NetworkX simple cycle algorithm:</p>
-  <div style="display: flex; flex-direction: column; gap: 6px; font-family: monospace; font-size: 12px;">
+<div class="card" style="border-color: rgba(239, 68, 68, 0.4)">
+  <h3 style="color: var(--danger); margin-bottom: 8px">Detected Circular Layering Rings</h3>
+  <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px">
+    Directed cyclic loops (A → B → C → A) detected by NetworkX simple cycle algorithm:
+  </p>
+  <div
+    style="display: flex; flex-direction: column; gap: 6px; font-family: monospace; font-size: 12px"
+  >
     {% for cyc in graph_data.cycles[:10] %}
-      <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px; border-radius: 4px;">
-        <b>Ring #{{ loop.index }}:</b> {{ cyc|join(' ➔ ') }} ➔ {{ cyc[0] }}
-      </div>
+    <div
+      style="
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        padding: 8px;
+        border-radius: 4px;
+      "
+    >
+      <b>Ring #{{ loop.index }}:</b> {{ cyc|join(' ➔ ') }} ➔ {{ cyc[0] }}
+    </div>
     {% endfor %}
   </div>
 </div>
 {% endif %}
 
 <div class="card">
-  <h3 style="margin-bottom: 16px;">Top Counterparty Account Telemetry</h3>
-  <div style="overflow-x: auto;">
+  <h3 style="margin-bottom: 16px">Top Counterparty Account Telemetry</h3>
+  <div style="overflow-x: auto">
     <table>
       <thead>
         <tr>
@@ -46,25 +55,28 @@
       </thead>
       <tbody>
         {% for acc, stats in graph_data.stats %}
-          <tr>
-            <td style="font-weight: bold; color: var(--primary);">{{ acc }}</td>
-            <td>{{ stats.out_degree }}</td>
-            <td>{{ stats.in_degree }}</td>
-            <td>${{ "{:,.2f}".format(stats.out_volume) }}</td>
-            <td>${{ "{:,.2f}".format(stats.in_volume) }}</td>
-            <td style="font-weight: bold; color: {% if 0.9 <= stats.passthrough_ratio <= 1.1 %}var(--danger){% else %}var(--text){% endif %};">
-              {{ "{:.1f}%".format(stats.passthrough_ratio * 100) }}
-            </td>
-          </tr>
+        <tr>
+          <td style="font-weight: bold; color: var(--primary)">{{ acc }}</td>
+          <td>{{ stats.out_degree }}</td>
+          <td>{{ stats.in_degree }}</td>
+          <td>${{ "{:,.2f}".format(stats.out_volume) }}</td>
+          <td>${{ "{:,.2f}".format(stats.in_volume) }}</td>
+          <td
+            style="font-weight: bold; color: {% if 0.9 <= stats.passthrough_ratio <= 1.1 %}var(--danger){% else %}var(--text){% endif %};"
+          >
+            {{ "{:.1f}%".format(stats.passthrough_ratio * 100) }}
+          </td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
 {% else %}
-<div class="card" style="text-align: center; padding: 48px;">
-  <p style="color: var(--muted); margin-bottom: 16px;">Upload a transaction file containing sender and receiver accounts to build a transaction graph.</p>
+<div class="card" style="text-align: center; padding: 48px">
+  <p style="color: var(--muted); margin-bottom: 16px">
+    Upload a transaction file containing sender and receiver accounts to build a transaction graph.
+  </p>
   <a href="/upload" class="btn">Upload Transaction File</a>
 </div>
-{% endif %}
-{% endblock %}
+{% endif %} {% endblock %}

@@ -226,11 +226,11 @@ export function computeAccountAggregates(
       cash_deposit_ratio: cashRatio,
       international_tx_ratio: intlRatio,
       night_activity_ratio: nightRatio,
-      representative_tx_amount: acc.lastTx ? parseFloat(String(acc.lastTx[amountCol] || 0)) : undefined,
-      representative_tx_channel: acc.lastTx ? String(acc.lastTx[formatCol] || "Card") : undefined,
+      representative_tx_amount: acc.lastTx ? (parseFloat(String(acc.lastTx[amountCol] || 0)) || 0) : 0,
+      representative_tx_channel: acc.lastTx ? String(acc.lastTx[formatCol] || "Standard") : "Standard",
       from_account: acc.lastTx ? String(acc.lastTx[senderCol] || id) : id,
       to_account: acc.lastTx ? String(acc.lastTx[receiverCol] || "COUNTERPARTY") : "COUNTERPARTY",
-      representative_timestamp: acc.lastTx ? String(acc.lastTx[timestampCol] || "") : undefined,
+      representative_timestamp: acc.lastTx ? String(acc.lastTx[timestampCol] || "") : "",
     });
   });
 

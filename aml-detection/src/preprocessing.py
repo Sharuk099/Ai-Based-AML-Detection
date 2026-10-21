@@ -40,6 +40,21 @@ def split_partitions(
     
     return train_df.reset_index(drop=True), val_df.reset_index(drop=True), test_df.reset_index(drop=True)
 
+def split_dataset_stratified(
+    df: pd.DataFrame, target_col: str, train_ratio: float = 0.7, val_ratio: float = 0.15, test_ratio: float = 0.15, random_state: int = 42
+) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """
+    Splits dataset into stratified train, val, and test partitions with strict integer rounding:
+    n_train = int(round(n * train_ratio))
+    n_val = int(round(n * val_ratio))
+    n_test = n - n_train - n_val
+    """
+    n = len(df)
+    n_train = int(round(n * train_ratio))
+    n_val = int(round(n * val_ratio))
+    n_test = n - n_train - n_val
+    return split_partitions(df, target_col, test_size=n_test, val_size=n_val, random_state=random_state)
+
 def aggregate_transactions_to_accounts(df: pd.DataFrame) -> pd.DataFrame:
     """
     Groups raw transaction records by account counterparty entities and calculates

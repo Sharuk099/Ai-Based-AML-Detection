@@ -34,7 +34,7 @@ from config import (
     POSITIVE_CLASS,
     TARGET_COL,
 )
-from src.preprocessing import build_preprocessor, split_partitions
+from src.preprocessing import build_preprocessor, split_partitions, split_dataset_stratified
 
 
 def _candidates() -> Dict[str, Any]:

@@ -18,7 +18,13 @@ METADATA_PATH = MODELS_DIR / "model_metadata.json"
 EVALUATION_REPORT_PATH = REPORTS_DIR / "evaluation_report.json"
 
 # Labeled training source shipped with the project (synthetic account profiles).
-TRAINING_DATA_PATH = RAW_DATA_DIR / "synthetic_banking_accounts_100_50_risk_50_normal.csv"
+_candidates = [
+    RAW_DATA_DIR / "synthetic_banking_accounts_100_50_risk_50_normal.csv",
+    BASE_DIR.parent / "synthetic_banking_accounts_100_50_risk_50_normal.csv",
+    BASE_DIR.parent / "public" / "synthetic_banking_accounts_100_50_risk_50_normal.csv",
+    BASE_DIR / "synthetic_banking_accounts_100_50_risk_50_normal.csv",
+]
+TRAINING_DATA_PATH = next((p for p in _candidates if p.exists()), _candidates[0])
 TARGET_COL = "risk_label_synthetic"
 
 # Account-profile features the model is trained on. Uploads must contain all of them.

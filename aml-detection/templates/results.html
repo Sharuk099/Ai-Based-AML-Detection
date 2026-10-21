@@ -1,34 +1,42 @@
-{% extends "base.html" %}
-{% block content %}
-{% if session.analysis_result %}
+{% extends "base.html" %} {% block content %} {% if session.analysis_result %}
 <div class="stat-grid">
   <div class="stat-box">
     <div class="stat-val">{{ session.analysis_result.total_transactions }}</div>
     <div class="stat-lbl">Total Scored</div>
   </div>
   <div class="stat-box">
-    <div class="stat-val" style="color: var(--danger);">{{ session.analysis_result.flagged_alerts }}</div>
+    <div class="stat-val" style="color: var(--danger)">
+      {{ session.analysis_result.flagged_alerts }}
+    </div>
     <div class="stat-lbl">Flagged Alerts</div>
   </div>
   <div class="stat-box">
-    <div class="stat-val" style="color: var(--warning);">{{ session.analysis_result.high_risk_critical }}</div>
+    <div class="stat-val" style="color: var(--warning)">
+      {{ session.analysis_result.high_risk_critical }}
+    </div>
     <div class="stat-lbl">High Risk Critical</div>
   </div>
   <div class="stat-box">
-    <div class="stat-val" style="color: var(--primary);">{{ session.analysis_result.flagged_percentage }}%</div>
+    <div class="stat-val" style="color: var(--primary)">
+      {{ session.analysis_result.flagged_percentage }}%
+    </div>
     <div class="stat-lbl">Alert Ratio</div>
   </div>
 </div>
 
 <div class="card">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-    <h3 style="font-size: 16px;">Scored Transactions Table</h3>
-    <div style="display: flex; gap: 8px;">
-      <a href="/report" class="btn btn-outline" style="font-size: 12px;">Export Investigation Report</a>
+  <div
+    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px"
+  >
+    <h3 style="font-size: 16px">Scored Transactions Table</h3>
+    <div style="display: flex; gap: 8px">
+      <a href="/report" class="btn btn-outline" style="font-size: 12px"
+        >Export Investigation Report</a
+      >
     </div>
   </div>
 
-  <div style="overflow-x: auto;">
+  <div style="overflow-x: auto">
     <table>
       <thead>
         <tr>
@@ -45,36 +53,60 @@
       </thead>
       <tbody>
         {% for r in session.analysis_result.records[:50] %}
-          <tr {% if r.risk_level == 'HIGH' %}style="background: rgba(239, 68, 68, 0.05);"{% endif %}>
-            <td style="font-weight: bold; color: var(--text);">{{ r.transaction_id or loop.index }}</td>
-            <td style="color: var(--muted);">{{ r.from_account or '—' }}</td>
-            <td style="color: var(--muted);">{{ r.to_account or '—' }}</td>
-            <td style="color: var(--text);">${{ "{:,.2f}".format(r.amount|float) if r.amount else '0.00' }}</td>
-            <td style="color: var(--muted);">{{ r.payment_format or r.channel or '—' }}</td>
-            <td style="font-weight: bold; color: {% if r.risk_level in ['HIGH', 'MEDIUM'] %}var(--danger){% else %}var(--text){% endif %};">
-              {{ r.predicted_class }}
-            </td>
-            <td>{{ "{:.1f}%".format((r.confidence|float) * 100) }}</td>
-            <td>
-              <span class="badge {% if r.risk_level == 'HIGH' %}badge-high{% elif r.risk_level == 'MEDIUM' %}badge-med{% else %}badge-low{% endif %}">
-                {{ r.risk_level }}
-              </span>
-            </td>
-            <td>
-              <a href="/explain?id={{ r.transaction_id or loop.index }}" style="color: var(--primary); text-decoration: none; font-size: 11px; font-weight: bold;">
-                Explain →
-              </a>
-            </td>
-          </tr>
+        <tr
+          {%
+          if
+          r.risk_level=""
+          ="HIGH"
+          %}style="background: rgba(239, 68, 68, 0.05);"
+          {%
+          endif
+          %}
+        >
+          <td style="font-weight: bold; color: var(--text)">
+            {{ r.transaction_id or loop.index }}
+          </td>
+          <td style="color: var(--muted)">{{ r.from_account or '—' }}</td>
+          <td style="color: var(--muted)">{{ r.to_account or '—' }}</td>
+          <td style="color: var(--text)">
+            ${{ "{:,.2f}".format(r.amount|float) if r.amount else '0.00' }}
+          </td>
+          <td style="color: var(--muted)">{{ r.payment_format or r.channel or '—' }}</td>
+          <td
+            style="font-weight: bold; color: {% if r.risk_level in ['HIGH', 'MEDIUM'] %}var(--danger){% else %}var(--text){% endif %};"
+          >
+            {{ r.predicted_class }}
+          </td>
+          <td>{{ "{:.1f}%".format((r.confidence|float) * 100) }}</td>
+          <td>
+            <span
+              class="badge {% if r.risk_level == 'HIGH' %}badge-high{% elif r.risk_level == 'MEDIUM' %}badge-med{% else %}badge-low{% endif %}"
+            >
+              {{ r.risk_level }}
+            </span>
+          </td>
+          <td>
+            <a
+              href="/explain?id={{ r.transaction_id or loop.index }}"
+              style="
+                color: var(--primary);
+                text-decoration: none;
+                font-size: 11px;
+                font-weight: bold;
+              "
+            >
+              Explain →
+            </a>
+          </td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
 {% else %}
-<div class="card" style="text-align: center; padding: 48px;">
-  <p style="color: var(--muted); margin-bottom: 16px;">No analysis results in current session.</p>
+<div class="card" style="text-align: center; padding: 48px">
+  <p style="color: var(--muted); margin-bottom: 16px">No analysis results in current session.</p>
   <a href="/upload" class="btn">Upload & Analyze Transactions</a>
 </div>
-{% endif %}
-{% endblock %}
+{% endif %} {% endblock %}
