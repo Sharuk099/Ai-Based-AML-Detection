@@ -3,7 +3,7 @@ import numpy as np
 import networkx as nx
 from typing import Tuple, Dict, Any, List
 
-def compute_graph_features(df: pd.DataFrame, sender_col: str, receiver_col: str, amount_col: str) -> pd.DataFrame:
+def compute_graph_features(df: pd.DataFrame, sender_col: str, receiver_col: str, amount_col: str):
     """
     Constructs a NetworkX directed transaction graph and calculates:
     in/out degree, in/out total volumes, passthrough ratios, and indicators.
@@ -67,3 +67,24 @@ def find_circular_cycles(G: nx.DiGraph, max_len: int = 4, max_cycles: int = 50) 
     except Exception:
         pass
     return cycles
+
+
+def describe_cycles(G: nx.DiGraph, cycles: List[List[str]]) -> List[Dict[str, Any]]:
+    """Attach evidence to each cycle. A cycle alone is NOT evidence of laundering."""
+    out = []
+    for c in cycles:
+        hops = list(zip(c, c[1:] + c[:1]))
+        amounts = [float(G[a][b].get("weight", 0)) for a, b in hops]
+        mx = max(amounts) if amounts else 0
+        similar = mx > 0 and (min(amounts) / mx) >= 0.8
+        out.append({
+            "accounts": c,
+            "length": len(c),
+            "hop_amounts": [round(a, 2) for a in amounts],
+            "total_flow": round(sum(amounts), 2),
+            "similar_amounts": similar,
+            "label": "Unvalidated circular flow",
+            "note": "Circular flows occur in normal commerce; review requires additional evidence"
+                    + (" (hop amounts are within 20% of each other)." if similar else "."),
+        })
+    return out
