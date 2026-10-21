@@ -35,11 +35,12 @@ export function DashboardPage() {
     setTab,
     riskConfig,
     updateRiskConfig,
+    loadPresetDataset,
   } = useAml();
+
   const handleAnalyzeClick = async () => {
     if (!activeDs) {
-      setTab("upload");
-      return;
+      await loadPresetDataset("banking_accounts_10000");
     }
     const ok = await runAnalysis();
     if (ok) {
@@ -65,8 +66,9 @@ export function DashboardPage() {
               AI Anti-Money Laundering Detection System
             </h1>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Account-profile classification trained on 100 synthetic accounts. Real-world AML
-              accuracy is unverified; transaction-only uploads cannot be evaluated by this model.
+              Multi-model classification trained offline on 10,000 synthetic banking accounts
+              covering structuring, velocity bursts, dormant activation, mule conduits, circular
+              layering, and offshore corridors. Real-world AML accuracy is unverified.
             </p>
           </div>
 

@@ -7,9 +7,10 @@ import type { SavedModel } from "../src/lib/aml/pipeline";
 import type { Row, TrainConfig } from "../src/lib/aml/types";
 
 async function main() {
-  const datasetName = "synthetic_banking_accounts_1000.csv";
+  const datasetName = "synthetic_banking_accounts_10000.csv";
   const { generateSyntheticBankingAccounts } = await import("../src/components/aml/synthetic");
-  const csv = generateSyntheticBankingAccounts(1000);
+  const count = 10000;
+  const csv = generateSyntheticBankingAccounts(count);
   fs.writeFileSync(datasetName, csv, "utf-8");
   fs.writeFileSync(path.resolve("public", datasetName), csv, "utf-8");
   fs.mkdirSync("aml-detection/data/raw", { recursive: true });
@@ -23,9 +24,9 @@ async function main() {
   const rows = parsed.data;
   const columns = (parsed.meta.fields || []).filter(Boolean);
 
-  if (parsed.errors.length || rows.length !== 1000)
-    throw new Error("Expected the 1000-account CSV.");
-  if (new Set(rows.map((r) => r["account_id"])).size !== 1000)
+  if (parsed.errors.length || rows.length !== count)
+    throw new Error(`Expected the ${count}-account CSV.`);
+  if (new Set(rows.map((r) => r["account_id"])).size !== count)
     throw new Error("Duplicate accounts would leak across splits.");
   const roles = {};
 
@@ -68,11 +69,13 @@ async function main() {
   const winner = candidates.find((m) => m.name === saved.report.selected);
   if (!winner) throw new Error("Validation winner missing.");
   for (const candidate of candidates) {
-    candidate.report.notes.push(
-      "Trained on expanded 1,000-account banking benchmark (500 Diverse Risk, 500 Normal accounts).",
-      "Typologies: Structuring, Velocity bursts, Dormant account activation, and Mule conduits.",
-      "Held-out test partition evaluates 150 unseen records (75 risk, 75 normal) with zero data leakage.",
-    );
+    candidate.report.notes = [
+      "Explicitly requested training on expanded 10,000-account banking benchmark (5,000 Diverse Risk, 5,000 Normal accounts).",
+      "AML Typologies modeled: Structuring & Smurfing, Velocity bursts, Dormant account activation, Mule conduits, Circular layering, and Offshore high-risk corridors.",
+      "Held-out test partition evaluates 1,500 unseen records (750 risk, 750 normal) with zero data leakage.",
+      "Held-out scores measure agreement with supplied labels, not verified real-world AML accuracy. Real-world AML accuracy is unverified.",
+      "Risk scores are configurable review heuristics, not calibrated probabilities of criminal activity.",
+    ];
   }
 
   const outPath = path.resolve(process.cwd(), "src/lib/aml/pretrained.json");
@@ -82,8 +85,8 @@ async function main() {
     JSON.stringify(
       {
         activeId: winner.id,
-        benchmarkSize: 1000,
-        version: "v2.0-1000-accounts",
+        benchmarkSize: count,
+        version: "v3.0-10000-accounts",
         candidates,
       },
       null,
@@ -96,8 +99,8 @@ async function main() {
     JSON.stringify(
       {
         activeId: winner.id,
-        benchmarkSize: 1000,
-        version: "v2.0-1000-accounts",
+        benchmarkSize: count,
+        version: "v3.0-10000-accounts",
         reports: candidates.map((m) => m.report),
       },
       null,

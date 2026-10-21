@@ -22,11 +22,11 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section className={cn("panel p-5", className)}>
+    <section className={cn("panel p-5 min-w-0 overflow-hidden", className)}>
       {title && (
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="label-mono text-accent-foreground">{title}</h2>
-          {right}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 min-w-0">
+          <div className="label-mono text-accent-foreground min-w-0 flex-1 truncate">{title}</div>
+          {right && <div className="shrink-0 flex items-center gap-2">{right}</div>}
         </div>
       )}
       {children}
@@ -37,16 +37,33 @@ export function Stat({
   label,
   value,
   tone,
+  className,
 }: {
   label: string;
   value: ReactNode;
   tone?: "ok" | "bad" | "warn" | undefined;
+  className?: string;
 }) {
+  const isString = typeof value === "string";
+  const isLong = isString && value.length > 16;
+  const isVeryLong = isString && value.length > 28;
+
   return (
-    <div className="panel px-4 py-3">
+    <div
+      className={cn(
+        "panel min-w-0 overflow-hidden px-4 py-3 flex flex-col justify-between",
+        className,
+      )}
+    >
       <div
+        title={isString ? value : undefined}
         className={cn(
-          "font-mono text-xl font-semibold tabular-nums",
+          "font-mono font-semibold tabular-nums tracking-tight",
+          isVeryLong
+            ? "text-xs font-mono break-all line-clamp-2 leading-snug"
+            : isLong
+              ? "text-sm font-mono truncate"
+              : "text-xl",
           tone === "ok" && "text-success",
           tone === "bad" && "text-destructive",
           tone === "warn" && "text-warning",
@@ -54,7 +71,9 @@ export function Stat({
       >
         {value}
       </div>
-      <div className="label-mono mt-1">{label}</div>
+      <div className="label-mono mt-1 truncate" title={label}>
+        {label}
+      </div>
     </div>
   );
 }

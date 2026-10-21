@@ -141,7 +141,13 @@ interface Ctx {
   runAnalysis: (targetDs?: Dataset) => Promise<boolean>;
   riskConfig: RiskConfig;
   loadPresetDataset: (
-    type: "indian" | "international" | "ordinary" | "suspicious" | "banking_accounts_100",
+    type:
+      | "indian"
+      | "international"
+      | "ordinary"
+      | "suspicious"
+      | "banking_accounts_100"
+      | "banking_accounts_10000",
   ) => Promise<Dataset>;
   updateRiskConfig: (cfg: Partial<RiskConfig>) => void;
   job?: Job;
@@ -327,12 +333,24 @@ export function AmlProvider({ children }: { children: ReactNode }) {
 
   const loadPresetDataset = useCallback(
     async (
-      type: "indian" | "international" | "ordinary" | "suspicious" | "banking_accounts_100",
+      type:
+        | "indian"
+        | "international"
+        | "ordinary"
+        | "suspicious"
+        | "banking_accounts_100"
+        | "banking_accounts_10000",
     ) => {
       let csv = "";
       let name = "";
       let prov = "";
-      if (type === "banking_accounts_100") {
+      if (type === "banking_accounts_10000") {
+        const response = await fetch("/synthetic_banking_accounts_10000.csv");
+        if (!response.ok) throw new Error("Approved 10,000-account sample unavailable.");
+        csv = await response.text();
+        name = "synthetic_banking_accounts_10000.csv";
+        prov = "Expanded 10,000-account banking benchmark (5,000 Risk / 5,000 Normal accounts)";
+      } else if (type === "banking_accounts_100") {
         const response = await fetch("/synthetic_banking_accounts_100_50_risk_50_normal.csv");
         if (!response.ok) throw new Error("Approved account sample unavailable.");
         csv = await response.text();

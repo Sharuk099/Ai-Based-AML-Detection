@@ -17,11 +17,15 @@ export function ModelInfoPage() {
   return (
     <div className="space-y-6">
       <Panel title="Active Model & Training Dataset">
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Stat label="Model" value={activeModel.name} />
           <Stat label="Version" value={activeModel.id} />
           <Stat label="Training Dataset" value={report.dataset} />
-          <Stat label="Reload Parity" value={report.reloadVerified ? "Verified" : "Not verified"} />
+          <Stat
+            label="Reload Parity"
+            value={report.reloadVerified ? "Verified" : "Not verified"}
+            tone={report.reloadVerified ? "ok" : "warn"}
+          />
         </div>
         <div className="mt-4 space-y-2">
           <Note>

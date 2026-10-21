@@ -154,21 +154,28 @@ export function ModelsPanel() {
         <div className="space-y-6">
           <Panel
             title={
-              <div className="flex items-center gap-2">
-                <span>Model Inspection:</span>
-                <b className="text-foreground">{activeModel.name}</b>
-                <span className="font-mono text-xs text-muted-foreground">({activeModel.id})</span>
+              <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+                <span className="shrink-0 text-muted-foreground font-mono text-xs">
+                  MODEL INSPECTION:
+                </span>
+                <b className="text-foreground shrink-0 text-sm">{activeModel.name}</b>
+                <span
+                  className="font-mono text-xs text-muted-foreground truncate max-w-[220px] sm:max-w-[340px] inline-block"
+                  title={activeModel.id}
+                >
+                  ({activeModel.id})
+                </span>
               </div>
             }
             right={
-              <div className="flex gap-2">
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
                 <Button
                   size="sm"
                   onClick={() => {
                     setFocusModel(activeModel.id);
                     setTab("analyze");
                   }}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 text-xs"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 text-xs shrink-0"
                 >
                   <PlayCircle className="mr-1.5 h-3.5 w-3.5" /> Predict with This Model
                 </Button>
@@ -176,7 +183,7 @@ export function ModelsPanel() {
                   size="sm"
                   variant="outline"
                   onClick={() => exportModelJson(activeModel)}
-                  className="text-xs"
+                  className="text-xs shrink-0"
                 >
                   <Download className="mr-1.5 h-3.5 w-3.5" /> Export Artifact
                 </Button>

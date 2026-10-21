@@ -213,14 +213,45 @@ export function UploadPage() {
                   data is sent to external servers; processing is fully local and secure.
                 </p>
               </div>
-              <div className="pt-2">
+              <div className="pt-2 flex flex-wrap justify-center gap-2">
                 <Button
                   size="sm"
                   type="button"
                   variant="outline"
-                  className="font-mono text-xs border-primary/40 text-primary hover:bg-primary/10 pointer-events-none"
+                  className="font-mono text-xs border-primary/40 text-primary hover:bg-primary/10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputRef.current?.click();
+                  }}
                 >
                   <FileSpreadsheet className="mr-1.5 h-3.5 w-3.5" /> Select .CSV File
+                </Button>
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="secondary"
+                  className="font-mono text-xs hover:bg-secondary/80 border border-border"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    setBusy(true);
+                    try {
+                      const res = await fetch("/synthetic_banking_accounts_10000.csv");
+                      if (res.ok) {
+                        const txt = await res.text();
+                        await ingestFile(
+                          txt,
+                          "synthetic_banking_accounts_10000.csv",
+                          "10,000-Account Benchmark (5,000 Risk / 5,000 Normal)",
+                          "Synthetic Banking Compliance Benchmark",
+                        );
+                      }
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  <Database className="mr-1.5 h-3.5 w-3.5 text-primary" /> Load 10,000-Account
+                  Dataset
                 </Button>
               </div>
             </div>

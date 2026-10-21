@@ -575,103 +575,143 @@ export function generateSyntheticBankingAccounts(count: number = 1000): string {
     let rapidPass: number;
 
     if (isRisk) {
-      const typologyIdx = i % 4;
+      const typologyIdx = i % 6;
       if (typologyIdx === 0) {
-        // Structuring & Smurfing: cash deposits just below limits
+        // Structuring & Smurfing: cash deposits just below statutory limits ($10k USD / ₹50k PAN)
         patternType = "structuring";
-        ageMonths = Math.floor(3 + r() * 18);
-        avgBalance = Math.round(1500 + r() * 15000);
-        monthlyInflow = Math.round(65000 + r() * 180000);
-        monthlyOutflow = Math.round(monthlyInflow * (0.95 + r() * 0.05));
-        txnCount = Math.floor(40 + r() * 90);
-        cashRatio = +(0.55 + r() * 0.35).toFixed(3);
-        intlRatio = +(0.15 + r() * 0.35).toFixed(3);
-        nightRatio = +(0.15 + r() * 0.35).toFixed(3);
+        ageMonths = Math.floor(3 + r() * 36);
+        avgBalance = Math.round(1500 + r() * 25000);
+        monthlyInflow = Math.round(45000 + r() * 180000);
+        monthlyOutflow = Math.round(monthlyInflow * (0.85 + r() * 0.18));
+        txnCount = Math.floor(25 + r() * 95);
+        cashRatio = +(0.35 + r() * 0.55).toFixed(3);
+        intlRatio = +(0.05 + r() * 0.4).toFixed(3);
+        nightRatio = +(0.05 + r() * 0.35).toFixed(3);
         repAmount = Math.round(9150 + r() * 800);
         repChannel = r() < 0.6 ? "Cash" : "Wire";
         rapidPass = 0;
       } else if (typologyIdx === 1) {
-        // Velocity Bursts: sudden massive transaction frequency & night activity
+        // Velocity Bursts: sudden massive transaction frequency & high night activity
         patternType = "velocity_burst";
-        ageMonths = Math.floor(1 + r() * 12);
-        avgBalance = Math.round(2000 + r() * 18000);
-        monthlyInflow = Math.round(90000 + r() * 280000);
-        monthlyOutflow = Math.round(monthlyInflow * (0.96 + r() * 0.06));
-        txnCount = Math.floor(180 + r() * 260);
-        cashRatio = +(0.25 + r() * 0.4).toFixed(3);
-        intlRatio = +(0.3 + r() * 0.45).toFixed(3);
-        nightRatio = +(0.38 + r() * 0.45).toFixed(3);
-        repAmount = Math.round(22000 + r() * 45000);
+        ageMonths = Math.floor(2 + r() * 40);
+        avgBalance = Math.round(2000 + r() * 30000);
+        monthlyInflow = Math.round(60000 + r() * 250000);
+        monthlyOutflow = Math.round(monthlyInflow * (0.88 + r() * 0.15));
+        txnCount = Math.floor(120 + r() * 280);
+        cashRatio = +(0.1 + r() * 0.4).toFixed(3);
+        intlRatio = +(0.1 + r() * 0.5).toFixed(3);
+        nightRatio = +(0.2 + r() * 0.55).toFixed(3);
+        repAmount = Math.round(18000 + r() * 45000);
         repChannel = r() < 0.5 ? "Crypto" : "UPI";
         rapidPass = 1;
       } else if (typologyIdx === 2) {
-        // Dormant Account Activation: old account suddenly handling huge velocity
+        // Dormant Account Activation: old accounts suddenly awakening with huge velocity
         patternType = "dormant_activation";
-        ageMonths = Math.floor(48 + r() * 72);
-        avgBalance = Math.round(300 + r() * 2500); // historically dormant
-        monthlyInflow = Math.round(180000 + r() * 450000);
-        monthlyOutflow = Math.round(monthlyInflow * (0.98 + r() * 0.03));
-        txnCount = Math.floor(80 + r() * 150);
-        cashRatio = +(0.4 + r() * 0.45).toFixed(3);
-        intlRatio = +(0.35 + r() * 0.45).toFixed(3);
-        nightRatio = +(0.28 + r() * 0.4).toFixed(3);
-        repAmount = Math.round(48000 + r() * 40000);
+        ageMonths = Math.floor(40 + r() * 80);
+        avgBalance = Math.round(500 + r() * 12000); // historically dormant
+        monthlyInflow = Math.round(120000 + r() * 400000);
+        monthlyOutflow = Math.round(monthlyInflow * (0.9 + r() * 0.12));
+        txnCount = Math.floor(50 + r() * 150);
+        cashRatio = +(0.15 + r() * 0.45).toFixed(3);
+        intlRatio = +(0.15 + r() * 0.45).toFixed(3);
+        nightRatio = +(0.1 + r() * 0.4).toFixed(3);
+        repAmount = Math.round(35000 + r() * 45000);
         repChannel = r() < 0.6 ? "Wire" : "Crypto";
         rapidPass = 1;
-      } else {
-        // Mule Rings: rapid in-and-out conduits
+      } else if (typologyIdx === 3) {
+        // Mule Rings: rapid in-and-out conduits with matched turnover
         patternType = "mule_conduit";
-        ageMonths = Math.floor(2 + r() * 15);
-        avgBalance = Math.round(800 + r() * 6000);
-        monthlyInflow = Math.round(120000 + r() * 320000);
-        monthlyOutflow = Math.round(monthlyInflow * (0.97 + r() * 0.05));
-        txnCount = Math.floor(90 + r() * 170);
-        cashRatio = +(0.3 + r() * 0.5).toFixed(3);
-        intlRatio = +(0.4 + r() * 0.45).toFixed(3);
-        nightRatio = +(0.3 + r() * 0.45).toFixed(3);
-        repAmount = Math.round(35000 + r() * 55000);
+        ageMonths = Math.floor(2 + r() * 30);
+        avgBalance = Math.round(800 + r() * 15000);
+        monthlyInflow = Math.round(80000 + r() * 300000);
+        monthlyOutflow = Math.round(monthlyInflow * (0.92 + r() * 0.1));
+        txnCount = Math.floor(60 + r() * 180);
+        cashRatio = +(0.15 + r() * 0.45).toFixed(3);
+        intlRatio = +(0.15 + r() * 0.5).toFixed(3);
+        nightRatio = +(0.15 + r() * 0.45).toFixed(3);
+        repAmount = Math.round(25000 + r() * 55000);
         repChannel = r() < 0.5 ? "Wire" : "UPI";
+        rapidPass = 1;
+      } else if (typologyIdx === 4) {
+        // Circular Layering: multi-hop fund round-trips with balanced high turnover
+        patternType = "circular_layering";
+        ageMonths = Math.floor(6 + r() * 48);
+        avgBalance = Math.round(2000 + r() * 25000);
+        monthlyInflow = Math.round(100000 + r() * 350000);
+        monthlyOutflow = Math.round(monthlyInflow * (0.93 + r() * 0.09));
+        txnCount = Math.floor(80 + r() * 200);
+        cashRatio = +(0.05 + r() * 0.35).toFixed(3);
+        intlRatio = +(0.2 + r() * 0.5).toFixed(3);
+        nightRatio = +(0.15 + r() * 0.4).toFixed(3);
+        repAmount = Math.round(30000 + r() * 60000);
+        repChannel = "Wire";
+        rapidPass = 1;
+      } else {
+        // High-Risk Jurisdictions & Offshore Shell Conduits
+        patternType = "offshore_shell";
+        ageMonths = Math.floor(4 + r() * 36);
+        avgBalance = Math.round(1500 + r() * 20000);
+        monthlyInflow = Math.round(100000 + r() * 400000);
+        monthlyOutflow = Math.round(monthlyInflow * (0.9 + r() * 0.12));
+        txnCount = Math.floor(40 + r() * 140);
+        cashRatio = +(0.05 + r() * 0.25).toFixed(3);
+        intlRatio = +(0.4 + r() * 0.5).toFixed(3);
+        nightRatio = +(0.1 + r() * 0.35).toFixed(3);
+        repAmount = Math.round(45000 + r() * 65000);
+        repChannel = r() < 0.7 ? "Wire" : "Crypto";
         rapidPass = 1;
       }
       inOutRatio = +(monthlyOutflow / Math.max(monthlyInflow, 1)).toFixed(3);
     } else {
-      // Normal accounts (retail, SMB, corporate)
-      const normalType = i % 3;
+      // Normal accounts (retail, SMB, corporate, private wealth)
+      const normalType = i % 4;
       if (normalType === 0) {
         patternType = "normal_retail";
-        ageMonths = Math.floor(18 + r() * 90);
-        avgBalance = Math.round(3500 + r() * 25000);
-        monthlyInflow = Math.round(3000 + r() * 12000);
-        monthlyOutflow = Math.round(monthlyInflow * (0.55 + r() * 0.35));
-        txnCount = Math.floor(8 + r() * 25);
-        cashRatio = +(0.02 + r() * 0.12).toFixed(3);
-        intlRatio = +(r() * 0.04).toFixed(3);
-        nightRatio = +(r() * 0.04).toFixed(3);
-        repAmount = Math.round(45 + r() * 450);
+        ageMonths = Math.floor(12 + r() * 96);
+        avgBalance = Math.round(2500 + r() * 30000);
+        monthlyInflow = Math.round(2500 + r() * 15000);
+        monthlyOutflow = Math.round(monthlyInflow * (0.65 + r() * 0.35));
+        txnCount = Math.floor(8 + r() * 35);
+        cashRatio = +(0.01 + r() * 0.2).toFixed(3);
+        intlRatio = +(r() * 0.15).toFixed(3);
+        nightRatio = +(r() * 0.15).toFixed(3);
+        repAmount = Math.round(45 + r() * 850);
         repChannel = "Card";
       } else if (normalType === 1) {
         patternType = "normal_smb";
-        ageMonths = Math.floor(24 + r() * 100);
-        avgBalance = Math.round(18000 + r() * 95000);
-        monthlyInflow = Math.round(35000 + r() * 120000);
-        monthlyOutflow = Math.round(monthlyInflow * (0.65 + r() * 0.25));
-        txnCount = Math.floor(35 + r() * 80);
-        cashRatio = +(0.05 + r() * 0.15).toFixed(3);
-        intlRatio = +(r() * 0.08).toFixed(3);
-        nightRatio = +(r() * 0.06).toFixed(3);
-        repAmount = Math.round(1200 + r() * 6500);
+        ageMonths = Math.floor(18 + r() * 100);
+        avgBalance = Math.round(15000 + r() * 110000);
+        monthlyInflow = Math.round(25000 + r() * 140000);
+        monthlyOutflow = Math.round(monthlyInflow * (0.75 + r() * 0.25));
+        txnCount = Math.floor(30 + r() * 90);
+        cashRatio = +(0.03 + r() * 0.25).toFixed(3);
+        intlRatio = +(0.02 + r() * 0.25).toFixed(3);
+        nightRatio = +(0.02 + r() * 0.2).toFixed(3);
+        repAmount = Math.round(1000 + r() * 9500);
         repChannel = "UPI";
-      } else {
+      } else if (normalType === 2) {
         patternType = "normal_corporate";
+        ageMonths = Math.floor(24 + r() * 120);
+        avgBalance = Math.round(60000 + r() * 450000);
+        monthlyInflow = Math.round(100000 + r() * 550000);
+        monthlyOutflow = Math.round(monthlyInflow * (0.78 + r() * 0.22));
+        txnCount = Math.floor(50 + r() * 160);
+        cashRatio = +(r() * 0.1).toFixed(3);
+        intlRatio = +(0.05 + r() * 0.35).toFixed(3);
+        nightRatio = +(0.02 + r() * 0.2).toFixed(3);
+        repAmount = Math.round(12000 + r() * 55000);
+        repChannel = "Wire";
+      } else {
+        patternType = "normal_wealth_savings";
         ageMonths = Math.floor(36 + r() * 120);
-        avgBalance = Math.round(80000 + r() * 400000);
-        monthlyInflow = Math.round(120000 + r() * 500000);
-        monthlyOutflow = Math.round(monthlyInflow * (0.7 + r() * 0.2));
-        txnCount = Math.floor(60 + r() * 140);
-        cashRatio = +(r() * 0.05).toFixed(3);
-        intlRatio = +(0.02 + r() * 0.1).toFixed(3);
-        nightRatio = +(r() * 0.03).toFixed(3);
-        repAmount = Math.round(15000 + r() * 45000);
+        avgBalance = Math.round(100000 + r() * 700000);
+        monthlyInflow = Math.round(15000 + r() * 60000);
+        monthlyOutflow = Math.round(monthlyInflow * (0.4 + r() * 0.35));
+        txnCount = Math.floor(5 + r() * 25);
+        cashRatio = +(r() * 0.08).toFixed(3);
+        intlRatio = +(0.02 + r() * 0.2).toFixed(3);
+        nightRatio = +(r() * 0.1).toFixed(3);
+        repAmount = Math.round(4000 + r() * 30000);
         repChannel = "Wire";
       }
       inOutRatio = +(monthlyOutflow / Math.max(monthlyInflow, 1)).toFixed(3);
