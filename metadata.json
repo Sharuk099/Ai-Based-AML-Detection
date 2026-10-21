@@ -1,0 +1,6 @@
+{
+  "name": "AI-Based AML Detection",
+  "description": "Browser-based Anti-Money Laundering detection with Gradient Boosting, Stacking, Random Forest, explainability, and graph analytics.",
+  "permissions": [],
+  "capabilities": []
+}

@@ -285,6 +285,8 @@ export function mapColumnRoles(columns: string[]): Record<string, string> {
   return mapping;
 }
 
+const approvedCandidates = approvedModels.candidates as unknown as SavedModel[];
+
 export function AmlProvider({ children }: { children: ReactNode }) {
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [active, setActive] = useState<string>();
@@ -302,8 +304,6 @@ export function AmlProvider({ children }: { children: ReactNode }) {
   const updateRiskConfig = (cfg: Partial<RiskConfig>) => {
     setRiskConfig((prev) => ({ ...prev, ...cfg }));
   };
-
-  const approvedCandidates = approvedModels.candidates as unknown as SavedModel[];
 
   const refreshModels = useCallback(async () => {
     const stored = await listModels();
