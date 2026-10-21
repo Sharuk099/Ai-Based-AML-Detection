@@ -1,36 +1,33 @@
+"""Local reference-perturbation attribution (not SHAP).
+
+For each feature, replace the record's value with the training-set reference (median for
+numbers, mode for categories) and measure the change in P(predicted class).
+"""
+from typing import Any, Dict, List
+
 import numpy as np
 import pandas as pd
-from typing import Dict, Any, List
+
 
 def calculate_local_attribution(model_data: Dict[str, Any], record: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """
-    Computes local feature attribution vs baseline reference medians.
-    Shows the delta shift in predicted class confidence for each attribute.
-    """
     pipe = model_data["pipeline"]
-    feature_cols = model_data["feature_cols"]
-    medians = model_data["reference_medians"]
-    
-    # Base observation
-    obs_df = pd.DataFrame([{col: record.get(col, medians.get(col, 0)) for col in feature_cols}])
-    base_probs = pipe.predict_proba(obs_df)[0]
-    pred_idx = np.argmax(base_probs)
-    base_target_prob = base_probs[pred_idx]
-    
-    attributions = []
-    for col in feature_cols:
-        # Counterfactual: reset this column to reference baseline median
-        cf_df = obs_df.copy()
-        cf_df[col] = medians.get(col, 0)
-        cf_probs = pipe.predict_proba(cf_df)[0]
-        cf_target_prob = cf_probs[pred_idx]
-        
-        delta = float(base_target_prob - cf_target_prob)
-        attributions.append({
-            "feature": col,
-            "value": str(record.get(col, "—")),
-            "baseline": str(medians.get(col, 0)),
-            "contribution_delta": round(delta, 4)
-        })
-        
-    return sorted(attributions, key=lambda x: abs(x["contribution_delta"]), reverse=True)
+    feats = model_data["feature_cols"]
+    ref = {**model_data.get("reference_medians", {}), **model_data.get("reference_mode", {})}
+    missing = [c for c in feats if record.get(c) is None or str(record.get(c)).strip() == ""]
+    if missing:
+        return []
+    obs = pd.DataFrame([{c: record[c] for c in feats}])
+    for c in model_data["num_cols"]:
+        obs[c] = pd.to_numeric(obs[c], errors="coerce")
+    if obs[model_data["num_cols"]].isna().any(axis=None):
+        return []
+    base = pipe.predict_proba(obs)[0]
+    idx = int(np.argmax(base))
+    out = []
+    for c in feats:
+        cf = obs.copy()
+        cf[c] = ref.get(c)
+        delta = float(base[idx] - pipe.predict_proba(cf)[0][idx])
+        out.append({"feature": c, "value": str(record.get(c)), "baseline": str(ref.get(c)),
+                    "contribution_delta": round(delta, 4)})
+    return sorted(out, key=lambda x: abs(x["contribution_delta"]), reverse=True)
