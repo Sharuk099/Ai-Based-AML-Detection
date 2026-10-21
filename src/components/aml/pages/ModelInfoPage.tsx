@@ -1,12 +1,13 @@
 import { useAml } from "../state";
 import { Panel, Stat, Note, DataTable, MetricsView } from "../ui";
 import { INTENDED_CATEGORIES } from "@/lib/aml/types";
+import { WorkflowGuideModal } from "../WorkflowGuideModal";
 
 export function ModelInfoPage() {
   const { activeModel } = useAml();
   if (!activeModel)
     return (
-      <Panel title="Model Information">
+      <Panel title="Model Information" right={<WorkflowGuideModal />}>
         <Note>
           No trained model is available. Accuracy cannot be verified until labeled training data is
           supplied and evaluated independently.
@@ -16,7 +17,7 @@ export function ModelInfoPage() {
   const report = activeModel.report;
   return (
     <div className="space-y-6">
-      <Panel title="Active Model & Training Dataset">
+      <Panel title="Active Model & Training Dataset" right={<WorkflowGuideModal />}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Stat label="Model" value={activeModel.name} />
           <Stat label="Version" value={activeModel.id} />

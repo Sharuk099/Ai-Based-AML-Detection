@@ -22,6 +22,7 @@ import { ExplainPage } from "@/components/aml/pages/ExplainPage";
 import { ReportPage } from "@/components/aml/pages/ReportPage";
 import { ModelInfoPage } from "@/components/aml/pages/ModelInfoPage";
 import { ModelsPanel } from "@/components/aml/ModelsPanel";
+import { WorkflowGuideModal } from "@/components/aml/WorkflowGuideModal";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -107,7 +108,9 @@ function MainApp() {
           </div>
 
           {/* Quick Active Status & 1-Click Action */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            <WorkflowGuideModal />
+
             {activeDs && (
               <div className="hidden md:flex items-center gap-2 rounded border border-border/70 bg-card px-3 py-1 text-xs font-mono">
                 <span className="h-2 w-2 rounded-full bg-success animate-pulse" />

@@ -195,38 +195,27 @@ export function evaluateTransactionRisk(
 
   // 6. Tier Stratification:
   let riskLevel: "HIGH" | "MEDIUM" | "LOW" = "LOW";
-  if (roundedScore >= config.highThreshold) {
+  if (
+    roundedScore >= config.highThreshold ||
+    (amountRisk >= 0.35 && suspicionProb >= 0.25) ||
+    networkRisk >= 0.3
+  ) {
     riskLevel = "HIGH";
-  } else if (roundedScore >= config.lowThreshold) {
+  } else if (
+    roundedScore >= config.lowThreshold ||
+    amountRisk >= 0.25 ||
+    networkRisk >= 0.15 ||
+    suspicionProb >= 0.4
+  ) {
     riskLevel = "MEDIUM";
   }
 
-  const completeEvidence = !!(
-    row["transaction_id"] &&
-    row["from_account"] &&
-    row["to_account"] &&
-    row["currency"] &&
-    isAmtValid &&
-    Number.isFinite(Date.parse(row["timestamp"] ?? ""))
-  );
-  const isSuspicious =
-    completeEvidence &&
-    suspicionProb >= 0.4 &&
-    amountRisk > 0 &&
-    networkRisk > 0 &&
-    riskLevel !== "LOW";
-  if (!isSuspicious) riskLevel = "LOW";
-  if (isSuspicious)
+  const isSuspicious = riskLevel !== "LOW";
+  if (isSuspicious) {
     reasons.push(
-      `Review policy: model + amount + network evidence; transaction ${row["transaction_id"]}, ` +
-        `${row["from_account"]} → ${row["to_account"]}, ${ccy} ${rawAmt}, ${row["timestamp"]}`,
+      `Review priority ${riskLevel}: composite risk score ${(roundedScore * 100).toFixed(1)}% exceeds review threshold; human investigator evaluation required`,
     );
-  else
-    reasons.push(
-      "Not flagged: corroborating model, amount and network evidence with complete transaction details is required. Low review tier does not establish safety.",
-    );
-
-  if (!isSuspicious && reasons.length === 0) {
+  } else if (reasons.length === 0) {
     reasons.push(
       "Standard transaction: ordinary commercial activity with no structural risk flags.",
     );

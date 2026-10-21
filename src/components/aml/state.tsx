@@ -26,6 +26,7 @@ import {
   checkModelCompatibility,
   type ModelCompatibilityResult,
 } from "@/lib/aml/inference";
+import { isRawTransactionDataset, enrichTransactionsWithAggregates } from "@/lib/aml/prepare";
 import approvedModels from "@/lib/aml/approved-models.json";
 import {
   generateIndianBankingCsv,
@@ -308,7 +309,43 @@ export function AmlProvider({ children }: { children: ReactNode }) {
   const worker = useRef<Worker | null>(null);
 
   const updateRiskConfig = (cfg: Partial<RiskConfig>) => {
-    setRiskConfig((prev) => ({ ...prev, ...cfg }));
+    setRiskConfig((prev) => {
+      const updated = { ...prev, ...cfg };
+      setAnalysisResult((prevRes) => {
+        if (!prevRes) return prevRes;
+        const low = updated.lowThreshold;
+        const high = updated.highThreshold;
+        let highCount = 0;
+        let flagged = 0;
+        const updatedRecords = prevRes.records.map((r) => {
+          const score = typeof r._risk_score === "number" ? r._risk_score : 0;
+          let level: "HIGH" | "MEDIUM" | "LOW" = "LOW";
+          if (score >= high) {
+            level = "HIGH";
+            highCount++;
+            flagged++;
+          } else if (score >= low) {
+            level = "MEDIUM";
+            flagged++;
+          }
+          return {
+            ...r,
+            _risk_level: level,
+            _is_suspicious: level !== "LOW",
+          };
+        });
+
+        return {
+          ...prevRes,
+          records: updatedRecords,
+          flaggedCount: flagged,
+          highRiskCount: highCount,
+          flaggedPct:
+            prevRes.totalTransactions > 0 ? (flagged / prevRes.totalTransactions) * 100 : 0,
+        };
+      });
+      return updated;
+    });
   };
 
   const refreshModels = useCallback(async () => {
@@ -482,8 +519,10 @@ export function AmlProvider({ children }: { children: ReactNode }) {
       const rows = ds.rows;
       if (!rows.length) throw new Error("Uploaded transaction file contains no data rows.");
 
-      // 2. Prepare rows cleanly without injecting false mule accounts or predictive leakage
-      const preparedRows = rows.map((r) => prepareInferenceRow(r, modelToUse, roleMap));
+      // 2. Prepare rows cleanly: for raw transaction ledgers, dynamically aggregate account behavior
+      const isRawTx = isRawTransactionDataset(ds.columns);
+      const enrichedSource = isRawTx ? enrichTransactionsWithAggregates(rows, roleMap) : rows;
+      const preparedRows = enrichedSource.map((r) => prepareInferenceRow(r, modelToUse, roleMap));
 
       // 3. Graph Analytics across the uploaded batch (TASK 4 & Requirement 9: Do not invent circular transaction loops)
       let gData = null;
