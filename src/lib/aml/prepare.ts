@@ -24,9 +24,7 @@ export interface AccountAggregate {
  */
 export function isRawTransactionDataset(columns: string[] | Row): boolean {
   const colSet = new Set(
-    (Array.isArray(columns) ? columns : Object.keys(columns)).map((c) =>
-      c.toLowerCase().trim(),
-    ),
+    (Array.isArray(columns) ? columns : Object.keys(columns)).map((c) => c.toLowerCase().trim()),
   );
 
   const hasTxMarkers =
@@ -38,9 +36,7 @@ export function isRawTransactionDataset(columns: string[] | Row): boolean {
     colSet.has("receiver");
 
   const hasAccountProfileMarkers =
-    colSet.has("monthly_inflow") &&
-    colSet.has("monthly_outflow") &&
-    colSet.has("customer_type");
+    colSet.has("monthly_inflow") && colSet.has("monthly_outflow") && colSet.has("customer_type");
 
   return hasTxMarkers && !hasAccountProfileMarkers;
 }
@@ -188,10 +184,8 @@ export function computeAccountAggregates(
   accumulators.forEach((acc, id) => {
     const totalTx = Math.max(1, acc.txCount);
     // Estimated balanced inflow/outflow when only one-sided flow observed
-    const inflow =
-      acc.inflow > 0 ? acc.inflow : Math.max(1200, acc.outflow * 1.08);
-    const outflow =
-      acc.outflow > 0 ? acc.outflow : Math.max(800, inflow * 0.75);
+    const inflow = acc.inflow > 0 ? acc.inflow : Math.max(1200, acc.outflow * 1.08);
+    const outflow = acc.outflow > 0 ? acc.outflow : Math.max(800, inflow * 0.75);
 
     const inOutRatio = +(inflow / (outflow + 1e-6)).toFixed(3);
     const cashRatio = +(acc.cashCount / totalTx).toFixed(3);
@@ -209,10 +203,7 @@ export function computeAccountAggregates(
     const avgBalance = Math.round(Math.max(3500, inflow * 0.75));
 
     const customerType =
-      acc.customerType ??
-      (acc.isMerchant || acc.totalVolume > 200000
-        ? "SMB"
-        : "Individual");
+      acc.customerType ?? (acc.isMerchant || acc.totalVolume > 200000 ? "SMB" : "Individual");
 
     aggregates.set(id, {
       account_id: id,
@@ -226,8 +217,12 @@ export function computeAccountAggregates(
       cash_deposit_ratio: cashRatio,
       international_tx_ratio: intlRatio,
       night_activity_ratio: nightRatio,
-      representative_tx_amount: acc.lastTx ? (parseFloat(String(acc.lastTx[amountCol] || 0)) || 0) : 0,
-      representative_tx_channel: acc.lastTx ? String(acc.lastTx[formatCol] || "Standard") : "Standard",
+      representative_tx_amount: acc.lastTx
+        ? parseFloat(String(acc.lastTx[amountCol] || 0)) || 0
+        : 0,
+      representative_tx_channel: acc.lastTx
+        ? String(acc.lastTx[formatCol] || "Standard")
+        : "Standard",
       from_account: acc.lastTx ? String(acc.lastTx[senderCol] || id) : id,
       to_account: acc.lastTx ? String(acc.lastTx[receiverCol] || "COUNTERPARTY") : "COUNTERPARTY",
       representative_timestamp: acc.lastTx ? String(acc.lastTx[timestampCol] || "") : "",

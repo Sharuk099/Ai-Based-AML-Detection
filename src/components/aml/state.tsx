@@ -315,7 +315,10 @@ export function AmlProvider({ children }: { children: ReactNode }) {
         m.id !== "20261018145236_gradient_boosting" &&
         m.report.dataset !== "ibm_aml_synthetic_benchmark.csv",
     );
-    const merged = [...existing, ...approvedCandidates.filter((m) => !existing.some((s) => s.id === m.id))];
+    const merged = [
+      ...existing,
+      ...approvedCandidates.filter((m) => !existing.some((s) => s.id === m.id)),
+    ];
     setModels(merged);
     if (!focusModel) {
       setFocusModel(approvedModels.activeId);
@@ -330,8 +333,8 @@ export function AmlProvider({ children }: { children: ReactNode }) {
       let name = "";
       let prov = "";
       if (type === "banking_accounts_100") {
-        const response = await fetch('/synthetic_banking_accounts_100_50_risk_50_normal.csv');
-        if (!response.ok) throw new Error('Approved account sample unavailable.');
+        const response = await fetch("/synthetic_banking_accounts_100_50_risk_50_normal.csv");
+        if (!response.ok) throw new Error("Approved account sample unavailable.");
         csv = await response.text();
         name = "synthetic_banking_accounts_100_50_risk_50_normal.csv";
         prov = "Synthetic training-source accounts; not independent validation";
@@ -466,7 +469,13 @@ export function AmlProvider({ children }: { children: ReactNode }) {
 
       // 3. Graph Analytics across the uploaded batch (TASK 4 & Requirement 9: Do not invent circular transaction loops)
       let gData = null;
-      if (roleMap.sender && roleMap.receiver && roleMap.amount && roleMap.timestamp && roleMap.transaction_id) {
+      if (
+        roleMap.sender &&
+        roleMap.receiver &&
+        roleMap.amount &&
+        roleMap.timestamp &&
+        roleMap.transaction_id
+      ) {
         gData = graphSummary(preparedRows, "from_account", "to_account", "amount", "timestamp");
       }
 
@@ -500,8 +509,9 @@ export function AmlProvider({ children }: { children: ReactNode }) {
         const p = probas[i] || [];
         const issue = inferenceIssue(modelToUse, r);
         const predIdx = issue ? -1 : argmax(p);
-        const maxProb = predIdx >= 0 ? p[predIdx] ?? 0 : 0;
-        let predClass = predIdx >= 0 ? modelToUse.classes[predIdx] || "Unknown" : "Unable to classify";
+        const maxProb = predIdx >= 0 ? (p[predIdx] ?? 0) : 0;
+        let predClass =
+          predIdx >= 0 ? modelToUse.classes[predIdx] || "Unknown" : "Unable to classify";
 
         const probList = modelToUse.classes
           .map((cls, idx) => ({
@@ -612,8 +622,12 @@ export function AmlProvider({ children }: { children: ReactNode }) {
           const predVal = String(scoredRecords[i]._predicted_class ?? "")
             .toLowerCase()
             .trim();
-          if (!trueVal || scoredRecords[i]._status !== "CLASSIFIED" ||
-            !modelToUse.classes.some((c) => c.toLowerCase() === trueVal)) return;
+          if (
+            !trueVal ||
+            scoredRecords[i]._status !== "CLASSIFIED" ||
+            !modelToUse.classes.some((c) => c.toLowerCase() === trueVal)
+          )
+            return;
           evaluatedCount++;
           const isTrueRisk =
             trueVal === "risk" || trueVal === "1" || isSuspiciousClass(trueVal, riskConfig);

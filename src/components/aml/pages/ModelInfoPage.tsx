@@ -28,8 +28,8 @@ export function ModelInfoPage() {
             Held-out scores measure agreement with supplied labels, not verified real-world AML
             accuracy. Risk review scores are uncalibrated heuristics.
           </Note>
-          {report.notes.map((note) => (
-            <p key={note} className="text-xs text-muted-foreground">
+          {Array.from(new Set(report.notes || [])).map((note, idx) => (
+            <p key={`model-note-${idx}`} className="text-xs text-muted-foreground">
               {note}
             </p>
           ))}

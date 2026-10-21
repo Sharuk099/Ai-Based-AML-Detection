@@ -65,7 +65,8 @@ export function DashboardPage() {
               AI Anti-Money Laundering Detection System
             </h1>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Account-profile classification trained on 100 synthetic accounts. Real-world AML accuracy is unverified; transaction-only uploads cannot be evaluated by this model.
+              Account-profile classification trained on 100 synthetic accounts. Real-world AML
+              accuracy is unverified; transaction-only uploads cannot be evaluated by this model.
             </p>
           </div>
 
@@ -241,9 +242,9 @@ export function DashboardPage() {
               <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4 font-mono text-xs">
                 {Object.entries(analysisResult.categoryBreakdown).map(([cat, count]) => {
                   const pct = ((count / analysisResult.totalTransactions) * 100).toFixed(1);
-                  const isRisk = /^(risk|high_risk)$/i.test(cat.trim()) || /laundering|fraud|darknet|blackmail|blacklist|ponzi|tumbler/i.test(
-                    cat,
-                  );
+                  const isRisk =
+                    /^(risk|high_risk)$/i.test(cat.trim()) ||
+                    /laundering|fraud|darknet|blackmail|blacklist|ponzi|tumbler/i.test(cat);
                   const isUnclassified = cat.toLowerCase().includes("unable");
                   return (
                     <div

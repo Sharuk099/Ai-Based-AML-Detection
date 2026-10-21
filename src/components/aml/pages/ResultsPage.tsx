@@ -179,8 +179,9 @@ export function ResultsPage() {
         >
           <div className="space-y-4">
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Model predictions were generated independently without knowledge of the target label or synthetic metadata.
-              Ground-truth labels were compared only after predictions were produced to verify true classification performance.
+              Model predictions were generated independently without knowledge of the target label
+              or synthetic metadata. Ground-truth labels were compared only after predictions were
+              produced to verify true classification performance.
             </p>
 
             {/* Metrics Grid */}
@@ -222,9 +223,7 @@ export function ResultsPage() {
                       <th className="p-2.5 border-r border-border text-center text-destructive font-bold">
                         Predicted Risk
                       </th>
-                      <th className="p-2.5 text-center text-success font-bold">
-                        Predicted Normal
-                      </th>
+                      <th className="p-2.5 text-center text-success font-bold">Predicted Normal</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -233,10 +232,12 @@ export function ResultsPage() {
                         Actual Risk
                       </td>
                       <td className="p-2.5 border-r border-border text-center bg-destructive/10 font-bold text-foreground">
-                        {analysisResult.evaluationVsGroundTruth.confusionMatrix.trueRisk} (True Risk)
+                        {analysisResult.evaluationVsGroundTruth.confusionMatrix.trueRisk} (True
+                        Risk)
                       </td>
                       <td className="p-2.5 text-center bg-muted/20 font-bold text-foreground">
-                        {analysisResult.evaluationVsGroundTruth.confusionMatrix.falseNormal} (False Normal)
+                        {analysisResult.evaluationVsGroundTruth.confusionMatrix.falseNormal} (False
+                        Normal)
                       </td>
                     </tr>
                     <tr>
@@ -244,10 +245,12 @@ export function ResultsPage() {
                         Actual Normal
                       </td>
                       <td className="p-2.5 border-r border-border text-center bg-muted/20 font-bold text-foreground">
-                        {analysisResult.evaluationVsGroundTruth.confusionMatrix.falseRisk} (False Risk)
+                        {analysisResult.evaluationVsGroundTruth.confusionMatrix.falseRisk} (False
+                        Risk)
                       </td>
                       <td className="p-2.5 text-center bg-success/10 font-bold text-foreground">
-                        {analysisResult.evaluationVsGroundTruth.confusionMatrix.trueNormal} (True Normal)
+                        {analysisResult.evaluationVsGroundTruth.confusionMatrix.trueNormal} (True
+                        Normal)
                       </td>
                     </tr>
                   </tbody>

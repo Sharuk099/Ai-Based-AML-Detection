@@ -126,7 +126,8 @@ export function evaluateTransactionRisk(
   let amountRisk = 0;
 
   if (
-    isAmtValid && ccy === "USD" &&
+    isAmtValid &&
+    ccy === "USD" &&
     rawAmt >= config.structuringMin &&
     rawAmt <= config.structuringMax
   ) {
@@ -186,8 +187,8 @@ export function evaluateTransactionRisk(
   const composite = Math.min(
     1.0,
     0.5 * suspicionProb +
-        0.25 * Math.min(1, amountRisk / 0.35) +
-        0.25 * Math.min(1, networkRisk / 0.7),
+      0.25 * Math.min(1, amountRisk / 0.35) +
+      0.25 * Math.min(1, networkRisk / 0.7),
   );
 
   const roundedScore = Math.round(composite * 1000) / 1000;
@@ -200,16 +201,30 @@ export function evaluateTransactionRisk(
     riskLevel = "MEDIUM";
   }
 
-  const completeEvidence = !!(row['transaction_id'] && row['from_account'] && row['to_account'] &&
-    row['currency'] && isAmtValid && Number.isFinite(Date.parse(row['timestamp'] ?? '')));
-  const isSuspicious = completeEvidence && suspicionProb >= 0.4 && amountRisk > 0 &&
-    networkRisk > 0 && riskLevel !== "LOW";
-  if (!isSuspicious) riskLevel = "LOW";
-  if (isSuspicious) reasons.push(
-    `Review policy: model + amount + network evidence; transaction ${row['transaction_id']}, ` +
-    `${row['from_account']} → ${row['to_account']}, ${ccy} ${rawAmt}, ${row['timestamp']}`,
+  const completeEvidence = !!(
+    row["transaction_id"] &&
+    row["from_account"] &&
+    row["to_account"] &&
+    row["currency"] &&
+    isAmtValid &&
+    Number.isFinite(Date.parse(row["timestamp"] ?? ""))
   );
-  else reasons.push("Not flagged: corroborating model, amount and network evidence with complete transaction details is required. Low review tier does not establish safety.");
+  const isSuspicious =
+    completeEvidence &&
+    suspicionProb >= 0.4 &&
+    amountRisk > 0 &&
+    networkRisk > 0 &&
+    riskLevel !== "LOW";
+  if (!isSuspicious) riskLevel = "LOW";
+  if (isSuspicious)
+    reasons.push(
+      `Review policy: model + amount + network evidence; transaction ${row["transaction_id"]}, ` +
+        `${row["from_account"]} → ${row["to_account"]}, ${ccy} ${rawAmt}, ${row["timestamp"]}`,
+    );
+  else
+    reasons.push(
+      "Not flagged: corroborating model, amount and network evidence with complete transaction details is required. Low review tier does not establish safety.",
+    );
 
   if (!isSuspicious && reasons.length === 0) {
     reasons.push(

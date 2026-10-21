@@ -110,10 +110,12 @@ export function ExplainPage() {
               <div className="label-mono mb-2">Transaction Attributes:</div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <div>
-                  From: <b className="text-foreground">{String(selectedRecord["from_account"] || "—")}</b>
+                  From:{" "}
+                  <b className="text-foreground">{String(selectedRecord["from_account"] || "—")}</b>
                 </div>
                 <div>
-                  To: <b className="text-foreground">{String(selectedRecord["to_account"] || "—")}</b>
+                  To:{" "}
+                  <b className="text-foreground">{String(selectedRecord["to_account"] || "—")}</b>
                 </div>
                 <div>
                   Amount: <b className="text-foreground">{formatAmount(selectedRecord)}</b>

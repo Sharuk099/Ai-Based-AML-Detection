@@ -52,11 +52,15 @@ describe("aml pipeline", () => {
     expect(s.train.length + s.val.length + s.test.length).toBe(d.length);
   });
   it("allocates the requested 100 accounts into exactly 70/15/15", () => {
-    const rows = Array.from({ length: 100 }, (_, i) => ({ account_id: String(i),
-      risk_label_synthetic: i < 50 ? "risk" : "normal" }));
+    const rows = Array.from({ length: 100 }, (_, i) => ({
+      account_id: String(i),
+      risk_label_synthetic: i < 50 ? "risk" : "normal",
+    }));
     const split = splitData(rows, "risk_label_synthetic", "stratified");
     expect([split.train.length, split.val.length, split.test.length]).toEqual([70, 15, 15]);
-    expect(new Set([...split.train, ...split.val, ...split.test].map((r) => r['account_id'])).size).toBe(100);
+    expect(
+      new Set([...split.train, ...split.val, ...split.test].map((r) => r["account_id"])).size,
+    ).toBe(100);
   });
   it("flags single-class predictions", () => {
     expect(evaluate([0, 1, 0, 1], [0, 0, 0, 0], null, ["a", "b"]).warnings.join()).toMatch(

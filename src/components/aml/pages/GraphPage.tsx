@@ -813,7 +813,9 @@ export function GraphPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => searchedAccounts[0] && centerOnAccount(searchedAccounts[0].account)}
+                    onClick={() =>
+                      searchedAccounts[0] && centerOnAccount(searchedAccounts[0].account)
+                    }
                     className="h-8 text-xs font-mono font-bold bg-primary/10 text-primary border-primary/40"
                   >
                     <Eye className="mr-1 h-3.5 w-3.5" /> Jump to {searchedAccounts[0]?.account}

@@ -126,7 +126,7 @@ export function checkModelCompatibility(
     modelExpectedTarget: model.target,
     datasetTarget: colsLower.has("risk_label_synthetic")
       ? "risk_label_synthetic"
-      : detectedRoles['label'],
+      : detectedRoles["label"],
     modelClasses: model.classes,
   };
 }
@@ -201,13 +201,15 @@ export function prepareInferenceRow(
   if (model.prep.inputColumns.includes("cash_deposit_ratio")) {
     if (!prepared["cash_deposit_ratio"] || prepared["cash_deposit_ratio"].trim() === "") {
       const fmt = String(prepared["payment_format"] || "").toLowerCase();
-      prepared["cash_deposit_ratio"] = fmt.includes("cash") || fmt.includes("atm") ? "0.85" : "0.04";
+      prepared["cash_deposit_ratio"] =
+        fmt.includes("cash") || fmt.includes("atm") ? "0.85" : "0.04";
     }
   }
   if (model.prep.inputColumns.includes("international_tx_ratio")) {
     if (!prepared["international_tx_ratio"] || prepared["international_tx_ratio"].trim() === "") {
       const ccy = String(prepared["currency"] || "USD").toUpperCase();
-      prepared["international_tx_ratio"] = ccy !== "USD" && ccy !== "INR" && ccy !== "EUR" ? "0.85" : "0.01";
+      prepared["international_tx_ratio"] =
+        ccy !== "USD" && ccy !== "INR" && ccy !== "EUR" ? "0.85" : "0.01";
     }
   }
   if (model.prep.inputColumns.includes("night_activity_ratio")) {
@@ -252,4 +254,3 @@ export function inferenceIssue(model: SavedModel, row: Row): string | undefined 
     return "Invalid transaction timestamp.";
   return undefined;
 }
-

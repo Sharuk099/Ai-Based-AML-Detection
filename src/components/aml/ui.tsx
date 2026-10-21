@@ -180,7 +180,7 @@ export function MetricsView({ m, title }: { m: Metrics; title: string }) {
             <table className="font-mono text-xs">
               <tbody>
                 <tr>
-                  <td />{" "}
+                  <td />
                   {m.labels.map((l) => (
                     <td
                       key={l}

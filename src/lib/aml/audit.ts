@@ -235,7 +235,8 @@ export function assessFeatures(rows: Row[], columns: string[], target: string, r
       /indicator_synthetic/i.test(cLower) ||
       cLower === "data_origin"
     ) {
-      excluded[c] = "synthetic label / indicator / metadata column — excluded from predictive features";
+      excluded[c] =
+        "synthetic label / indicator / metadata column — excluded from predictive features";
       continue;
     }
     const u = new Set<string>();

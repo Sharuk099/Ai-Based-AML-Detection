@@ -182,7 +182,12 @@ function MainApp() {
         {tab === "analyze" && <AnalyzePage />}
         {tab === "results" && <ResultsPage />}
         {tab === "graph" && <GraphPage />}
-        {(tab === "explain" || tab === "report") && <><ExplainPage /><ReportPage /></>}
+        {(tab === "explain" || tab === "report") && (
+          <>
+            <ExplainPage />
+            <ReportPage />
+          </>
+        )}
         {tab === "model_info" && (
           <>
             <ModelInfoPage />

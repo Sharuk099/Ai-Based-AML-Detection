@@ -57,8 +57,13 @@ export function trainAll(
       `Dataset randomly downsampled to ${MAX_TRAIN_ROWS.toLocaleString()} rows for in-browser training. Use the Python version for full-size training.`,
     );
   }
-  const preliminarySplit = splitData(rows, target, cfg.split, cfg.roles.timestamp,
-    cfg.split === "group" ? cfg.roles.sender : undefined);
+  const preliminarySplit = splitData(
+    rows,
+    target,
+    cfg.split,
+    cfg.roles.timestamp,
+    cfg.split === "group" ? cfg.roles.sender : undefined,
+  );
   const assess = assessFeatures(preliminarySplit.train, columns, target, cfg.roles);
   const forbidden = cfg.features.filter((f) => f === target || assess.excluded[f]);
   if (forbidden.length)
@@ -276,14 +281,23 @@ export function trainAll(
       const candidateId = id + "_" + entry.key.replace(/[^a-z0-9]/gi, "_");
       const candidateP = pipelineProba(candidateFit.prep, candidateFit.model, test);
       const candidate: SavedModel = {
-        ...saved, id: candidateId, name: entry.key,
-        prep: candidateFit.prep, model: candidateFit.model,
+        ...saved,
+        id: candidateId,
+        name: entry.key,
+        prep: candidateFit.prep,
+        model: candidateFit.model,
         reference: referenceValues(train, candidateFit.prep.inputColumns),
         report: {
-          ...saved.report, id: candidateId,
+          ...saved.report,
+          id: candidateId,
           test: evaluate(yte, candidateP.map(argmax), candidateP, classes),
-          importance: permutationImportance(candidateFit.prep, candidateFit.model, valSample,
-            yva.slice(0, 1000), (yp) => evaluate(yva.slice(0, 1000), yp, null, classes).macro_f1),
+          importance: permutationImportance(
+            candidateFit.prep,
+            candidateFit.model,
+            valSample,
+            yva.slice(0, 1000),
+            (yp) => evaluate(yva.slice(0, 1000), yp, null, classes).macro_f1,
+          ),
         },
       };
       const back: SavedModel = JSON.parse(JSON.stringify(candidate));
