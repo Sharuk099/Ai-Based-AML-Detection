@@ -19,12 +19,15 @@ import {
   Check,
   X,
   FileSpreadsheet,
+  Printer,
+  TrendingUp,
 } from "lucide-react";
 import Papa from "papaparse";
 import { useAml } from "../state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Panel, Stat, Chip, selectCls } from "../ui";
+import { toast } from "sonner";
 
 export function ResultsPage() {
   const { analysisResult, setSelectedTransactionId, setTab } = useAml();
@@ -115,29 +118,39 @@ export function ResultsPage() {
 
   const exportCsv = () => {
     if (!analysisResult) return;
-    const csv = Papa.unparse(analysisResult.records);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `scored_aml_transactions_${Date.now()}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    try {
+      const csv = Papa.unparse(analysisResult.records);
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `scored_aml_transactions_${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success("Scored transactions CSV saved successfully!");
+    } catch (err: any) {
+      toast.error("CSV export failed: " + err.message);
+    }
   };
 
   const exportJson = () => {
     if (!analysisResult) return;
-    const blob = new Blob([JSON.stringify(analysisResult.records, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `scored_aml_transactions_${Date.now()}.json`);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    try {
+      const blob = new Blob([JSON.stringify(analysisResult.records, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `scored_aml_transactions_${Date.now()}.json`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success("Scored transactions JSON saved successfully!");
+    } catch (err: any) {
+      toast.error("JSON export failed: " + err.message);
+    }
   };
 
   if (!analysisResult) {
@@ -216,6 +229,23 @@ export function ResultsPage() {
         title="Multi-Model Prediction Ledger & Crime Diagnoses"
         right={
           <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setTab("graph")}
+              className="h-8 text-xs font-mono font-bold text-foreground hover:bg-muted border-border"
+              title="Inspect transactions and outliers in 3D Scatter Plot"
+            >
+              <TrendingUp className="mr-1.5 h-3.5 w-3.5 text-primary" /> 3D Scatter
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setTab("explain")}
+              className="h-8 text-xs font-mono font-bold text-primary hover:bg-primary/10 border-primary/40"
+            >
+              <Printer className="mr-1.5 h-3.5 w-3.5" /> Print / Save Dossier
+            </Button>
             <Button
               size="sm"
               variant="outline"
