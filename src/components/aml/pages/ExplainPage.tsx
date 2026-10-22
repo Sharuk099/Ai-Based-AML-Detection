@@ -10,6 +10,7 @@ import {
 import { useAml } from "../state";
 import { Button } from "@/components/ui/button";
 import { Panel, Stat, DataTable, Chip, Note, selectCls } from "../ui";
+import { AiInvestigationPanel } from "../AiInvestigationPanel";
 
 export function ExplainPage() {
   const { analysisResult, activeModel, selectedTransactionId, setSelectedTransactionId, setTab } =
@@ -354,6 +355,12 @@ export function ExplainPage() {
           />
         </Panel>
       )}
+
+      {/* Interactive AI Forensic Investigation & Root Problem Explanation */}
+      <AiInvestigationPanel
+        analysisResult={analysisResult}
+        selectedTransactionId={selectedRecord?._row_id}
+      />
 
       {/* Regulatory Limitation Notice */}
       <div className="flex items-start gap-3 rounded border border-border/80 bg-card/60 p-4 text-xs text-muted-foreground">

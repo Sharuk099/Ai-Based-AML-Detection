@@ -1,5 +1,5 @@
-// @ts-nocheck -- strict index checks relaxed for numeric ML code
-import { useState, useMemo } from "react";
+import { useState, useMemo, Fragment } from "react";
+import { AiInvestigationPanel } from "../AiInvestigationPanel";
 import {
   Download,
   Search,
@@ -223,6 +223,9 @@ export function ResultsPage() {
         />
       </div>
 
+      {/* AI Forensic Investigator & Explainability Assistant */}
+      <AiInvestigationPanel analysisResult={analysisResult} />
+
       {/* Main Results Table Panel */}
       <Panel
         title="Multi-Model Prediction Ledger & Crime Diagnoses"
@@ -403,9 +406,8 @@ export function ResultsPage() {
                 const isSplit = agreement.includes("Split");
 
                 return (
-                  <>
+                  <Fragment key={r._row_id}>
                     <tr
-                      key={r._row_id}
                       onClick={() => setExpandedRowId(isExpanded ? null : r._row_id)}
                       className={`border-b border-border/50 hover:bg-muted/40 cursor-pointer transition-colors ${
                         isCrime ? "bg-destructive/5" : "bg-card"
@@ -651,7 +653,7 @@ export function ResultsPage() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </Fragment>
                 );
               })}
             </tbody>

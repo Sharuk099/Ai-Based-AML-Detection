@@ -16,6 +16,7 @@ import { useAml } from "../state";
 import { Button } from "@/components/ui/button";
 import { Panel, Stat, DataTable, Chip } from "../ui";
 import { toast } from "sonner";
+import { AiInvestigationPanel } from "../AiInvestigationPanel";
 
 export function ReportPage() {
   const { analysisResult, activeModel, setTab } = useAml();
@@ -451,6 +452,9 @@ Status: Requires Human Review Before SAR Filing`;
           </Button>
         </div>
       </div>
+
+      {/* AI Forensic Investigator Panel */}
+      <AiInvestigationPanel analysisResult={analysisResult} />
 
       {/* Printable Formal Dossier Sheet */}
       <div className="panel p-8 bg-card space-y-8 border-border/80 shadow-md">

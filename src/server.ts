@@ -47,6 +47,25 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const url = new URL(request.url);
+      if (url.pathname === "/api/gemini/investigate" && request.method === "POST") {
+        try {
+          const payload = await request.json();
+          const { generateAmlInvestigation } = await import("./server/gemini");
+          const report = await generateAmlInvestigation(payload);
+          return new Response(JSON.stringify({ success: true, report }), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          });
+        } catch (e: unknown) {
+          const msg = e instanceof Error ? e.message : "Internal Error";
+          return new Response(JSON.stringify({ success: false, error: msg }), {
+            status: 500,
+            headers: { "content-type": "application/json" },
+          });
+        }
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
