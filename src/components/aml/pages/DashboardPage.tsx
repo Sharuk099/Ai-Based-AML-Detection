@@ -320,7 +320,7 @@ export function DashboardPage() {
           const cycles = a.graphData?.cycles?.length ?? 0;
           const totalAmt = a.records.reduce((s, r) => s + (Number(String(r["amount"] ?? "").replace(/,/g, "")) || 0), 0);
           const flaggedAmt = a.records
-            .filter((r) => r.riskLevel === "HIGH" || r.riskLevel === "MEDIUM")
+            .filter((r) => r["_risk_level"] === "HIGH" || r["_risk_level"] === "MEDIUM")
             .reduce((s, r) => s + (Number(String(r["amount"] ?? "").replace(/,/g, "")) || 0), 0);
           return (
             <Panel title="Overall Crime Risk Assessment · All Data">
