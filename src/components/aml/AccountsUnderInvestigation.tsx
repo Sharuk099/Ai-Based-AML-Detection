@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Panel, Chip } from "./ui";
 import { useAml } from "./state";
-import type { AnalysisResult } from "@/lib/aml/types";
+import type { AnalysisResult } from "./state";
 
 export interface InvestigatedAccount {
   accountId: string;

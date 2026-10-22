@@ -40,15 +40,11 @@ const geminiApiPlugin: Plugin = {
 };
 
 export default defineConfig({
-  server: {
-    host: "0.0.0.0",
-    port: 3000,
-  },
   vite: {
     plugins: [geminiApiPlugin],
   },
   nitro: {
-    preset: process.env.LOVABLE_NITRO_PRESET || "node-server",
+    preset: process.env["LOVABLE_NITRO_PRESET"] || "node-server",
   },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
