@@ -1,5 +1,5 @@
 import { useState, useMemo, Fragment } from "react";
-import { AiInvestigationPanel } from "../AiInvestigationPanel";
+import { TransactionAiModal } from "../TransactionAiModal";
 import {
   Download,
   Search,
@@ -20,16 +20,23 @@ import {
   X,
   FileSpreadsheet,
   Printer,
+  Sparkles,
 } from "lucide-react";
 import Papa from "papaparse";
-import { useAml } from "../state";
+import { useAml, type ScoredTransaction } from "../state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Panel, Stat, Chip, selectCls } from "../ui";
 import { toast } from "sonner";
 
 export function ResultsPage() {
-  const { analysisResult, setSelectedTransactionId, setTab } = useAml();
+  const {
+    analysisResult,
+    setSelectedTransactionId,
+    setTab,
+    selectedAccountId,
+    setSelectedAccountId,
+  } = useAml();
 
   const [search, setSearch] = useState("");
   const [viewFilter, setViewFilter] = useState<
@@ -37,6 +44,15 @@ export function ResultsPage() {
   >("ALL");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
+
+  // Transaction AI Explainer Modal state
+  const [aiModalTx, setAiModalTx] = useState<ScoredTransaction | null>(null);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+
+  const openAiModal = (tx: ScoredTransaction) => {
+    setAiModalTx(tx);
+    setAiModalOpen(true);
+  };
 
   const [pageSize, setPageSize] = useState<number>(50);
   const [page, setPage] = useState<number>(1);
@@ -66,6 +82,15 @@ export function ResultsPage() {
         typology !== categoryFilter
       ) {
         return false;
+      }
+
+      if (selectedAccountId) {
+        const accLower = selectedAccountId.toLowerCase();
+        const matchesAcc =
+          String(rec["from_account"] || "").toLowerCase() === accLower ||
+          String(rec["to_account"] || "").toLowerCase() === accLower ||
+          String(rec["account_id"] || "").toLowerCase() === accLower;
+        if (!matchesAcc) return false;
       }
 
       if (search.trim()) {
@@ -99,7 +124,7 @@ export function ResultsPage() {
       res.sort((a, b) => Number(b["amount"] || 0) - Number(a["amount"] || 0));
     }
     return res;
-  }, [analysisResult, search, viewFilter, categoryFilter, sortBy]);
+  }, [analysisResult, search, viewFilter, categoryFilter, sortBy, selectedAccountId]);
 
   const totalPages = Math.max(1, Math.ceil(filteredRecords.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -335,6 +360,30 @@ export function ResultsPage() {
           </Button>
         </div>
 
+        {/* Active Account Filter Banner */}
+        {selectedAccountId && (
+          <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-primary/40 bg-primary/10 px-4 py-2.5 text-xs font-mono shadow-sm">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-primary" />
+              <span>
+                Filtered by Account Roster Target:{" "}
+                <strong className="text-foreground">{selectedAccountId}</strong>
+              </span>
+              <span className="text-muted-foreground">
+                ({filteredRecords.length} linked transactions)
+              </span>
+            </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setSelectedAccountId(undefined)}
+              className="h-7 px-2.5 text-xs font-mono text-destructive hover:bg-destructive/15 font-semibold"
+            >
+              Clear Account Filter
+            </Button>
+          </div>
+        )}
+
         {/* Secondary Filter & Search Row */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div className="relative flex-1 min-w-[240px]">
@@ -509,17 +558,34 @@ export function ResultsPage() {
                       </td>
 
                       <td className="px-3 py-2.5 text-right">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={(ev) => {
-                            ev.stopPropagation();
-                            handleInspect(r._row_id);
-                          }}
-                          className="h-7 text-xs text-primary hover:text-primary hover:bg-primary/10"
-                        >
-                          XAI Audit <ArrowRight className="ml-1 h-3 w-3" />
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={(ev) => {
+                              ev.stopPropagation();
+                              openAiModal(r);
+                            }}
+                            className="h-7 px-2 text-xs text-primary font-bold hover:bg-primary/10 flex items-center gap-1"
+                            title="AI Forensic Diagnostic"
+                          >
+                            <Sparkles className="h-3 w-3 text-primary" />
+                            <span>AI Explain</span>
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={(ev) => {
+                              ev.stopPropagation();
+                              handleInspect(r._row_id);
+                            }}
+                            className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                            title="Inspect in XAI Waterfall"
+                          >
+                            <span>XAI</span>
+                            <ArrowRight className="ml-1 h-3 w-3" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
 
@@ -641,13 +707,24 @@ export function ResultsPage() {
                                     "Maintain standard transaction monitoring."}
                                 </span>
                               </div>
-                              <Button
-                                size="sm"
-                                onClick={() => handleInspect(r._row_id)}
-                                className="bg-primary text-primary-foreground text-xs font-bold"
-                              >
-                                Deep XAI Waterfall <ArrowRight className="ml-1 h-3 w-3" />
-                              </Button>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => openAiModal(r)}
+                                  className="bg-primary text-primary-foreground text-xs font-bold shadow-sm flex items-center gap-1.5"
+                                >
+                                  <Sparkles className="h-3.5 w-3.5" />
+                                  <span>AI Explain Transaction</span>
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleInspect(r._row_id)}
+                                  className="text-xs font-mono font-semibold"
+                                >
+                                  Deep XAI Waterfall <ArrowRight className="ml-1 h-3 w-3" />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -692,6 +769,13 @@ export function ResultsPage() {
           </div>
         </div>
       </Panel>
+
+      {/* Transaction-Level AI Explainer Modal */}
+      <TransactionAiModal
+        transaction={aiModalTx}
+        open={aiModalOpen}
+        onOpenChange={setAiModalOpen}
+      />
     </div>
   );
 }

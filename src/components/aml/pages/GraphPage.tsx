@@ -1,5 +1,5 @@
 // @ts-nocheck -- strict index checks relaxed for numeric ML code
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   Network,
   List,
@@ -25,7 +25,7 @@ import { ThreeGraph3D } from "../ThreeGraph3D";
 import { GraphDiagram2D } from "../GraphDiagram2D";
 
 export function GraphPage() {
-  const { activeDs, analysisResult, setTab } = useAml();
+  const { activeDs, analysisResult, setTab, selectedAccountId } = useAml();
 
   // Active View Tab: 3D Interactive Graph vs 2D Flow Diagram vs All Connections vs Account Dossiers
   const [activeView, setActiveView] = useState<"graph" | "diagram2d" | "connections" | "accounts">(
@@ -35,6 +35,14 @@ export function GraphPage() {
   const [searchAccount, setSearchAccount] = useState("");
   const [minAmountFilter, setMinAmountFilter] = useState<number>(0);
   const [copiedAccount, setCopiedAccount] = useState<string | null>(null);
+
+  // Auto-focus account if selected from Accounts Under Investigation roster
+  useEffect(() => {
+    if (selectedAccountId) {
+      setSelectedAccount(selectedAccountId);
+      setSearchAccount(selectedAccountId);
+    }
+  }, [selectedAccountId]);
 
   // Currency detection (INR or USD/EUR)
   const currencySymbol = useMemo(() => {

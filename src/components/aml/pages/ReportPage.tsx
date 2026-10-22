@@ -11,6 +11,7 @@ import {
   Copy,
   Check,
   FileCode,
+  Layers,
 } from "lucide-react";
 import { useAml } from "../state";
 import { Button } from "@/components/ui/button";
@@ -367,7 +368,133 @@ export function ReportPage() {
     }
   };
 
-  // 4. COPY TEXT SUMMARY TO CLIPBOARD
+  // 4. DOWNLOAD SAR (MARKDOWN)
+  const handleDownloadMarkdown = () => {
+    try {
+      const cycles = analysisResult.graphData?.cycles || [];
+      const markdown = `# ANTI-MONEY LAUNDERING INVESTIGATION REPORT (SAR)
+**Confidential Regulatory Compliance Dossier**
+
+- **Case ID**: SAR-${Date.now().toString().slice(-8)}
+- **Batch Name**: ${analysisResult.datasetName}
+- **Generated**: ${new Date(analysisResult.analyzedAt).toLocaleString()}
+- **Framework**: RBI PMLA / FIU-IND & FATF
+- **Total Transactions Audited**: ${analysisResult.totalTransactions.toLocaleString()}
+- **Flagged Suspicious Transactions**: ${analysisResult.flaggedCount.toLocaleString()} (${analysisResult.flaggedPct}%)
+- **High Risk Priority**: ${analysisResult.highRiskCount.toLocaleString()}
+- **Verified Normal**: ${multiReport ? multiReport.normalCount.toLocaleString() : analysisResult.normalPredictionsCount.toLocaleString()}
+- **Circular Layering Loops**: ${cycles.length}
+
+---
+
+## 1. Executive Threat Summary & Findings
+Automated machine learning and graph topology screening was executed on batch file **${analysisResult.datasetName}**.
+The multi-model consensus engine screened all transactions across 5 distinct algorithms: **Explainable AI (XAI)**, **Stacking Classifier**, **Convolutional Neural Network (CNN)**, **Gradient Boosting (GBDT)**, and **Random Forest**.
+
+The system identified **${analysisResult.flaggedCount}** anomalous transactions requiring formal compliance determination.
+
+${cycles.length > 0 ? `### Circular Layering Rings Identified:\n` + cycles.map((c, i) => `${i + 1}. ${c.join(" -> ")} -> ${c[0]}`).join("\n") : "No circular layering rings identified in this transaction batch."}
+
+---
+
+## 2. Detected AML Typology Distribution
+${Object.entries(analysisResult.categoryBreakdown)
+  .map(
+    ([cat, count]) =>
+      `- **${cat}**: ${count.toLocaleString()} transactions (${((count / analysisResult.totalTransactions) * 100).toFixed(1)}%)`,
+  )
+  .join("\n")}
+
+---
+
+## 3. High Risk Critical Transactions Sample
+${highRiskRecords
+  .slice(0, 20)
+  .map(
+    (r, i) =>
+      `${i + 1}. **TxID ${r._row_id}**: ${r["from_account"] || "—"} -> ${r["to_account"] || "—"} | ${formatAmount(r)} | Typology: ${r._crime_typology || r._predicted_class} | Risk Score: ${((Number(r._risk_score) || 0) * 100).toFixed(0)}%`,
+  )
+  .join("\n")}
+
+---
+
+## 4. Compliance Officer Sign-off & Audit Trail
+- **Senior Compliance Officer**: ___________________________
+- **Date**: ___________________________
+- **Determination**: [ ] FILED SAR   [ ] CLEARED   [ ] ENHANCED DUE DILIGENCE
+`;
+
+      const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `AML_Investigation_SAR_${Date.now()}.md`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("SAR Dossier (.md) downloaded!");
+    } catch (err: any) {
+      toast.error("Markdown export failed: " + err.message);
+    }
+  };
+
+  // 5. DOWNLOAD CSV (FLAGGED ALERTS)
+  const handleDownloadCsv = () => {
+    try {
+      const flagged = analysisResult.records.filter(
+        (r) => r._risk_level === "HIGH" || r._risk_level === "MEDIUM",
+      );
+      if (!flagged.length) {
+        toast.info("No flagged transactions to export.");
+        return;
+      }
+
+      const headers = [
+        "transaction_id",
+        "from_account",
+        "to_account",
+        "amount",
+        "currency",
+        "payment_format",
+        "risk_level",
+        "risk_score",
+        "predicted_typology",
+        "timestamp",
+      ];
+      const rows = flagged.map((r) => [
+        String(r._row_id || r["transaction_id"] || ""),
+        String(r["from_account"] || ""),
+        String(r["to_account"] || ""),
+        String(r["amount"] || 0),
+        String(r["currency"] || "USD"),
+        String(r["payment_format"] || r["channel"] || "Electronic"),
+        String(r._risk_level || "HIGH"),
+        String(Number(r._risk_score || 0).toFixed(4)),
+        String(r._crime_typology || r._predicted_class || ""),
+        String(r["timestamp"] || ""),
+      ]);
+
+      const csvContent = [
+        headers.join(","),
+        ...rows.map((row) => row.map((val) => `"${val}"`).join(",")),
+      ].join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `AML_Flagged_Alerts_${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Flagged alerts CSV downloaded!");
+    } catch (err: any) {
+      toast.error("CSV export failed: " + err.message);
+    }
+  };
+
+  // 6. COPY TEXT SUMMARY TO CLIPBOARD
   const handleCopySummary = () => {
     try {
       const summaryText = `ANTI-MONEY LAUNDERING INVESTIGATION SUMMARY
@@ -429,11 +556,31 @@ Status: Requires Human Review Before SAR Filing`;
           <Button
             size="sm"
             variant="outline"
+            onClick={handleDownloadMarkdown}
+            className="text-xs font-mono font-bold text-foreground hover:bg-muted"
+            title="Download SAR as Markdown (.md)"
+          >
+            <FileText className="mr-1.5 h-3.5 w-3.5 text-primary" /> SAR (.MD)
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
             onClick={handleDownloadDossier}
             className="text-xs font-mono"
             title="Download full JSON dataset"
           >
             <Download className="mr-1.5 h-3.5 w-3.5" /> Export JSON
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleDownloadCsv}
+            className="text-xs font-mono"
+            title="Download flagged alerts as CSV"
+          >
+            <Layers className="mr-1.5 h-3.5 w-3.5 text-primary" /> Alerts (.CSV)
           </Button>
 
           <Button

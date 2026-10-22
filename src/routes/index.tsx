@@ -78,7 +78,8 @@ function MainApp() {
       badge: analysisResult ? analysisResult.totalTransactions : undefined,
     },
     { id: "graph", label: "3D Transaction Graph", icon: Network },
-    { id: "explain", label: "Explainable AI & Report", icon: HelpCircle },
+    { id: "explain", label: "Explainable AI (XAI)", icon: HelpCircle },
+    { id: "report", label: "SAR Investigation & AI", icon: FileText },
     { id: "model_info", label: "Model Information", icon: Info },
   ];
 
@@ -185,12 +186,8 @@ function MainApp() {
         {tab === "analyze" && <AnalyzePage />}
         {tab === "results" && <ResultsPage />}
         {tab === "graph" && <GraphPage />}
-        {(tab === "explain" || tab === "report") && (
-          <>
-            <ExplainPage />
-            <ReportPage />
-          </>
-        )}
+        {tab === "explain" && <ExplainPage />}
+        {tab === "report" && <ReportPage />}
         {tab === "model_info" && (
           <>
             <ModelInfoPage />

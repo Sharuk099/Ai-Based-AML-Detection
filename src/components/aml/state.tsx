@@ -177,6 +177,8 @@ interface Ctx {
   setFocusModel: (id?: string) => void;
   selectedTransactionId?: string;
   setSelectedTransactionId: (id?: string) => void;
+  selectedAccountId?: string;
+  setSelectedAccountId: (id?: string) => void;
   modelCompatibility?: ModelCompatibilityResult;
 }
 
@@ -323,6 +325,7 @@ export function AmlProvider({ children }: { children: ReactNode }) {
   const [tab, setTab] = useState("dashboard");
   const [focusModel, setFocusModel] = useState<string>();
   const [selectedTransactionId, setSelectedTransactionId] = useState<string>();
+  const [selectedAccountId, setSelectedAccountId] = useState<string>();
   const worker = useRef<Worker | null>(null);
 
   const updateRiskConfig = (cfg: Partial<RiskConfig>) => {
@@ -900,6 +903,8 @@ export function AmlProvider({ children }: { children: ReactNode }) {
         setFocusModel,
         selectedTransactionId,
         setSelectedTransactionId,
+        selectedAccountId,
+        setSelectedAccountId,
       }}
     >
       {children}

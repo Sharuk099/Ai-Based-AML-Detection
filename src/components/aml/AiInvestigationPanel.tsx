@@ -17,12 +17,14 @@ import {
   FileCode,
   Layers,
   ArrowRight,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Panel, Note, Chip, Stat } from "./ui";
 import { toast } from "sonner";
 import type { AnalysisResult } from "@/lib/aml/types";
+import { AccountsUnderInvestigation } from "./AccountsUnderInvestigation";
 
 interface SavedDossier {
   id: string;
@@ -210,6 +212,18 @@ export function AiInvestigationPanel({
       toast.success(`Dossier ${newDossier.id} saved to Investigation Archive!`);
     } catch {
       toast.error("Failed to save dossier to local archive.");
+    }
+  };
+
+  const deleteFromArchive = (id: string, ev: React.MouseEvent) => {
+    ev.stopPropagation();
+    try {
+      const updated = savedDossiers.filter((d) => d.id !== id);
+      setSavedDossiers(updated);
+      localStorage.setItem("aml_saved_investigations", JSON.stringify(updated));
+      toast.success(`Dossier ${id} removed from archive`);
+    } catch {
+      toast.error("Failed to update archive");
     }
   };
 
@@ -475,9 +489,24 @@ export function AiInvestigationPanel({
                         {d.datasetName} · {d.flaggedCount} flagged · {d.timestamp}
                       </div>
                     </div>
-                    <Button size="sm" variant="ghost" className="h-7 text-xs text-primary">
-                      Open <ArrowRight className="ml-1 h-3 w-3" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={(ev) => deleteFromArchive(d.id, ev)}
+                        className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        title="Delete from archive"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 text-xs text-primary font-bold"
+                      >
+                        Open <ArrowRight className="ml-1 h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -485,6 +514,9 @@ export function AiInvestigationPanel({
           )}
         </div>
       </Panel>
+
+      {/* Visual Accounts Under Investigation Section */}
+      <AccountsUnderInvestigation analysisResult={analysisResult} />
 
       {/* AI Report Output Panel */}
       {aiReport && (
