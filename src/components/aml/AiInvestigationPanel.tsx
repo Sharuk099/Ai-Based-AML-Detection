@@ -102,7 +102,14 @@ export function AiInvestigationPanel({
             });
           }
           const acc = accountMap.get(fromAcc)!;
-          acc.outflow += amt;
+          const directInflow = Number(r["monthly_inflow"] || r["inflow"] || 0);
+          const directOutflow = Number(r["monthly_outflow"] || r["outflow"] || 0);
+          if (directInflow > 0 || directOutflow > 0) {
+            acc.inflow = Math.max(acc.inflow, directInflow);
+            acc.outflow = Math.max(acc.outflow, directOutflow);
+          } else {
+            acc.outflow += amt;
+          }
           if (score > acc.riskScore) {
             acc.riskScore = score;
             acc.typology = typo;
@@ -377,9 +384,9 @@ export function AiInvestigationPanel({
       >
         <div className="space-y-4">
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Powered by <b>Gemini 3.8 Flash</b>. Examines multi-model confidence scores, counterparty
-            network topology, transaction structuring, and velocity bursts to explain{" "}
-            <b>what the problem was</b>,<b>which accounts need urgent investigation</b>, and{" "}
+            Powered by <b>Gemini AI (Google DeepMind)</b>. Examines multi-model confidence scores,
+            counterparty network topology, transaction structuring, and velocity bursts to explain{" "}
+            <b>what the problem was</b>, <b>which accounts need urgent investigation</b>, and{" "}
             <b>recommended regulatory actions</b>.
           </p>
 

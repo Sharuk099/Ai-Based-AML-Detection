@@ -1,0 +1,5 @@
+account_id,customer_type,inflow,outflow,balance,pass_through_ratio,tx_count
+ACC_8001,Corporate,250000.00,248000.00,2000.00,0.992,14
+ACC_8002,Individual,15000.00,12000.00,3000.00,0.800,4
+ACC_8003,Retail,4200.00,1800.00,2400.00,0.428,2
+ACC_8004,Corporate,1200000.00,1190000.00,10000.00,0.991,28

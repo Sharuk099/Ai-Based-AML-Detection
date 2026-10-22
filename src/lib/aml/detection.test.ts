@@ -4,7 +4,7 @@ import defaultPretrained from "./pretrained.json";
 import { pipelineProba } from "./pipeline";
 import { graphSummary } from "./graph";
 import { evaluateTransactionRisk, DEFAULT_RISK_CONFIG } from "./risk";
-import { prepareInferenceRow, inferenceIssue } from "./inference";
+import { prepareInferenceRow, inferenceIssue, checkModelCompatibility } from "./inference";
 import {
   generateOrdinaryCsv,
   generateIndianBankingCsv,
@@ -132,5 +132,42 @@ describe("AI Anti-Money Laundering Detection Suite", () => {
     const prepared = sample.map((r) => prepareInferenceRow(r, model, roleMap));
     const probas = pipelineProba(model.prep, model.model, prepared);
     expect(probas.length).toBe(1000);
+  });
+
+  it("TASK 6: Evaluates account profile format with synonyms (inflow, outflow, balance, pass_through_ratio)", () => {
+    const accountCsv =
+      "account_id,customer_type,inflow,outflow,balance,pass_through_ratio,tx_count\n" +
+      "ACC_8001,Corporate,250000.00,248000.00,2000.00,0.992,14\n" +
+      "ACC_8002,Individual,15000.00,12000.00,3000.00,0.800,4\n" +
+      "ACC_8003,Retail,4200.00,1800.00,2400.00,0.428,2\n" +
+      "ACC_8004,Corporate,1200000.00,1190000.00,10000.00,0.991,28\n";
+
+    const parsed = Papa.parse<Row>(accountCsv, { header: true, skipEmptyLines: true });
+    const cols = (parsed.meta.fields || []).filter(Boolean);
+
+    const compat = checkModelCompatibility(model, cols, {});
+    expect(compat.compatible).toBe(true);
+    expect(compat.missingFeatures.length).toBe(0);
+
+    const prepared = parsed.data.map((r) => prepareInferenceRow(r, model, {}));
+    expect(prepared.length).toBe(4);
+
+    // Verify synonyms resolved
+    expect(prepared[0].monthly_inflow).toBe("250000.00");
+    expect(prepared[0].monthly_outflow).toBe("248000.00");
+    expect(prepared[0].avg_balance).toBe("2000.00");
+
+    // Verify Retail normalized to Individual
+    expect(prepared[2].customer_type).toBe("Individual");
+
+    // Verify inference issues are 0
+    prepared.forEach((r) => {
+      const issue = inferenceIssue(model, r);
+      expect(issue).toBeUndefined();
+    });
+
+    // Run prediction
+    const probas = pipelineProba(model.prep, model.model, prepared);
+    expect(probas.length).toBe(4);
   });
 });

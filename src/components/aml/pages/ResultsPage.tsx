@@ -134,10 +134,18 @@ export function ResultsPage() {
   }, [filteredRecords, currentPage, pageSize]);
 
   const formatAmount = (rec: any) => {
-    const amt = Number(rec["amount"] || 0);
+    const amt = Number(
+      rec["amount"] ||
+        rec["inflow"] ||
+        rec["monthly_inflow"] ||
+        rec["balance"] ||
+        rec["avg_balance"] ||
+        0,
+    );
     const ccy = String(rec["currency"] || "USD").toUpperCase();
     const symbol = ccy === "INR" ? "₹" : ccy === "EUR" ? "€" : ccy === "GBP" ? "£" : "$";
-    return `${symbol}${amt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const label = !rec["amount"] && (rec["inflow"] || rec["monthly_inflow"]) ? "Inflow: " : "";
+    return `${label}${symbol}${amt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const exportCsv = () => {
@@ -224,7 +232,7 @@ export function ResultsPage() {
           }
         />
         <Stat
-          label="✅ Normal Transactions"
+          label="✅ Verified Normal"
           value={
             multiReport
               ? multiReport.normalCount.toLocaleString()
@@ -248,9 +256,6 @@ export function ResultsPage() {
         />
       </div>
 
-      {/* AI Forensic Investigator & Explainability Assistant */}
-      <AiInvestigationPanel analysisResult={analysisResult} />
-
       {/* Main Results Table Panel */}
       <Panel
         title="Multi-Model Prediction Ledger & Crime Diagnoses"
@@ -259,7 +264,7 @@ export function ResultsPage() {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => setTab("explain")}
+              onClick={() => setTab("report")}
               className="h-8 text-xs font-mono font-bold text-primary hover:bg-primary/10 border-primary/40"
             >
               <Printer className="mr-1.5 h-3.5 w-3.5" /> Print / Save Dossier
@@ -474,15 +479,28 @@ export function ResultsPage() {
                       </td>
 
                       <td className="px-3 py-2.5 text-muted-foreground">
-                        <div className="text-[11px] leading-tight">
-                          <span className="text-foreground font-semibold">
-                            {String(r["from_account"] || "—")}
-                          </span>
-                          <span className="mx-1 text-muted-foreground">→</span>
-                          <span className="text-foreground font-semibold">
-                            {String(r["to_account"] || "—")}
-                          </span>
-                        </div>
+                        {r["from_account"] || r["to_account"] ? (
+                          <div className="text-[11px] leading-tight">
+                            <span className="text-foreground font-semibold">
+                              {String(r["from_account"] || "—")}
+                            </span>
+                            <span className="mx-1 text-muted-foreground">→</span>
+                            <span className="text-foreground font-semibold">
+                              {String(r["to_account"] || "—")}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="text-[11px] leading-tight flex items-center gap-1.5">
+                            <span className="text-foreground font-bold font-mono">
+                              {String(r["account_id"] || r._row_id)}
+                            </span>
+                            {r["customer_type"] && (
+                              <span className="rounded bg-primary/10 text-primary px-1.5 py-0.2 text-[9px] font-mono font-semibold">
+                                {String(r["customer_type"])}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </td>
 
                       <td className="px-3 py-2.5 text-foreground font-semibold">

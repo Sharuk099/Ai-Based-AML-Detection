@@ -646,7 +646,7 @@ export function AmlProvider({ children }: { children: ReactNode }) {
 
         return {
           ...r,
-          _row_id: r.transaction_id || `row_${i + 1}`,
+          _row_id: r.transaction_id || r.account_id || r.acc_id || r.id || `row_${i + 1}`,
           _predicted_class: predClass,
           _confidence: maxProb,
           _risk_score: riskEval.riskScore,

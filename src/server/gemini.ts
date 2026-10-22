@@ -95,17 +95,29 @@ Provide a clear, highly structured forensic report covering:
 
 Write in an authoritative, professional compliance tone. Use Markdown headers, bullet points, and bold text for clarity.`;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3.8-flash",
-      contents: prompt,
-    });
+  const candidateModels = [
+    "gemini-2.5-flash",
+    "gemini-flash-latest",
+    "gemini-3.1-flash-lite",
+    "gemini-4-argon",
+  ];
 
-    return response.text || generateFallbackInvestigation(payload);
-  } catch (error) {
-    console.error("Gemini API investigation generation error:", error);
-    return generateFallbackInvestigation(payload);
+  for (const modelName of candidateModels) {
+    try {
+      const response = await ai.models.generateContent({
+        model: modelName,
+        contents: prompt,
+      });
+
+      if (response.text) {
+        return response.text;
+      }
+    } catch (error) {
+      console.warn(`Gemini model ${modelName} error, trying fallback candidate:`, error);
+    }
   }
+
+  return generateFallbackInvestigation(payload);
 }
 
 function generateFallbackInvestigation(p: InvestigationRequestPayload): string {

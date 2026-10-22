@@ -104,11 +104,11 @@ export function UploadPage() {
     } else {
       filename = "aml_account_profile_template.csv";
       csvContent =
-        "account_id,customer_type,inflow,outflow,balance,pass_through_ratio,tx_count\n" +
-        "ACC_8001,Corporate,250000.00,248000.00,2000.00,0.992,14\n" +
-        "ACC_8002,Individual,15000.00,12000.00,3000.00,0.800,4\n" +
-        "ACC_8003,Retail,4200.00,1800.00,2400.00,0.428,2\n" +
-        "ACC_8004,Corporate,1200000.00,1190000.00,10000.00,0.991,28\n";
+        "account_id,customer_type,account_age_months,avg_balance,monthly_inflow,monthly_outflow,in_out_ratio,txn_count_monthly,cash_deposit_ratio,international_tx_ratio,night_activity_ratio\n" +
+        "ACC_8001,Corporate,36,2000.00,250000.00,248000.00,0.992,24,0.02,0.65,0.01\n" +
+        "ACC_8002,Individual,48,3000.00,15000.00,12000.00,0.800,12,0.05,0.01,0.02\n" +
+        "ACC_8003,Individual,18,2400.00,4200.00,1800.00,0.428,6,0.04,0.00,0.00\n" +
+        "ACC_8004,Corporate,60,10000.00,1200000.00,1190000.00,0.991,48,0.01,0.82,0.05\n";
     }
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);

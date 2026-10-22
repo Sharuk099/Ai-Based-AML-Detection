@@ -112,9 +112,21 @@ export function AccountsUnderInvestigation({ analysisResult }: { analysisResult:
           });
         }
         const acc = map.get(fromAcc)!;
-        acc.outflow += amt;
-        acc.totalTxns += 1;
-        if (amt > acc.maxAmount) acc.maxAmount = amt;
+        const directInflow = Number(r["monthly_inflow"] || r["inflow"] || 0);
+        const directOutflow = Number(r["monthly_outflow"] || r["outflow"] || 0);
+        const directTxCount = Number(r["txn_count_monthly"] || r["tx_count"] || 0);
+
+        if (directInflow > 0 || directOutflow > 0) {
+          acc.inflow = Math.max(acc.inflow, directInflow);
+          acc.outflow = Math.max(acc.outflow, directOutflow);
+          if (directTxCount > 0) acc.totalTxns = Math.max(acc.totalTxns, directTxCount);
+          acc.maxAmount = Math.max(acc.maxAmount, directInflow, directOutflow);
+        } else {
+          acc.outflow += amt;
+          acc.totalTxns += 1;
+          if (amt > acc.maxAmount) acc.maxAmount = amt;
+        }
+
         if (score > acc.riskScore) acc.riskScore = score;
         if (toAcc) acc.counterparties.add(toAcc);
         if (typology && typology !== "Normal" && typology !== "Standard Retail") {
