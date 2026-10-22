@@ -308,6 +308,52 @@ export function DashboardPage() {
         );
       })()}
 
+      {analysisResult &&
+        (() => {
+          const a = analysisResult;
+          const base = Math.max(a.classifiedCount, 1);
+          const flagPct = (a.flaggedCount / base) * 100;
+          const highPct = (a.highRiskCount / base) * 100;
+          const level =
+            highPct >= 10 || flagPct >= 25 ? "HIGH" : highPct > 0 || flagPct >= 5 ? "ELEVATED" : flagPct > 0 ? "LOW" : "MINIMAL";
+          const tone = level === "HIGH" ? "text-destructive" : level === "ELEVATED" ? "text-warning" : "text-success";
+          const cycles = a.graphData?.cycles?.length ?? 0;
+          const totalAmt = a.records.reduce((s, r) => s + (Number(String(r["amount"] ?? "").replace(/,/g, "")) || 0), 0);
+          const flaggedAmt = a.records
+            .filter((r) => r.riskLevel === "HIGH" || r.riskLevel === "MEDIUM")
+            .reduce((s, r) => s + (Number(String(r["amount"] ?? "").replace(/,/g, "")) || 0), 0);
+          return (
+            <Panel title="Overall Crime Risk Assessment · All Data">
+              <div className="grid gap-4 sm:grid-cols-4">
+                <div>
+                  <div className="label-mono">Overall level</div>
+                  <div className={`text-2xl font-bold ${tone}`}>{level}</div>
+                </div>
+                <div>
+                  <div className="label-mono">Flagged for review</div>
+                  <div className="text-xl font-semibold">{flagPct.toFixed(1)}%</div>
+                  <div className="text-xs text-muted-foreground">{a.flaggedCount} of {a.classifiedCount} classified</div>
+                </div>
+                <div>
+                  <div className="label-mono">High priority</div>
+                  <div className="text-xl font-semibold">{a.highRiskCount}</div>
+                  <div className="text-xs text-muted-foreground">{highPct.toFixed(1)}% of classified</div>
+                </div>
+                <div>
+                  <div className="label-mono">Amount under review</div>
+                  <div className="text-xl font-semibold">{flaggedAmt.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {totalAmt > 0 ? ((flaggedAmt / totalAmt) * 100).toFixed(1) : "0.0"}% of total · {cycles} unvalidated cycles
+                  </div>
+                </div>
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Summary across every analyzed record ({a.totalTransactions} total, {a.unclassifiedCount} unable to classify). This is a screening priority, not proof of crime; investigator review is required.
+              </p>
+            </Panel>
+          );
+        })()}
+
       {/* Analysis Results Spotlight if already executed */}
       {analysisResult ? (
         <div className="space-y-6">
