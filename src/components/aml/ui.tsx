@@ -137,14 +137,14 @@ export function DataTable({
     </div>
   );
 }
-export function Chip({ children, tone }: { children: ReactNode; tone?: "ok" | "bad" }) {
+export function Chip({ children, tone }: { children: ReactNode; tone?: "ok" | "bad" | "warn" }) {
   return (
     <span
       className={cn(
         "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs",
         tone === "ok"
           ? "border-success/60 text-success"
-          : tone === "bad"
+          : tone === "warn" ? "border-warning/60 text-warning" : tone === "bad"
             ? "border-destructive/60 text-destructive"
             : "border-border text-muted-foreground",
       )}

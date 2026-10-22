@@ -154,8 +154,8 @@ export function UploadPage() {
   const uniqueCounterparties = useMemo(() => {
     if (!activeDs) return 0;
     const r = activeDs.audit.roles;
-    const sCol = r.source;
-    const tCol = r.target;
+    const sCol = r.sender;
+    const tCol = r.receiver;
     if (!sCol || !tCol) return 0;
     const set = new Set<string>();
     for (const row of activeDs.rows) {

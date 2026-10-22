@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Panel, Note, Chip, Stat } from "./ui";
 import { toast } from "sonner";
-import type { AnalysisResult } from "@/lib/aml/types";
+import type { AnalysisResult } from "./state";
 import { AccountsUnderInvestigation } from "./AccountsUnderInvestigation";
 
 interface SavedDossier {

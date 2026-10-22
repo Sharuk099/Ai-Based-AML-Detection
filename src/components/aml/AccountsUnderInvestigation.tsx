@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Panel, Chip } from "./ui";
 import { useAml } from "./state";
-import type { AnalysisResult } from "@/lib/aml/types";
+import type { AnalysisResult } from "./state";
 
 export interface InvestigatedAccount {
   accountId: string;
@@ -47,7 +47,7 @@ export function AccountsUnderInvestigation({ analysisResult }: { analysisResult:
 
   // Currency detection
   const currencySymbol = useMemo(() => {
-    const firstCcy = analysisResult.records.find((r) => r["currency"])?.["currency"]?.toUpperCase();
+    const firstCcy = analysisResult.records.find((r) => r["currency"])?.["currency"]; const _c = String(firstCcy ?? "").toUpperCase(); void _c;
     if (firstCcy === "INR") return "₹";
     if (firstCcy === "EUR") return "€";
     if (firstCcy === "GBP") return "£";

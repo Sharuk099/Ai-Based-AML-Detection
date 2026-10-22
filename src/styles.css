@@ -133,3 +133,7 @@
   text-transform: uppercase;
   color: var(--color-muted-foreground);
 }
+
+/* Hide scrollbars while keeping scrolling */
+html, body, * { scrollbar-width: none; -ms-overflow-style: none; }
+html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { display: none; width: 0; height: 0; }

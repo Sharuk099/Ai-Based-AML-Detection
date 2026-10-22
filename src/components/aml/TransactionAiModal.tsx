@@ -109,7 +109,7 @@ export function TransactionAiModal({ transaction, open, onOpenChange }: Transact
     }
 
     // Feature contributions
-    const topContrib = transaction._explanations?.[0];
+    const topContrib = transaction?._explanations?.[0];
     if (topContrib && Math.abs(topContrib.contribution) > 0.05) {
       reasons.push(
         `Ensemble decision tree attributions detected extreme deviation in feature '${topContrib.feature}' with a +${(topContrib.contribution * 100).toFixed(1)}% risk contribution.`,
@@ -168,7 +168,7 @@ export function TransactionAiModal({ transaction, open, onOpenChange }: Transact
     if (timestamp && (timestamp.includes("T") || timestamp.includes(":"))) {
       const timeMatch = timestamp.match(/(\d{2}):(\d{2})/);
       if (timeMatch) {
-        const hour = parseInt(timeMatch[1], 10);
+        const hour = parseInt(timeMatch[1] ?? "0", 10);
         if (hour >= 22 || hour < 6) {
           flags.push({
             title: "Off-Hours Night Execution",

@@ -153,12 +153,12 @@ describe("AI Anti-Money Laundering Detection Suite", () => {
     expect(prepared.length).toBe(4);
 
     // Verify synonyms resolved
-    expect(prepared[0].monthly_inflow).toBe("250000.00");
-    expect(prepared[0].monthly_outflow).toBe("248000.00");
-    expect(prepared[0].avg_balance).toBe("2000.00");
+    expect(prepared[0]?.["monthly_inflow"]).toBe("250000.00");
+    expect(prepared[0]?.["monthly_outflow"]).toBe("248000.00");
+    expect(prepared[0]?.["avg_balance"]).toBe("2000.00");
 
     // Verify Retail normalized to Individual
-    expect(prepared[2].customer_type).toBe("Individual");
+    expect(prepared[2]?.["customer_type"]).toBe("Individual");
 
     // Verify inference issues are 0
     prepared.forEach((r) => {
