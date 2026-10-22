@@ -47,6 +47,9 @@ export default defineConfig({
   vite: {
     plugins: [geminiApiPlugin],
   },
+  nitro: {
+    preset: process.env.LOVABLE_NITRO_PRESET || "node-server",
+  },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
