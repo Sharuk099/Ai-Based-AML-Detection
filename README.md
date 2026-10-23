@@ -126,5 +126,3 @@ public/                Sample synthetic CSVs and template
 ## 10. Technology
 
 React 19, TanStack Start, Vite, Tailwind CSS v4, Three.js (3D graph), TypeScript ML engine, Python (scikit-learn, pandas, NetworkX, Flask).
-
-Built with [Lovable](https://lovable.dev).

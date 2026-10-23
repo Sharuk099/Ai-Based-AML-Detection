@@ -315,10 +315,24 @@ export function DashboardPage() {
           const flagPct = (a.flaggedCount / base) * 100;
           const highPct = (a.highRiskCount / base) * 100;
           const level =
-            highPct >= 10 || flagPct >= 25 ? "HIGH" : highPct > 0 || flagPct >= 5 ? "ELEVATED" : flagPct > 0 ? "LOW" : "MINIMAL";
-          const tone = level === "HIGH" ? "text-destructive" : level === "ELEVATED" ? "text-warning" : "text-success";
+            highPct >= 10 || flagPct >= 25
+              ? "HIGH"
+              : highPct > 0 || flagPct >= 5
+                ? "ELEVATED"
+                : flagPct > 0
+                  ? "LOW"
+                  : "MINIMAL";
+          const tone =
+            level === "HIGH"
+              ? "text-destructive"
+              : level === "ELEVATED"
+                ? "text-warning"
+                : "text-success";
           const cycles = a.graphData?.cycles?.length ?? 0;
-          const totalAmt = a.records.reduce((s, r) => s + (Number(String(r["amount"] ?? "").replace(/,/g, "")) || 0), 0);
+          const totalAmt = a.records.reduce(
+            (s, r) => s + (Number(String(r["amount"] ?? "").replace(/,/g, "")) || 0),
+            0,
+          );
           const flaggedAmt = a.records
             .filter((r) => r["_risk_level"] === "HIGH" || r["_risk_level"] === "MEDIUM")
             .reduce((s, r) => s + (Number(String(r["amount"] ?? "").replace(/,/g, "")) || 0), 0);
@@ -332,23 +346,32 @@ export function DashboardPage() {
                 <div>
                   <div className="label-mono">Flagged for review</div>
                   <div className="text-xl font-semibold">{flagPct.toFixed(1)}%</div>
-                  <div className="text-xs text-muted-foreground">{a.flaggedCount} of {a.classifiedCount} classified</div>
+                  <div className="text-xs text-muted-foreground">
+                    {a.flaggedCount} of {a.classifiedCount} classified
+                  </div>
                 </div>
                 <div>
                   <div className="label-mono">High priority</div>
                   <div className="text-xl font-semibold">{a.highRiskCount}</div>
-                  <div className="text-xs text-muted-foreground">{highPct.toFixed(1)}% of classified</div>
+                  <div className="text-xs text-muted-foreground">
+                    {highPct.toFixed(1)}% of classified
+                  </div>
                 </div>
                 <div>
                   <div className="label-mono">Amount under review</div>
-                  <div className="text-xl font-semibold">{flaggedAmt.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+                  <div className="text-xl font-semibold">
+                    {flaggedAmt.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  </div>
                   <div className="text-xs text-muted-foreground">
-                    {totalAmt > 0 ? ((flaggedAmt / totalAmt) * 100).toFixed(1) : "0.0"}% of total · {cycles} unvalidated cycles
+                    {totalAmt > 0 ? ((flaggedAmt / totalAmt) * 100).toFixed(1) : "0.0"}% of total ·{" "}
+                    {cycles} unvalidated cycles
                   </div>
                 </div>
               </div>
               <p className="mt-3 text-xs text-muted-foreground">
-                Summary across every analyzed record ({a.totalTransactions} total, {a.unclassifiedCount} unable to classify). This is a screening priority, not proof of crime; investigator review is required.
+                Summary across every analyzed record ({a.totalTransactions} total,{" "}
+                {a.unclassifiedCount} unable to classify). This is a screening priority, not proof
+                of crime; investigator review is required.
               </p>
             </Panel>
           );
