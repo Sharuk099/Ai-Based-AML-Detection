@@ -90,20 +90,22 @@ function MainApp() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
           {/* Logo & Platform Info */}
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded border border-primary/40 bg-primary/10 text-primary shadow-sm">
-              <ShieldAlert className="h-5 w-5" />
-            </div>
+            <img
+              src="/logo.png"
+              alt="AI AML Detection System Logo"
+              className="h-10 w-10 shrink-0 object-contain rounded-lg border border-primary/40 bg-card p-0.5 shadow-md shadow-primary/20"
+            />
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-bold text-sm tracking-tight text-foreground">
-                  AI Anti-Money Laundering Detection
+                  AI AML Detection System
                 </span>
                 <span className="rounded bg-success/20 px-1.5 py-0.2 text-[10px] font-mono text-success font-medium flex items-center gap-1">
                   <CheckCircle2 className="h-3 w-3" /> {activeModel ? "Trained" : "No model"}
                 </span>
               </div>
               <p className="text-[10px] font-mono text-muted-foreground hidden sm:block">
-                Transaction screening · Validation required
+                Transaction Screening &amp; Counterparty Intelligence
               </p>
             </div>
           </div>

@@ -607,16 +607,20 @@ Status: Requires Human Review Before SAR Filing`;
       <div className="panel p-8 bg-card space-y-8 border-border/80 shadow-md">
         {/* Document Header */}
         <div className="border-b border-border pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <ShieldAlert className="h-6 w-6 text-primary" />
-              <span className="text-xl font-bold tracking-tight text-foreground">
+          <div className="flex items-center gap-3">
+            <img
+              src="/logo.png"
+              alt="AI AML Detection System"
+              className="h-12 w-12 shrink-0 object-contain rounded-lg border border-primary/30 p-1 bg-card shadow-sm"
+            />
+            <div className="space-y-0.5">
+              <span className="text-xl font-bold tracking-tight text-foreground block">
                 ANTI-MONEY LAUNDERING INVESTIGATION REPORT (SAR)
               </span>
+              <p className="text-xs font-mono text-muted-foreground">
+                CONFIDENTIAL · FINANCIAL CRIME COMPLIANCE DIVISION · STRICT AUDIT ACCESS
+              </p>
             </div>
-            <p className="text-xs font-mono text-muted-foreground">
-              CONFIDENTIAL · FINANCIAL CRIME COMPLIANCE DIVISION · STRICT AUDIT ACCESS
-            </p>
           </div>
           <div className="text-right text-xs font-mono text-muted-foreground space-y-0.5">
             <div>

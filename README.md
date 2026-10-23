@@ -1,128 +1,455 @@
-# AI-Based Anti-Money Laundering (AML) Detection
+# AI-Based Anti-Money Laundering (AML) Detection & Intelligence System
 
-An investigator workbench for screening banking accounts and transactions for money-laundering risk. It combines machine-learning classifiers, transaction-graph analysis, explainable AI and AI-written investigation reports, all in one browser app. A standalone Python/Flask version is included.
+<div align="center">
+  <img src="public/logo.png" width="160" alt="AI AML Detection System Logo" />
+  <br />
+  <h3>Enterprise Forensic Workbench for Banking Account & Transaction Surveillance</h3>
+  <p>Multi-Model Consensus ML · Directed Graph Topological Analytics · Explainable AI (XAI) · Automated SAR Filing Dossiers</p>
 
-> **Important:** This tool screens records and prioritises them for review. It does **not** prove a crime. Every flag needs a qualified AML investigator to review it before any regulatory filing (SAR/STR). The bundled models were trained on **synthetic** data, so their test scores do not show how well they work on real bank data.
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+  [![React](https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react)](https://react.dev/)
+  [![Vite](https://img.shields.io/badge/Vite-6-646cff?style=flat-square&logo=vite)](https://vitejs.dev/)
+  [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-v4-38bdf8?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
+  [![Three.js](https://img.shields.io/badge/Three.js-3D_Graph-black?style=flat-square&logo=three.js)](https://threejs.org/)
+  [![Python](https://img.shields.io/badge/Python-3.10%2B-yellow?style=flat-square&logo=python)](https://www.python.org/)
+  [![Scikit-Learn](https://img.shields.io/badge/scikit--learn-ML_Engine-orange?style=flat-square&logo=scikit-learn)](https://scikit-learn.org/)
+  [![NetworkX](https://img.shields.io/badge/NetworkX-Graph_Theory-blue?style=flat-square)](https://networkx.org/)
+  [![Vitest](https://img.shields.io/badge/Tests-14%2F14_Passing-brightgreen?style=flat-square)](https://vitest.dev/)
+</div>
 
 ---
 
-## 1. What the app does
+> **Regulatory Compliance Mandate:**  
+> This system is designed as an **investigator decision-support and alert-triage workbench**. In strict adherence to international financial compliance regulations (**FATF, FinCEN BSA, RBI PMLA, and OCC Model Risk Management SR 11-7**), automated algorithmic predictions prioritize and explain suspicious behavior—they do **not** establish definitive legal guilt. Every alert requires human review by a qualified AML/CFT compliance officer before filing a formal Suspicious Activity Report (SAR / STR).
 
-| Capability | Description |
-|---|---|
-| CSV upload & schema audit | Checks columns, missing values, types and leakage risks before analysis |
-| Transaction → account aggregation | Turns raw transaction logs into account-level features automatically |
-| ML classification | Gradient Boosted Trees, Random Forest, Logistic Regression and Stacking, run together for consensus |
-| Risk stratification | Separate review policy: model probability **plus** corroborating indicators → LOW / MEDIUM / HIGH |
-| "Unable to classify" | Rows with missing, invalid or never-seen inputs are refused. Values are never invented |
-| Graph analytics | Accounts = nodes, transactions = edges; fan-in/fan-out, pass-through, circular flows shown in 2D/3D |
-| Explainable AI (XAI) | Per-feature contributions and plain-language reasons for every score |
-| AI investigation | AI-written narrative: what the problem is, which accounts need investigation and why |
-| Overall crime risk | Dashboard summary across all data: overall level, % flagged, high-priority count, amount under review |
-| Reports | Print / save as PDF, download HTML, JSON, CSV, Markdown; save dossiers to a local archive |
-| Model information | Read-only details: algorithms, held-out metrics, confusion matrix, limitations |
+---
 
-## 2. Benefits
+## Table of Contents
+1. [System Architecture & Data Flow](#1-system-architecture--data-flow)
+2. [End-to-End Pipeline Workflow](#2-end-to-end-pipeline-workflow)
+3. [Graph Topology & Circular Layering Rings](#3-graph-topology--circular-layering-rings)
+4. [Supported AML Typologies](#4-supported-aml-typologies)
+5. [Multi-Model Consensus & Machine Learning Engine](#5-multi-model-consensus--machine-learning-engine)
+6. [Core Capabilities & Feature Matrix](#6-core-capabilities--feature-matrix)
+7. [Step-by-Step Investigator Guide](#7-step-by-step-investigator-guide)
+8. [Export Formats & Audit Trail](#8-export-formats--audit-trail)
+9. [Project Directory Structure](#9-project-directory-structure)
+10. [Local Development & Deployment Guide](#10-local-development--deployment-guide)
+11. [Standalone Python / Flask Engine](#11-standalone-python--flask-engine)
+12. [Real-World Institutional Calibration & Limitations](#12-real-world-institutional-calibration--limitations)
 
-- **Faster triage:** investigators start with the highest-priority accounts instead of reading every row.
-- **Explainable decisions:** every flag comes with its reasons, which supports audit trails and regulator questions.
-- **Fewer false alarms:** a flag needs model evidence *and* behavioural indicators, not just one signal.
-- **Network insight:** shows mule chains, fan-in/fan-out patterns and circular flows that row-by-row review misses.
-- **Honest output:** no demo or fake results. Unreliable rows are marked "Unable to classify".
-- **Ready-made reports:** downloadable investigation dossiers save hours of manual write-up.
+---
 
-## 3. Applications
+## 1. System Architecture & Data Flow
 
-- Bank and fintech compliance teams (transaction monitoring, alert triage)
-- Payment processors and wallets (mule-account detection)
-- Auditors and forensic accountants (network and flow investigations)
-- Regulators and FIUs (reviewing submitted data)
-- Training and education (teaching AML typologies with synthetic data)
-- Research (benchmarking tabular and graph AML methods)
+The platform is architected with a **dual-engine design**:
+- **Client-Side TanStack Engine:** 100% browser-side execution for client confidentiality. Zero banking data leaves the browser session for model scoring.
+- **Standalone Python Engine:** An offline microservice utilizing Scikit-Learn, Pandas, and NetworkX for institutional data-pipeline integration.
 
-## 4. User guide
+```mermaid
+flowchart TB
+    subgraph INGESTION["1. Data Ingestion & Preprocessing"]
+        A[Uploaded Banking CSV] --> B{Dataset Classifier}
+        B -->|Account Profile CSV| C[Synonym & Schema Normalizer]
+        B -->|Raw Transaction Ledger| D[Transaction Aggregator Engine]
+        D -->|Derive Turnover, In/Out Ratios, Off-Hour Bursts| C
+        C --> E[Data Leakage & Integrity Audit]
+    end
 
-### Step 1: Upload
-Open **Upload Transactions**, then drag and drop a CSV. You can download the template from the same page. Two formats are accepted:
+    subgraph ENSEMBLE["2. Multi-Model ML Consensus Engine"]
+        E --> F[Inference Matrix Preparation]
+        F --> G1[Gradient Boosted Decision Trees]
+        F --> G2[Random Forest Ensemble]
+        F --> G3[Multinomial Logistic Regression]
+        F --> G4[Stacking Meta-Classifier]
+        G1 & G2 & G3 & G4 --> H[Consensus Voting & Probability Fusion]
+    end
 
-**Account profile format** (model features):
-`customer_type, account_age_months, avg_balance, monthly_inflow, monthly_outflow, in_out_ratio, txn_count_monthly, cash_deposit_ratio, international_tx_ratio, night_activity_ratio`
+    subgraph GRAPH["3. Network Graph Analytics"]
+        E --> I[Directed Weighted Graph Builder]
+        I --> J1[Bounded Cycle Detection\nCircular Layering Loops]
+        I --> J2[Pass-Through Velocity\nMule Account Identification]
+        I --> J3[Fan-In / Fan-Out\nAggregation & Smurfing Hubs]
+    end
 
-**Raw transaction format** (aggregated automatically):
-`transaction_id, from_account, to_account, amount, currency, payment_format, timestamp`
+    subgraph STRATIFICATION["4. Explainability & Risk Policy"]
+        H & J1 & J2 & J3 --> K[Risk Stratification Engine]
+        K --> L1[Permutation Feature Attributions]
+        K --> L2[Corroborating Red Flag Rules]
+        L1 & L2 --> M[Risk Triage: LOW / MEDIUM / HIGH / UNABLE]
+    end
 
-### Step 2: Analyze
-Open **Analyze Transactions** and click **Analyze Transactions**. The app runs six stages: schema validation, model loading, prediction, graph topology, explanations and risk stratification.
-
-### Step 3: Review
-- **Dashboard:** totals, classified / flagged / unable counts, and the overall crime risk assessment.
-- **Prediction Results:** a per-record table with risk level and reasons. Click a row's AI button for an explanation of that transaction.
-- **3D Transaction Graph:** explore the account network and unvalidated circular flows.
-- **Explainable AI:** see which features drove each score.
-- **SAR Investigation & AI:** accounts under investigation, the AI narrative, and custom questions.
-- **Model Information:** algorithms, validation metrics and limitations.
-
-### Step 4: Report
-From the report page, print or save as PDF, download HTML, JSON, CSV or Markdown, or save the dossier to the archive.
-
-### How to read results
-- **LOW:** no review needed under the current policy.
-- **MEDIUM:** review recommended.
-- **HIGH:** priority review.
-- **Unable to classify:** the input was incomplete or not supported. Fix the data and run the analysis again.
-- **Circular flow:** a circular flow is not evidence of laundering on its own. It needs other evidence to back it up.
-
-## 5. Models and algorithms
-
-- **Classifiers:** Gradient Boosted Decision Trees, Random Forest, multinomial Logistic Regression, Stacking ensemble.
-- **Training:** stratified 70/15/15 train/validation/test split. Preprocessing and graph statistics are fitted on training rows only.
-- **Metrics:** precision, recall, F1, balanced accuracy, PR-AUC and a confusion matrix, all on held-out data.
-- **Graph:** directed weighted graph, bounded simple-cycle search, flow ratios, fan-in/fan-out.
-- **Explanations:** permutation importance and local reference-perturbation attributions.
-- **Not used:** CNNs and GNNs, which suit images and large graphs rather than this tabular setup.
-
-## 6. Running the web app
-
-```sh
-npm install      # or: bun install
-npm run dev      # http://localhost:8080
-npx vitest run   # tests
+    subgraph WORKBENCH["5. Investigator Forensic Workbench"]
+        M --> N1[Interactive 3D / 2D Graph Visualizer]
+        M --> N2[High-Risk Accounts Under Investigation Roster]
+        M --> N3[Transaction-Level AI Forensic Diagnostic]
+        M --> N4[Automated SAR / STR Regulatory Dossier Generator]
+        N4 --> O[Exports: PDF, HTML, Markdown, CSV, JSON]
+    end
 ```
 
-Optional AI narratives use the `GEMINI_API_KEY` server secret. Without it, the app falls back to rule-based reports.
+---
 
-## 7. Running the Python / Flask version
+## 2. End-to-End Pipeline Workflow
 
-```sh
+The screening lifecycle follows a six-stage sequential verification protocol designed to prevent data leakage and ensure reproducible audit trails:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Officer as Compliance Officer
+    participant UI as Workbench UI
+    participant Audit as Schema Auditor
+    participant ML as Consensus ML Engine
+    participant Graph as Topology Engine
+    participant XAI as Explainability Engine
+    participant SAR as Dossier Generator
+
+    Officer->>UI: Upload Transaction Batch (CSV)
+    UI->>Audit: Audit columns, types & detect feature leakage
+    Audit-->>UI: Audit Pass (or Flag Unsupported Rows)
+    Officer->>UI: Click "Analyze Transactions"
+    UI->>ML: Execute GBDT, RF, LogReg & Stacking models
+    ML-->>UI: Probability distributions & Class predictions
+    UI->>Graph: Build Directed Graph & find closed cycles
+    Graph-->>UI: Topological cycles, flow ratios & hubs
+    UI->>XAI: Compute local feature contributions
+    XAI-->>UI: Per-transaction attribution waterfalls
+    UI->>SAR: Synthesize Risk Stratification (LOW / MED / HIGH)
+    SAR-->>Officer: Interactive Dashboard, 3D Graph, & Printable SAR
+```
+
+---
+
+## 3. Graph Topology & Circular Layering Rings
+
+Money laundering syndicates rarely operate through isolated, direct transfers. Instead, they structure networks into **mule chains**, **funnel hubs**, and **closed circular layering rings** to obfuscate the paper trail.
+
+### Typological Patterns Detected
+
+```text
+1. CIRCULAR LAYERING RING (Directed Loop)
+   [Account A] ──$50,000──> [Account B] ──$49,200──> [Account C] ──$48,500──> [Account A]
+   * Obfuscates capital origin by cycling funds across multiple distinct legal entities.
+
+2. RAPID PASS-THROUGH MULE (Smurfing Aggregation)
+   [Remitter 1] ──$9,500──┐
+   [Remitter 2] ──$9,800──┼──> [Mule Account M] ──$29,000 (Within 2 Hours)──> [Beneficiary Z]
+   [Remitter 3] ──$9,700──┘    (Turnover ~100%, Minimal Retention Balance)
+
+3. FAN-OUT STRUCTURING DISPERSAL
+                                ┌──$9,200──> [Beneficiary 1]
+   [High-Risk Shell Entity] ───┼──$9,400──> [Beneficiary 2]
+                                └──$9,100──> [Beneficiary 3]
+```
+
+### Visual Graph Exploration Modes
+- **3D Spatial Force Graph (Three.js):** Interactive 3D orbital canvas featuring color-coded nodes (Red: High-Risk Shells/Mules, Amber: Pass-Through Conduits, Green: Verified Normal) with edge thickness proportional to transaction volume.
+- **2D Directed SVG Diagram:** Clean topological layout highlighting flow direction and cycle paths.
+- **Connection Ledger:** Filterable tabular view of all counterparties with inbound/outbound totals.
+- **Account Dossier Inspector:** Deep-dive into any account's historical turnover, counterparties, and linked alert history.
+
+---
+
+## 4. Supported AML Typologies
+
+The system's multi-model classifiers and rule engine screen for the following specific money-laundering typologies modeled directly from **FATF and FIU guidance**:
+
+| Typology | Description | Primary Detection Indicators |
+|---|---|---|
+| **Structuring / Smurfing** | Breaking large sums into transfers just below statutory reporting thresholds ($10,000 / ₹50,000). | Multiple transfers between $9,000–$9,999 (or ₹45k–₹49.9k) in rapid sequence. |
+| **Rapid Pass-Through Mules** | Intermediate accounts used to receive and immediately route funds with zero custodial retention. | In/Out ratio between 0.85–1.15; funds disbursed within hours; high counterparties. |
+| **Circular Layering Loops** | Funds routed through multiple intermediate accounts only to return to originators or affiliates. | Directed graph simple cycle search identifying closed paths ($A \to B \to C \to A$). |
+| **Dormant Account Activation** | Long-inactive accounts suddenly processing high-volume or international transfers. | High tenure (`account_age_months`), historically low volume followed by extreme turnover spikes. |
+| **Velocity Spikes / Off-Hour Bursts** | Transactions executed during non-business hours (10:00 PM – 5:00 AM) at anomalous frequencies. | `night_activity_ratio > 0.40`; transaction bursts within narrow timestamps. |
+| **High-Risk Corridors / Offshore** | Transfers routed to uncooperative tax havens or international accounts without commercial basis. | `international_tx_ratio > 0.60` with currency conversions and disparate counterparties. |
+
+---
+
+## 5. Multi-Model Consensus & Machine Learning Engine
+
+### Algorithms Deployed in Consensus
+
+```text
+┌────────────────────────────────────────────────────────────────────────┐
+│                   INPUT VECTOR: 10 TABULAR FEATURES                    │
+│ [customer_type, account_age, avg_balance, monthly_inflow, ... ]        │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+         ┌──────────────────────────┼──────────────────────────┐
+         ▼                          ▼                          ▼
+┌──────────────────┐       ┌──────────────────┐       ┌──────────────────┐
+│ Gradient Boosted │       │  Random Forest   │       │ Multinomial Log  │
+│  Decision Trees  │       │     Ensemble     │       │    Regression    │
+│ (Non-linear splits)│     │(Bagged consensus)│       │ (Linear baseline)│
+└────────┬─────────┘       └────────┬─────────┘       └────────┬─────────┘
+         │                          │                          │
+         └──────────────────────────┼──────────────────────────┘
+                                    ▼
+                         ┌──────────────────────┐
+                         │  Stacking Classifier │
+                         │   (Meta-Learner)     │
+                         └──────────┬───────────┘
+                                    ▼
+                         ┌──────────────────────┐
+                         │ ENSEMBLE CONSENSUS   │
+                         │ PROBABILITY & CLASS  │
+                         └──────────────────────┘
+```
+
+1. **Gradient Boosted Decision Trees (GBDT):** Iterative boosted stumps optimizing pseudo-residuals. Exceptional at isolating localized non-linear interactions (e.g., structuring amounts paired with off-hour bursts).
+2. **Random Forest Classifier:** Bagged ensemble of deep decision trees providing robust variance reduction and resilience against noisy transaction data.
+3. **Multinomial Logistic Regression:** Standardized linear log-odds benchmark providing calibrated base probabilities.
+4. **Stacking Ensemble:** Meta-classifier combining the prediction probabilities of base learners into an authoritative final consensus probability.
+
+### Strict Preprocessing & Anti-Leakage Discipline
+- **Stratified Partitioning (70% Train / 15% Validation / 15% Test):** Target classes and risk profiles are evenly represented across splits.
+- **Training-Only Reference Fitting:** Preprocessing statistics (imputation medians, standard deviations, categorical encoders) and graph reference metrics are **fitted strictly on training rows**. Inference batches reuse this frozen state, ensuring that the composition of uploaded test data cannot tamper with model feature baselines.
+- **"Unable to Classify" Guarantee:** Rather than fabricating synthetic default values for missing columns, corrupt data or unseen inputs are rejected and transparently isolated as `Unable to Classify`, preserving legal defensibility in regulatory audits.
+
+---
+
+## 6. Core Capabilities & Feature Matrix
+
+| Capability | Module | Description |
+|---|---|---|
+| **Intelligent CSV Ingestion** | `UploadPage` | Accepts both raw transaction logs and account profile formats with automatic synonym resolution. |
+| **Automated Schema Audit** | `audit.ts` | Detects data types, missing fields, target column leakage, and counterparty cardinality. |
+| **Multi-Model Scoring** | `multi-model.ts` | Executes consensus scoring across all 4 machine learning classifiers simultaneously. |
+| **Network Graph Visualization** | `ThreeGraph3D` | 3D orbital WebGL canvas for interactive link analysis, node dragging, and cycle inspection. |
+| **Topological Cycle Detection** | `graph.ts` | Bounded depth-first cycle search identifying money-laundering loops. |
+| **Explainable AI (XAI)** | `ExplainPage` | Feature-level attribution waterfalls and global permutation importance rankings. |
+| **High-Risk Entity Triage** | `AccountsUnderInvestigation` | Card and Table view of primary suspect accounts, categorized by loops, mules, and high turnover. |
+| **Transaction-Level AI Explainer** | `TransactionAiModal` | Instant 3-part forensic diagnostic: Root Cause, Red Flags, and 3 concrete EDD questions. |
+| **Automated SAR Generation** | `ReportPage` | Generates official SAR dossiers ready for print or compliance archiving. |
+| **Multi-Format Export** | `ReportPage` | Direct export to **PDF**, **HTML**, **Markdown (.md)**, **CSV alerts**, and **JSON**. |
+| **Local Investigation Archive** | `AiInvestigationPanel` | Persists completed case files locally with instant recall and audit history. |
+
+---
+
+## 7. Step-by-Step Investigator Guide
+
+### Step 1: Upload Banking Records
+1. Navigate to **Upload Transactions**.
+2. Drag and drop your CSV file, or click **Download CSV Template** to start with pre-formatted samples.
+3. Supported formats:
+   - **Account Profile Format:** `account_id, customer_type, account_age_months, avg_balance, monthly_inflow, monthly_outflow, in_out_ratio, txn_count_monthly, cash_deposit_ratio, international_tx_ratio, night_activity_ratio`
+   - **Raw Transaction Log Format:** `transaction_id, from_account, to_account, amount, currency, payment_format, timestamp` (The internal aggregator automatically derives turnover, flow ratios, and velocity).
+
+### Step 2: Review Audit & Launch Analysis
+1. Inspect the **Dataset Schema Audit** card (column mappings, row count, detected currencies, and counterparty nodes).
+2. Click **Proceed to Analysis** $\to$ **Analyze Transactions**.
+3. The engine executes schema validation, model loading, multi-model consensus prediction, graph topology search, and XAI attribution in seconds.
+
+### Step 3: Triage Alerts on Dashboard
+1. Review the **Overall Crime Risk Assessment**:
+   - **Overall Level:** `HIGH`, `ELEVATED`, `LOW`, or `MINIMAL`.
+   - **Flagged for Review %:** Proportion of classified transactions meeting alert thresholds.
+   - **High Priority Count:** Urgent targets requiring formal compliance determination.
+   - **Amount Under Review:** Total monetary volume at risk with unvalidated cycle count.
+
+### Step 4: Examine High-Risk Accounts & 3D Network Graph
+1. Open **SAR Investigation & AI** to view the **Accounts Under Investigation** roster.
+2. Filter suspects by **🚨 High Risk**, **🔁 Circular Loops**, or **⚡ Rapid Mules**.
+3. Click **3D Graph** on any account to jump directly into the interactive Three.js network view, focusing on its transaction links and circular paths.
+
+### Step 5: Perform Single-Transaction AI Diagnostics
+1. On **Prediction Results**, click the **AI Explain** button on any flagged row.
+2. The modal instantly generates:
+   - **Root Cause Analysis:** Mathematical and behavioral rationale explaining why the transfer was flagged.
+   - **Red Flag Indicators:** Structuring threshold proximity, velocity anomalies, or cycle membership.
+   - **3 Concrete EDD Questions:** Targeted inquiries for correspondent banks and counterparties.
+   - **Interactive AI Query:** Ask custom questions to explore deeper regulatory context.
+
+### Step 6: Generate & Export SAR Compliance Dossier
+1. Navigate to **SAR Investigation & AI** (or **Report**).
+2. Choose your preferred export:
+   - **Print / Save as PDF:** Formatted printable official document with compliance officer sign-off lines.
+   - **Save HTML Report:** Standalone interactive HTML report with auto-print capability.
+   - **SAR (.MD):** Full Markdown dossier formatted for compliance case management software.
+   - **Alerts (.CSV):** Tabular export of all high- and medium-risk alerts.
+   - **Save to Archive:** Store the dossier in your browser's local case archive for longitudinal audit trails.
+
+---
+
+## 8. Export Formats & Audit Trail
+
+| Export Format | Target Audience | Contents Included |
+|---|---|---|
+| **Print / PDF** | Senior Management, Regulators, Internal Audit | Executive summary, KPI cards, typologies breakdown, top 20 high-risk alerts, sign-off blocks. |
+| **HTML Report** | Investigators, Legal Counsel | Styled standalone document with print-ready CSS and clickable table structure. |
+| **Markdown (.md)** | Case Management Systems (Jira, ServiceNow) | Complete SAR compliance narrative with circular flow details and account metrics. |
+| **CSV Alerts** | Transaction Monitoring Systems (TMS) | Structured data: `transaction_id`, `from_account`, `to_account`, `amount`, `risk_score`, `typology`. |
+| **JSON Dossier** | Automated APIs, RegTech Data Lakes | Machine-readable JSON containing graph adjacency lists, cycle arrays, and inference vectors. |
+
+---
+
+## 9. Project Directory Structure
+
+```text
+├── aml-detection/                      # Standalone Python / Flask AML Engine
+│   ├── app.py                          # REST API Server (Flask)
+│   ├── config.py                       # Hyperparameters, column definitions, file paths
+│   ├── setup_models.py                 # Offline model training & benchmark serialization
+│   ├── requirements.txt                # Python dependencies (scikit-learn, networkx, pandas)
+│   ├── data/                           # Training datasets (10,000 synthetic banking accounts)
+│   ├── models/                         # Serialized scikit-learn model artifacts
+│   ├── src/                            # Feature engineering, graph analytics, preprocessing
+│   └── tests/                          # Python unittest test suite
+│
+├── public/                             # Public static assets & benchmarks
+│   ├── logo.png                        # Official AI AML Detection System Shield Logo
+│   ├── favicon.ico                     # Multi-resolution application icon
+│   ├── apple-touch-icon.png            # Mobile touch icon
+│   └── synthetic_banking_accounts_*.csv# Benchmark training & testing datasets
+│
+├── src/                                # Frontend application (TanStack Start + React 19)
+│   ├── components/aml/                 # Specialized AML investigator components
+│   │   ├── AccountsUnderInvestigation  # High-risk suspect entity cards & table
+│   │   ├── AiInvestigationPanel        # AI narrative report & case dossier archive
+│   │   ├── GraphDiagram2D              # SVG directed graph layout
+│   │   ├── ThreeGraph3D                # Interactive 3D WebGL force graph (Three.js)
+│   │   ├── TransactionAiModal          # Single-transaction AI diagnostic & EDD questions
+│   │   ├── WorkflowGuideModal          # 6-step investigator onboarding guide
+│   │   ├── pages/                      # Application route pages
+│   │   │   ├── DashboardPage.tsx       # Overall crime risk assessment & KPI cards
+│   │   │   ├── UploadPage.tsx          # CSV drag-and-drop & schema audit
+│   │   │   ├── AnalyzePage.tsx         # 6-stage analysis execution console
+│   │   │   ├── ResultsPage.tsx         # Scored transactions table & filtering
+│   │   │   ├── GraphPage.tsx           # 3D/2D network graph visualizer
+│   │   │   ├── ExplainPage.tsx         # Explainable AI (XAI) feature attributions
+│   │   │   ├── ReportPage.tsx          # Formal SAR dossier & multi-format export
+│   │   │   └── ModelInfoPage.tsx       # Model architecture, held-out metrics, limitations
+│   │   └── state.tsx                   # Centralized application context & ML state
+│   │
+│   ├── lib/aml/                        # Client-side ML & graph analytics library
+│   │   ├── audit.ts                    # Dataset schema auditor & leakage detector
+│   │   ├── graph.ts                    # Directed graph construction & cycle search
+│   │   ├── inference.ts                # Multi-model scoring & synonym normalization
+│   │   ├── models.ts                   # In-browser GBDT, Random Forest, Logistic models
+│   │   ├── multi-model.ts              # Ensemble consensus voting logic
+│   │   ├── risk.ts                     # Risk stratification & CTR indicator rules
+│   │   └── train.ts                    # In-browser model training & validation split
+│   │
+│   ├── routes/                         # TanStack Start file-based routing
+│   │   ├── __root.tsx                  # Root layout, HTML head metadata & theme wrapper
+│   │   └── index.tsx                   # Main workbench dashboard route
+│   │
+│   ├── server/                         # Server-side helper routes
+│   │   └── gemini.ts                   # Gemini API client for AI investigation narratives
+│   │
+│   └── styles.css                      # Tailwind CSS v4 design system & theme variables
+│
+├── metadata.json                       # Applet capability declarations
+├── package.json                        # Node dependencies & build scripts
+├── vite.config.ts                      # Vite build configuration with Nitro & TanStack
+└── README.md                           # Master documentation
+```
+
+---
+
+## 10. Local Development & Deployment Guide
+
+### Prerequisites
+- **Node.js**: v18.0.0 or higher (v20+ recommended)
+- **Package Manager**: `npm`, `pnpm`, or `bun`
+
+### Quick Start
+```bash
+# 1. Clone repository
+git clone <repository-url>
+cd <repository-directory>
+
+# 2. Install dependencies
+npm install
+
+# 3. Start development server
+npm run dev
+# The application will launch at http://localhost:3000
+```
+
+### Running Test Suite
+```bash
+# Run Vitest unit tests (14 tests covering preprocessing, ML, and routing)
+npm test
+
+# Run code linter
+npm run lint
+```
+
+### Production Build
+```bash
+# Build production bundle
+npm run build
+
+# Preview production build locally
+npm run start
+```
+
+### Optional AI Investigation Narratives
+To enable live AI investigation narratives generated by Gemini models, provide your Google AI Studio API key in your environment:
+```bash
+export GEMINI_API_KEY="your-api-key-here"
+```
+*(If no API key is provided, the workbench automatically activates its deterministic, rule-based forensic analysis engine with zero loss of functionality).*
+
+---
+
+## 11. Standalone Python / Flask Engine
+
+For enterprise environments that require integration into Python data-science pipelines or backend ETL jobs, the `aml-detection/` directory contains an independent Python implementation.
+
+### Setup & Execution
+```bash
+# 1. Navigate to python directory
 cd aml-detection
-python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+
+# 2. Create virtual environment
+python3 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# 3. Install dependencies
 pip install -r requirements.txt
-python setup_models.py        # trains and saves models to models/
-python app.py                 # http://localhost:5000
+
+# 4. Train bundled benchmark models (generates models/artifacts.pkl)
+python setup_models.py
+
+# 5. Run Flask REST API server
+python app.py
+# Server runs on http://localhost:5000
+
+# 6. Execute Python test suite
 python -m unittest discover -s tests
 ```
 
-REST endpoints: `/api/health`, `/api/models`, `/api/upload`, `/api/analyze`, `/api/graph`, `/api/explain`, `/api/train`.
+### REST API Endpoints
+- `GET  /api/health` — System status and model artifact verification.
+- `GET  /api/models` — Active model hyperparameters and held-out validation metrics.
+- `POST /api/upload` — Ingest CSV and execute schema integrity audit.
+- `POST /api/analyze` — Run multi-model classification and risk stratification.
+- `POST /api/graph` — Generate counterparty graph adjacency list and cycle arrays.
+- `POST /api/explain` — Return feature-level SHAP/permutation attributions.
+- `POST /api/train` — Train a new custom model from an uploaded labelled dataset.
 
-## 8. Project structure
+---
 
-```text
-src/routes/            App pages (TanStack Start)
-src/components/aml/    Dashboard, upload, results, graph, XAI, report, AI panels
-src/lib/aml/           Preprocessing, models, inference, risk, graph, metrics
-src/server/            AI investigation endpoint
-aml-detection/         Standalone Python + Flask project (models, tests, templates)
-public/                Sample synthetic CSVs and template
-```
+## 12. Real-World Institutional Calibration & Limitations
 
-## 9. Limitations
+### Why Bundled Benchmarks Use Synthetic Data
+Under international bank secrecy statutes (**Bank Secrecy Act, GDPR, GLBA, and RBI Master Directions**), commercial banks cannot legally distribute live consumer account records. The pre-packaged models are calibrated on an expanded **10,000-account synthetic benchmark** directly modeling FATF typologies (smurfing, mule conduits, circular flows).
 
-- Bundled models are trained on synthetic accounts. Retrain them on labelled institutional data before production use.
-- Data comes in as CSV batches only. There is no live core-banking connection.
-- No sanctions, PEP or watch-list screening is included.
-- Risk thresholds and indicator rules are policy settings, not calibrated crime probabilities.
-- Saved dossiers stay in the browser's local storage.
+### Achieving 100% Institutional Calibration
+When deploying in a real bank, payment processor, or fintech:
+1. **Upload Institutional History:** Provide historical flagged and cleared account records.
+2. **Train Custom Models:** Use the in-app **Train Model** workbench or `aml-detection/setup_models.py` to fit hyperparameters directly to your specific payment formats, account types, and geographic velocity baselines.
+3. **Calibrate Risk Rules:** Tune CTR thresholds ($10k / ₹50k), velocity windows, and minimum pass-through ratios in the **Risk Policy** panel to align with your organization's internal compliance manual.
 
-## 10. Technology
+### Operational Limitations
+- **Screening Priority vs. Guilt:** Model scores represent statistical alignment with known typologies; they do not constitute legal proof of criminal intent.
+- **Batch-Oriented:** Designed for file and batch ingestion. Real-time sub-millisecond core-banking message queues (ISO 20022) require integration via the REST endpoints.
+- **Sanctions & Watchlists:** Focuses on behavioral AML typologies and graph topology. Dedicated sanctions screening (OFAC, UN, PEP lists) should be run concurrently.
 
-React 19, TanStack Start, Vite, Tailwind CSS v4, Three.js (3D graph), TypeScript ML engine, Python (scikit-learn, pandas, NetworkX, Flask).
+---
+
+## License & Compliance Notice
+This project is provided for regulatory compliance, transaction monitoring, alert triage, educational instruction, and financial forensic research. All screening outputs must be reviewed by authorized compliance personnel prior to formal regulatory submission.

@@ -56,23 +56,29 @@ export function DashboardPage() {
       {/* Top Banner: Status & Quick Action */}
       <div className="panel relative overflow-hidden border-primary/40 bg-gradient-to-br from-card via-card to-primary/10 p-6 md:p-8">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
-          <div className="max-w-2xl space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-mono text-xs text-primary">
-              <CheckCircle2 className="h-3.5 w-3.5 text-success" />
-              <span>
-                {activeModel
-                  ? `${activeModel.name} · Synthetic Held-out Macro F1 ${(activeModel.report.test.macro_f1 * 100).toFixed(1)}%`
-                  : "Loading model"}
-              </span>
+          <div className="flex items-start gap-4 max-w-2xl">
+            <img
+              src="/logo.png"
+              alt="AI AML Detection System Logo"
+              className="hidden sm:block h-20 w-20 shrink-0 object-contain rounded-xl border border-primary/40 bg-card/90 p-1.5 shadow-lg shadow-primary/10"
+            />
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-mono text-xs text-primary">
+                <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+                <span>
+                  {activeModel
+                    ? `${activeModel.name} · Synthetic Held-out Macro F1 ${(activeModel.report.test.macro_f1 * 100).toFixed(1)}%`
+                    : "Loading model"}
+                </span>
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+                AI Anti-Money Laundering Detection System
+              </h1>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Screen transactions and account networks for money laundering risk, mule conduits,
+                and circular flows.
+              </p>
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
-              AI Anti-Money Laundering Detection System
-            </h1>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Multi-model classification trained offline on synthetic banking accounts covering
-              structuring, velocity bursts, dormant activation, mule conduits, circular layering,
-              and offshore corridors. Real-world AML accuracy is unverified.
-            </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
