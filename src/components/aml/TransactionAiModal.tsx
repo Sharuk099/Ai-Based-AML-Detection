@@ -329,7 +329,7 @@ ${investigatorInquiries.map((q) => `${q.num}. [${q.title}] ${q.inquiry}`).join("
                 className={`flex h-9 w-9 items-center justify-center rounded-lg border ${
                   isCrime
                     ? "border-destructive/40 bg-destructive/10 text-destructive"
-                    : "border-success/40 bg-success/10 text-success"
+                    : "border-primary/40 bg-primary/10 text-primary"
                 }`}
               >
                 <Sparkles className="h-5 w-5" />
@@ -352,7 +352,7 @@ ${investigatorInquiries.map((q) => `${q.num}. [${q.title}] ${q.inquiry}`).join("
                     ? "bg-destructive/20 text-destructive border-destructive/40"
                     : riskLevel === "MEDIUM"
                       ? "bg-amber-500/20 text-amber-500 border-amber-500/40"
-                      : "bg-success/20 text-success border-success/40"
+                      : "bg-primary/20 text-primary border-primary/40"
                 }`}
               >
                 {isCrime ? (
@@ -375,7 +375,7 @@ ${investigatorInquiries.map((q) => `${q.num}. [${q.title}] ${q.inquiry}`).join("
                   className={`rounded px-1.5 py-0.2 text-[10px] font-bold ${
                     p.isRisk
                       ? "bg-destructive/20 text-destructive border border-destructive/30"
-                      : "bg-success/20 text-success border border-success/30"
+                      : "bg-primary/20 text-primary border border-primary/30"
                   }`}
                 >
                   {p.category}: {p.predictedClass.toUpperCase()}

@@ -260,7 +260,7 @@ export function GraphDiagram2D({
                   </div>
                   <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                     <span>{acc.out_count} transfers sent</span>
-                    <span className="text-cyan-500 font-medium">Source Node</span>
+                    <span className="text-blue-400 font-medium">Source Node</span>
                   </div>
                 </div>
               );
@@ -350,7 +350,7 @@ export function GraphDiagram2D({
         <div className="space-y-3 rounded-lg border border-border bg-card/60 p-4">
           <div className="flex items-center justify-between border-b border-border pb-2">
             <div className="font-bold text-xs text-foreground flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+              <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
               <span>3. Destination Beneficiaries (Sinks)</span>
             </div>
             <span className="text-[10px] text-muted-foreground">{filteredSinks.length} Shown</span>
@@ -378,7 +378,7 @@ export function GraphDiagram2D({
                   </div>
                   <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                     <span>{acc.in_count} transfers received</span>
-                    <span className="text-emerald-500 font-medium">Sink Node</span>
+                    <span className="text-blue-400 font-medium">Sink Node</span>
                   </div>
                 </div>
               );

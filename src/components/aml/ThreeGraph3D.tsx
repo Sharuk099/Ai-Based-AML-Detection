@@ -376,8 +376,8 @@ export function ThreeGraph3D({
       const isMule = muleAccounts.has(node.account);
       const isSelected = selectedAccount === node.account;
 
-      let color = 0x0ea5e9; // cyan / normal
-      let emissive = 0x0369a1;
+      let color = 0x2563eb; // royal cobalt blue
+      let emissive = 0x1d4ed8;
       let radius = 8;
 
       if (inLoop) {
@@ -416,7 +416,7 @@ export function ThreeGraph3D({
       if (inLoop || isSelected) {
         const ringGeo = new THREE.RingGeometry(radius * 1.35, radius * 1.6, 32);
         const ringMat = new THREE.MeshBasicMaterial({
-          color: inLoop ? 0xef4444 : 0x38bdf8,
+          color: inLoop ? 0xef4444 : 0x3b82f6,
           side: THREE.DoubleSide,
           transparent: true,
           opacity: 0.8,

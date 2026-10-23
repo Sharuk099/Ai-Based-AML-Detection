@@ -100,7 +100,7 @@ function MainApp() {
                 <span className="font-bold text-sm tracking-tight text-foreground">
                   AI AML Detection System
                 </span>
-                <span className="rounded bg-success/20 px-1.5 py-0.2 text-[10px] font-mono text-success font-medium flex items-center gap-1">
+                <span className="rounded bg-primary/20 px-1.5 py-0.2 text-[10px] font-mono text-primary font-medium flex items-center gap-1 border border-primary/30">
                   <CheckCircle2 className="h-3 w-3" /> {activeModel ? "Trained" : "No model"}
                 </span>
               </div>

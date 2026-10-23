@@ -64,7 +64,7 @@ export function DashboardPage() {
             />
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-mono text-xs text-primary">
-                <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+                <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
                 <span>
                   {activeModel
                     ? `${activeModel.name} · Synthetic Held-out Macro F1 ${(activeModel.report.test.macro_f1 * 100).toFixed(1)}%`
