@@ -46,46 +46,64 @@ The platform is architected with a **dual-engine design**:
 - **Client-Side TanStack Engine:** 100% browser-side execution for client confidentiality. Zero banking data leaves the browser session for model scoring.
 - **Standalone Python Engine:** An offline microservice utilizing Scikit-Learn, Pandas, and NetworkX for institutional data-pipeline integration.
 
+```text
++----------------------------------------------------------------------------------------------------+
+|                                    1. INGESTION & SCHEMA AUDIT                                     |
+|  [ Upload Banking CSV ] ---> [ Schema Validator & Column Normalizer ] ---> [ Zero-Leakage Audit ]  |
+|                               (Raw Ledger or Account Profiles)                                     |
++-------------------------------------------------+--------------------------------------------------+
+                                                  |
+                         +------------------------+------------------------+
+                         |                                                 |
+                         v                                                 v
++--------------------------------------------------+ +-----------------------------------------------+
+|         2. MULTI-MODEL ML CONSENSUS              | |           3. GRAPH TOPOLOGY ENGINE            |
+|  * Gradient Boosted Decision Trees (GBDT)        | |  * Directed Weighted Graph Construction       |
+|  * Random Forest Ensemble (Bagged Consensus)     | |  * Bounded Cycle Search (Circular Loops)      |
+|  * Multinomial Logistic Regression Benchmark     | |  * Pass-Through Velocity (Mule Conduits)      |
+|  * Stacking Meta-Classifier Fusion               | |  * Fan-In / Fan-Out Smurfing Aggregations     |
++------------------------+-------------------------+ +-----------------------+-----------------------+
+                         |                                                   |
+                         +------------------------+--------------------------+
+                                                  |
+                                                  v
++----------------------------------------------------------------------------------------------------+
+|                                  4. EXPLAINABILITY & RISK TRIAGE                                   |
+|  * Permutation & SHAP Feature Attributions   * Statutory Indicator Checks (CTR / Structuring)      |
+|  * Triage Stratification: [ LOW RISK ] · [ MEDIUM REVIEW ] · [ HIGH PRIORITY ] · [ UNABLE ]        |
++-------------------------------------------------+--------------------------------------------------+
+                                                  |
+                                                  v
++----------------------------------------------------------------------------------------------------+
+|                               5. INVESTIGATOR FORENSIC WORKBENCH                                   |
+|  [ 3D / 2D Network Graph ] · [ Suspect Account Roster ] · [ Single-Transaction AI Diagnostic ]    |
+|  [ Executive Threat Summary ] · [ Multi-Format Export: PDF / HTML / Markdown / CSV / JSON ]        |
++----------------------------------------------------------------------------------------------------+
+```
+
 ```mermaid
-flowchart TB
-    subgraph INGESTION["1. Data Ingestion & Preprocessing"]
-        A[Uploaded Banking CSV] --> B{Dataset Classifier}
-        B -->|Account Profile CSV| C[Synonym & Schema Normalizer]
-        B -->|Raw Transaction Ledger| D[Transaction Aggregator Engine]
-        D -->|Derive Turnover, In/Out Ratios, Off-Hour Bursts| C
-        C --> E[Data Leakage & Integrity Audit]
-    end
-
-    subgraph ENSEMBLE["2. Multi-Model ML Consensus Engine"]
-        E --> F[Inference Matrix Preparation]
-        F --> G1[Gradient Boosted Decision Trees]
-        F --> G2[Random Forest Ensemble]
-        F --> G3[Multinomial Logistic Regression]
-        F --> G4[Stacking Meta-Classifier]
-        G1 & G2 & G3 & G4 --> H[Consensus Voting & Probability Fusion]
-    end
-
-    subgraph GRAPH["3. Network Graph Analytics"]
-        E --> I[Directed Weighted Graph Builder]
-        I --> J1[Bounded Cycle Detection\nCircular Layering Loops]
-        I --> J2[Pass-Through Velocity\nMule Account Identification]
-        I --> J3[Fan-In / Fan-Out\nAggregation & Smurfing Hubs]
-    end
-
-    subgraph STRATIFICATION["4. Explainability & Risk Policy"]
-        H & J1 & J2 & J3 --> K[Risk Stratification Engine]
-        K --> L1[Permutation Feature Attributions]
-        K --> L2[Corroborating Red Flag Rules]
-        L1 & L2 --> M[Risk Triage: LOW / MEDIUM / HIGH / UNABLE]
-    end
-
-    subgraph WORKBENCH["5. Investigator Forensic Workbench"]
-        M --> N1[Interactive 3D / 2D Graph Visualizer]
-        M --> N2[High-Risk Accounts Under Investigation Roster]
-        M --> N3[Transaction-Level AI Forensic Diagnostic]
-        M --> N4[Automated SAR / STR Regulatory Dossier Generator]
-        N4 --> O[Exports: PDF, HTML, Markdown, CSV, JSON]
-    end
+graph TD
+    A[Uploaded Banking CSV] --> B[Schema & Ingestion Audit]
+    B --> C[Derive Turnover & Aggregations]
+    C --> D[Multi-Model ML Consensus Engine]
+    C --> E[Network Graph Topology Engine]
+    D --> F[Gradient Boosted Decision Trees]
+    D --> G[Random Forest Ensemble]
+    D --> H[Multinomial Logistic Regression]
+    D --> I[Stacking Meta-Classifier]
+    F --> J[Consensus Probabilities & Predictions]
+    G --> J
+    H --> J
+    I --> J
+    E --> K[Circular Layering Loops]
+    E --> L[Mule Pass-Through Velocity]
+    J --> M[Risk Stratification Engine]
+    K --> M
+    L --> M
+    M --> N[Investigator Forensic Workbench]
+    N --> O[3D Network Graph Visualizer]
+    N --> P[Accounts Under Investigation]
+    N --> Q[Automated SAR Regulatory Dossier]
 ```
 
 ---
@@ -97,7 +115,7 @@ The screening lifecycle follows a six-stage sequential verification protocol des
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Officer as Compliance Officer
+    participant Officer as Compliance Officer
     participant UI as Workbench UI
     participant Audit as Schema Auditor
     participant ML as Consensus ML Engine
@@ -106,17 +124,17 @@ sequenceDiagram
     participant SAR as Dossier Generator
 
     Officer->>UI: Upload Transaction Batch (CSV)
-    UI->>Audit: Audit columns, types & detect feature leakage
+    UI->>Audit: Audit columns, types and detect feature leakage
     Audit-->>UI: Audit Pass (or Flag Unsupported Rows)
-    Officer->>UI: Click "Analyze Transactions"
-    UI->>ML: Execute GBDT, RF, LogReg & Stacking models
-    ML-->>UI: Probability distributions & Class predictions
-    UI->>Graph: Build Directed Graph & find closed cycles
-    Graph-->>UI: Topological cycles, flow ratios & hubs
+    Officer->>UI: Click Analyze Transactions
+    UI->>ML: Execute GBDT, RF, LogReg and Stacking models
+    ML-->>UI: Probability distributions and predictions
+    UI->>Graph: Build Directed Graph and find closed cycles
+    Graph-->>UI: Topological cycles, flow ratios and hubs
     UI->>XAI: Compute local feature contributions
     XAI-->>UI: Per-transaction attribution waterfalls
     UI->>SAR: Synthesize Risk Stratification (LOW / MED / HIGH)
-    SAR-->>Officer: Interactive Dashboard, 3D Graph, & Printable SAR
+    SAR-->>Officer: Interactive Dashboard, 3D Graph, and Printable SAR
 ```
 
 ---
