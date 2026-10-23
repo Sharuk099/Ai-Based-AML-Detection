@@ -431,7 +431,7 @@ export function TrainPanel() {
           )}
 
           {/* Events Log Stream */}
-          <div className="max-h-48 overflow-y-auto rounded bg-black/50 p-3 font-mono text-xs text-foreground/90 space-y-1">
+          <div className="max-h-48 overflow-y-auto rounded border border-border bg-muted/60 p-3 font-mono text-xs text-foreground space-y-1">
             {job.events.map((ev, i) => (
               <div key={i} className="flex gap-2 text-muted-foreground">
                 <span className="w-12 text-foreground/60">{ev.t.toFixed(1)}s</span>

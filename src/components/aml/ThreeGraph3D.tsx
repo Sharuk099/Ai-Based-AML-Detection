@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { selectCls } from "./ui";
 import { toast } from "sonner";
+import { useTheme } from "@/components/theme-provider";
 
 export interface Graph3DNode {
   account: string;
@@ -61,9 +62,10 @@ interface ThreeGraph3DProps {
 function createTextSprite(
   text: string,
   badgeText?: string,
-  color: string = "#38bdf8",
-  borderColor: string = "rgba(56, 189, 248, 0.4)",
-  bgColor: string = "rgba(15, 23, 42, 0.9)",
+  color: string = "#2563eb",
+  borderColor: string = "rgba(148, 163, 184, 0.7)",
+  bgColor: string = "rgba(255, 255, 255, 0.96)",
+  textColor: string = "#0f172a",
 ) {
   const canvas = document.createElement("canvas");
   canvas.width = 320;
@@ -74,7 +76,7 @@ function createTextSprite(
   // Background Box
   ctx.fillStyle = bgColor;
   ctx.strokeStyle = borderColor;
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 2.5;
   ctx.beginPath();
   ctx.roundRect(4, 4, 312, 64, 10);
   ctx.fill();
@@ -90,13 +92,13 @@ function createTextSprite(
     ctx.roundRect(14, 16, badgeWidth, 38, 6);
     ctx.fill();
 
-    ctx.fillStyle = "#020617";
+    ctx.fillStyle = "#ffffff";
     ctx.fillText(badgeText, 22, 42);
     textStartX = 18 + badgeWidth + 10;
   }
 
-  // Account Text
-  ctx.fillStyle = "#f8fafc";
+  // Account Text - High contrast for current theme
+  ctx.fillStyle = textColor;
   ctx.font = "bold 20px monospace";
   ctx.textBaseline = "middle";
   ctx.fillText(text, textStartX, 36);
@@ -121,6 +123,8 @@ export function ThreeGraph3D({
   onSelectAccount,
   currencySymbol = "$",
 }: ThreeGraph3DProps) {
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const mountRef = useRef<HTMLDivElement | null>(null);
 
   // Layout & Display Controls - Default is structured directed financial flow (NO galaxy spheres)
@@ -317,7 +321,7 @@ export function ThreeGraph3D({
     // Scene
     const scene = new THREE.Scene();
     sceneRef.current = scene;
-    scene.background = new THREE.Color(0x0a0f1d); // Clean dark slate banking backdrop
+    scene.background = new THREE.Color(isDark ? 0x090d16 : 0xf8fafc); // Crisp slate workbench backdrop (dark/light)
 
     // Camera
     const camera = new THREE.PerspectiveCamera(46, width / height, 1, 3000);
@@ -345,20 +349,25 @@ export function ThreeGraph3D({
     controls.maxDistance = 1400;
     controlsRef.current = controls;
 
-    // Clean Lighting
-    const dirLight1 = new THREE.DirectionalLight(0xffffff, 2.0);
+    // Clean Lighting adapted for current theme
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, isDark ? 1.5 : 1.8);
     dirLight1.position.set(150, 300, 200);
     scene.add(dirLight1);
 
-    const dirLight2 = new THREE.DirectionalLight(0x38bdf8, 1.2);
+    const dirLight2 = new THREE.DirectionalLight(isDark ? 0x3b82f6 : 0x2563eb, isDark ? 0.6 : 0.4);
     dirLight2.position.set(-150, 200, -100);
     scene.add(dirLight2);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
+    const ambientLight = new THREE.AmbientLight(0xffffff, isDark ? 1.6 : 2.2);
     scene.add(ambientLight);
 
     // Crisp Tech Workbench Grid Base
-    const grid = new THREE.GridHelper(900, 36, 0x1e293b, 0x0f172a);
+    const grid = new THREE.GridHelper(
+      900,
+      36,
+      isDark ? 0x334155 : 0x94a3b8,
+      isDark ? 0x1e293b : 0xe2e8f0,
+    );
     grid.position.y = -140;
     scene.add(grid);
 
@@ -448,7 +457,17 @@ export function ThreeGraph3D({
 
         // Only show labels for notable accounts or first 40 to avoid overlap
         if (inLoop || isMule || isSelected || activeNodes.indexOf(node) < 35) {
-          const sprite = createTextSprite(node.account, badge, badgeColor, borderColor);
+          const spriteBg = isDark ? "rgba(15, 23, 42, 0.94)" : "rgba(255, 255, 255, 0.96)";
+          const spriteBorder = isDark ? "rgba(71, 85, 105, 0.85)" : borderColor;
+          const spriteText = isDark ? "#f8fafc" : "#0f172a";
+          const sprite = createTextSprite(
+            node.account,
+            badge,
+            badgeColor,
+            spriteBorder,
+            spriteBg,
+            spriteText,
+          );
           if (sprite) {
             sprite.position.set(0, radius + 11, 0);
             mesh.add(sprite);
@@ -487,18 +506,18 @@ export function ThreeGraph3D({
       const points = curve.getPoints(20);
       const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
 
-      let lineColor = 0x475569; // Clean slate
-      let opacity = 0.35;
+      let lineColor = isDark ? 0x475569 : 0x94a3b8; // Clean slate adapted to theme backdrop
+      let opacity = 0.45;
 
       if (isLoopEdge) {
-        lineColor = 0xef4444; // Bright Crimson
+        lineColor = 0xdc2626; // Bright Crimson
         opacity = 0.95;
       } else if (isConnectedToSelected) {
-        lineColor = e.source === selectedAccount ? 0xf59e0b : 0x38bdf8;
+        lineColor = e.source === selectedAccount ? 0xd97706 : 0x2563eb;
         opacity = 1.0;
       } else if (isMuleEdge) {
-        lineColor = 0xf59e0b; // Amber
-        opacity = 0.65;
+        lineColor = 0xd97706; // Amber
+        opacity = 0.75;
       }
 
       const lineMat = new THREE.LineBasicMaterial({
@@ -532,13 +551,13 @@ export function ThreeGraph3D({
           particlePositions[pIdx * 3 + 2] = pt.z;
 
           if (isLoop) {
-            particleColors[pIdx * 3] = 1.0;
-            particleColors[pIdx * 3 + 1] = 0.2;
-            particleColors[pIdx * 3 + 2] = 0.2;
+            particleColors[pIdx * 3] = 0.86;
+            particleColors[pIdx * 3 + 1] = 0.15;
+            particleColors[pIdx * 3 + 2] = 0.15;
           } else {
-            particleColors[pIdx * 3] = 0.22;
-            particleColors[pIdx * 3 + 1] = 0.74;
-            particleColors[pIdx * 3 + 2] = 0.97;
+            particleColors[pIdx * 3] = 0.15;
+            particleColors[pIdx * 3 + 1] = 0.45;
+            particleColors[pIdx * 3 + 2] = 0.95;
           }
           pIdx++;
         }
@@ -668,6 +687,7 @@ export function ThreeGraph3D({
     loopAccounts,
     muleAccounts,
     onSelectAccount,
+    isDark,
   ]);
 
   // Focus Camera on Selected Account
@@ -744,7 +764,7 @@ export function ThreeGraph3D({
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 24px; color: #0f172a; }
     h1 { margin: 0 0 6px 0; font-size: 20px; color: #0f172a; }
     .meta { font-family: monospace; font-size: 11px; color: #64748b; margin-bottom: 16px; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; }
-    .img-wrap { border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #0a0f1d; text-align: center; margin-bottom: 20px; }
+    .img-wrap { border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #f8fafc; text-align: center; margin-bottom: 20px; }
     img { max-width: 100%; height: auto; display: block; margin: 0 auto; }
     .kpis { display: flex; gap: 16px; margin-bottom: 20px; font-family: monospace; }
     .kpi { padding: 10px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; }
@@ -829,7 +849,7 @@ export function ThreeGraph3D({
   };
 
   return (
-    <div className="relative w-full h-[620px] rounded-lg overflow-hidden border border-border/80 bg-[#0a0f1d] select-none shadow-lg">
+    <div className="relative w-full h-[620px] rounded-lg overflow-hidden border border-border bg-card select-none shadow-sm">
       {/* 3D WebGL Canvas Container */}
       <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 

@@ -611,7 +611,7 @@ Status: Requires Human Review Before SAR Filing`;
             <img
               src="/logo.png"
               alt="AI AML Detection System"
-              className="h-12 w-12 shrink-0 object-contain rounded-lg border border-border/80 p-0.5 bg-black/80 shadow-sm ring-1 ring-primary/20"
+              className="h-12 w-12 shrink-0 object-contain rounded-lg border border-border p-0.5 bg-card shadow-xs"
             />
             <div className="space-y-0.5">
               <span className="text-xl font-bold tracking-tight text-foreground block">

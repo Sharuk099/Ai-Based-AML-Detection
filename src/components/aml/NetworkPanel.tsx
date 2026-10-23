@@ -211,7 +211,7 @@ export function NetworkPanel() {
               </div>
             }
           >
-            <div className="flex items-center justify-center overflow-hidden rounded bg-black/40 p-2">
+            <div className="flex items-center justify-center overflow-hidden rounded border border-border bg-card p-2 shadow-xs">
               <svg
                 width="520"
                 height="420"
@@ -227,7 +227,7 @@ export function NetworkPanel() {
                     refY="3"
                     orient="auto"
                   >
-                    <polygon points="0 0, 6 3, 0 6" fill="rgba(255, 255, 255, 0.4)" />
+                    <polygon points="0 0, 6 3, 0 6" fill="rgba(148, 163, 184, 0.7)" />
                   </marker>
                 </defs>
 
@@ -246,7 +246,7 @@ export function NetworkPanel() {
                       y1={s.y}
                       x2={t.x}
                       y2={t.y}
-                      stroke={isHighlighted ? "var(--primary)" : "rgba(255, 255, 255, 0.15)"}
+                      stroke={isHighlighted ? "var(--primary)" : "rgba(148, 163, 184, 0.45)"}
                       strokeWidth={isHighlighted ? 2.5 : 1}
                       markerEnd="url(#arrowhead)"
                     />
@@ -259,7 +259,7 @@ export function NetworkPanel() {
                   if (!pos) return null;
                   const isFlagged = summary.indicators.some((ind) => ind.account === node.account);
                   const isSelected = selectedAccount === node.account;
-                  const circleColor = isFlagged ? "oklch(0.63 0.21 25)" : "oklch(0.8 0.15 80)";
+                  const circleColor = isFlagged ? "oklch(0.56 0.22 25)" : "oklch(0.52 0.22 255)";
 
                   return (
                     <g
@@ -271,8 +271,8 @@ export function NetworkPanel() {
                       <circle
                         r={isSelected ? 16 : 12}
                         fill={circleColor}
-                        fillOpacity={isSelected ? 0.9 : 0.6}
-                        stroke={isSelected ? "#fff" : circleColor}
+                        fillOpacity={isSelected ? 0.95 : 0.75}
+                        stroke={isSelected ? "#0f172a" : circleColor}
                         strokeWidth={isSelected ? 2.5 : 1}
                       />
                       <text

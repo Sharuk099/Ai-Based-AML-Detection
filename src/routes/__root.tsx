@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportAppError } from "../lib/error-reporting";
+import { ThemeProvider } from "../components/theme-provider";
 
 function NotFoundComponent() {
   return (
@@ -113,8 +114,29 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function() {
+              try {
+                var stored = localStorage.getItem('aml_theme');
+                var isDark = stored === 'dark';
+                if (stored === 'system' || !stored) {
+                  isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                }
+                if (stored === 'light') isDark = false;
+                if (isDark) {
+                  document.documentElement.classList.add('dark');
+                  document.documentElement.style.colorScheme = 'dark';
+                } else {
+                  document.documentElement.classList.remove('dark');
+                  document.documentElement.style.colorScheme = 'light';
+                }
+              } catch (e) {}
+            })();`,
+          }}
+        />
         <HeadContent />
       </head>
       <body>
@@ -130,8 +152,10 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <ThemeProvider defaultTheme="light">
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

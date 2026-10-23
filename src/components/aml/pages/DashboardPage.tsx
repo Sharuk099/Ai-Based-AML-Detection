@@ -54,16 +54,16 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Top Banner: Status & Quick Action */}
-      <div className="panel relative overflow-hidden border-primary/40 bg-gradient-to-br from-card via-card to-primary/10 p-6 md:p-8">
+      <div className="panel relative overflow-hidden border-border bg-gradient-to-br from-card via-card to-primary/5 p-6 md:p-8 shadow-xs">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
           <div className="flex items-start gap-4 max-w-2xl">
             <img
               src="/logo.png"
               alt="AI AML Detection System Logo"
-              className="hidden sm:block h-20 w-20 shrink-0 object-contain rounded-xl border border-primary/40 bg-card/90 p-1.5 shadow-lg shadow-primary/10"
+              className="hidden sm:block h-20 w-20 shrink-0 object-contain rounded-xl border border-border bg-card p-1.5 shadow-xs"
             />
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-mono text-xs text-primary">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 font-mono text-xs text-primary font-semibold">
                 <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
                 <span>
                   {activeModel
@@ -86,7 +86,7 @@ export function DashboardPage() {
               size="lg"
               onClick={handleAnalyzeClick}
               disabled={isAnalyzing}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold px-6 shadow-lg shadow-primary/20 text-sm tracking-wide"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold px-6 shadow-xs text-sm tracking-wide cursor-pointer"
             >
               <Play className="mr-2 h-4 w-4 fill-current" />
               {isAnalyzing ? "Analyzing Transactions..." : "ANALYZE TRANSACTIONS"}
@@ -95,7 +95,7 @@ export function DashboardPage() {
               size="lg"
               variant="outline"
               onClick={() => setTab("upload")}
-              className="border-border text-foreground hover:bg-muted text-sm font-medium"
+              className="border-border text-foreground hover:bg-muted text-sm font-medium cursor-pointer"
             >
               <Upload className="mr-2 h-4 w-4" />
               Upload CSV

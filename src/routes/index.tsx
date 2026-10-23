@@ -25,6 +25,7 @@ import { ModelsPanel } from "@/components/aml/ModelsPanel";
 import { WorkflowGuideModal } from "@/components/aml/WorkflowGuideModal";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -86,21 +87,21 @@ function MainApp() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
       {/* Top Application Header */}
-      <header className="sticky top-0 z-40 border-b border-border/80 bg-background/95 backdrop-blur-md">
+      <header className="sticky top-0 z-40 border-b border-border bg-card/90 backdrop-blur-md shadow-xs">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
           {/* Logo & Platform Info */}
           <div className="flex items-center gap-3">
             <img
               src="/logo.png"
               alt="AI AML Detection System Logo"
-              className="h-10 w-10 shrink-0 object-contain rounded-lg border border-primary/40 bg-card p-0.5 shadow-md shadow-primary/20"
+              className="h-10 w-10 shrink-0 object-contain rounded-lg border border-border bg-card p-0.5 shadow-xs"
             />
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-bold text-sm tracking-tight text-foreground">
                   AI AML Detection System
                 </span>
-                <span className="rounded bg-primary/20 px-1.5 py-0.2 text-[10px] font-mono text-primary font-medium flex items-center gap-1 border border-primary/30">
+                <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-mono text-primary font-semibold flex items-center gap-1 border border-primary/20">
                   <CheckCircle2 className="h-3 w-3" /> {activeModel ? "Trained" : "No model"}
                 </span>
               </div>
@@ -112,10 +113,12 @@ function MainApp() {
 
           {/* Quick Active Status & 1-Click Action */}
           <div className="flex items-center gap-2.5">
+            <ThemeToggle />
+
             <WorkflowGuideModal />
 
             {activeDs && (
-              <div className="hidden md:flex items-center gap-2 rounded border border-border/70 bg-card px-3 py-1 text-xs font-mono">
+              <div className="hidden md:flex items-center gap-2 rounded border border-border bg-muted/50 px-3 py-1 text-xs font-mono">
                 <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
                 <span className="text-foreground font-semibold truncate max-w-[150px]">
                   {activeDs.name}
@@ -132,7 +135,7 @@ function MainApp() {
                 if (!activeDs) setTab("upload");
                 else setTab("analyze");
               }}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-bold shadow-md shadow-primary/20"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-bold shadow-xs cursor-pointer"
             >
               <Play className="mr-1.5 h-3.5 w-3.5 fill-current" />
               {activeDs ? "Analyze Transactions" : "Upload File"}
